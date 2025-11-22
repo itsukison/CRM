@@ -1,9 +1,10 @@
 'use client';
 
+import React from 'react';
 import { useRouter } from 'next/navigation';
-import { LandingPage } from '@/components/LandingPage';
+import { LandingPage } from '../components/LandingPage';
 
-export default function HomePage() {
+const HomePage: React.FC = () => {
     const router = useRouter();
 
     const handleEnter = () => {
@@ -11,4 +12,6 @@ export default function HomePage() {
     };
 
     return <LandingPage onEnter={handleEnter} />;
-}
+};
+
+export default HomePage;
