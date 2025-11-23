@@ -1,3 +1,5 @@
+export const COMPANY_COLUMN_ID = 'company_name';
+
 export type ColumnType = 'text' | 'number' | 'tag' | 'url' | 'email' | 'date';
 
 export type TextOverflowMode = 'wrap' | 'clip' | 'visible';

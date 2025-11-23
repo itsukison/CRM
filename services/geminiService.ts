@@ -1,121 +1,28 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
-import { Column, Row, TableData } from "../types";
+import { GoogleGenAI } from "@google/genai";
+import { TableData } from "../types";
 
 const getClient = () => {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_GENAI_API_KEY;
 
   if (!apiKey) {
-    console.error("Available env vars:", Object.keys(process.env).filter(k => k.startsWith('NEXT_PUBLIC')));
-    throw new Error("API Key not found. Please set NEXT_PUBLIC_GOOGLE_GENAI_API_KEY in .env");
+    console.error(
+      "Available env vars:",
+      Object.keys(process.env).filter((k) => k.startsWith("NEXT_PUBLIC"))
+    );
+    throw new Error(
+      "API Key not found. Please set NEXT_PUBLIC_GOOGLE_GENAI_API_KEY in .env"
+    );
   }
   return new GoogleGenAI({ apiKey });
 };
 
-// 1. Generate Data for a Table
-export const generateRows = async (
-  columns: Column[],
-  count: number,
-  context: string
-): Promise<Row[]> => {
-  const ai = getClient();
-
-  const properties: Record<string, any> = {};
-  const propertyOrdering: string[] = [];
-
-  columns.forEach(col => {
-    properties[col.id] = {
-      type: col.type === 'number' ? Type.NUMBER : Type.STRING,
-      description: col.description || col.title
-    };
-    propertyOrdering.push(col.id);
-  });
-
-  const prompt = `コンテキスト: "${context}" に基づいて、テーブル用のデータを${count}行生成してください。
-  データは日本語で、現実的かつ多様な内容にしてください。
-  JSON配列として返してください。`;
-
-  try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: properties,
-            propertyOrdering: propertyOrdering
-          }
-        }
-      }
-    });
-
-    const rawData = JSON.parse(response.text || "[]");
-
-    // Add unique IDs to rows
-    return rawData.map((row: any) => ({
-      ...row,
-      id: `gen_${Math.random().toString(36).substr(2, 9)}`
-    }));
-  } catch (error) {
-    console.error("Generation error:", error);
-    throw error;
-  }
-};
-
-// 2. Data Enrichment with Google Search
-export const enrichRowData = async (
-  row: Row,
-  targetColumn: Column,
-  otherColumns: Column[]
-): Promise<string | number> => {
-  const ai = getClient();
-
-  // Construct a context string from the existing row data
-  const rowContext = otherColumns
-    .map(c => `${c.title}: ${row[c.id]}`)
-    .join(', ');
-
-  const prompt = `
-    私は以下のデータを持っています: { ${rowContext} }。
-    この情報に基づいて、カラム "${targetColumn.title}" (${targetColumn.description}) の値をGoogle検索を使って見つけてください。
-    最新かつ正確な情報を探してください。
-    値のみを返してください。数値の場合は数値のみを返してください。
-  `;
-
-  try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-      config: {
-        tools: [{ googleSearch: {} }],
-      },
-    });
-
-    const result = response.text?.trim();
-    if (!result) return "";
-
-    // Simple parsing based on expected type
-    if (targetColumn.type === 'number') {
-      const num = parseFloat(result.replace(/[^0-9.-]+/g, ""));
-      return isNaN(num) ? result : num;
-    }
-
-    return result;
-  } catch (error) {
-    console.error("Enrichment error:", error);
-    return "取得エラー";
-  }
-};
-
-// 3. Chat Interface - Analyze Intent & Filter
+// Chat Interface - Analyze Intent & Filter
 export const analyzeChatIntent = async (
   userMessage: string,
   currentTable: TableData,
-  selectionContext: { selectedRowIds: string[], selectedCellIds: string[] },
-  mode: 'chat' | 'agent' = 'chat'
+  selectionContext: { selectedRowIds: string[]; selectedCellIds: string[] },
+  mode: "chat" | "agent" = "chat"
 ) => {
   const ai = getClient();
 

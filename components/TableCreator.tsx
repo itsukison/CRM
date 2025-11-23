@@ -1,6 +1,6 @@
 // TableCreator component - simplified version without AI data generation
 import React, { useState } from 'react';
-import { Column, TableData, columnToDefinition, Row } from '../types';
+import { Column, TableData, columnToDefinition, Row, COMPANY_COLUMN_ID } from '../types';
 import { IconPlus, IconTrash } from './Icons';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -18,15 +18,15 @@ export const TableCreator: React.FC<TableCreatorProps> = ({ onTableCreated, onCa
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [columns, setColumns] = useState<Column[]>([
-        { id: 'col_1', title: '会社名', type: 'text', description: '企業名' },
-        { id: 'col_2', title: '業界', type: 'tag', description: '業界・業種' },
-        { id: 'col_3', title: '担当者名', type: 'text', description: '担当者の名前' },
-        { id: 'col_4', title: 'メール', type: 'email', description: '連絡先メールアドレス' },
+        { id: COMPANY_COLUMN_ID, title: '会社名', type: 'text' },
+        { id: 'col_2', title: '業界', type: 'tag' },
+        { id: 'col_3', title: '担当者名', type: 'text' },
+        { id: 'col_4', title: 'メール', type: 'email' },
     ]);
 
     const addColumn = () => {
         const newId = `col_${columns.length + 1}`;
-        setColumns([...columns, { id: newId, title: '', type: 'text', description: '' }]);
+        setColumns([...columns, { id: newId, title: '', type: 'text' }]);
     };
 
     const removeColumn = (index: number) => {
@@ -48,13 +48,45 @@ export const TableCreator: React.FC<TableCreatorProps> = ({ onTableCreated, onCa
     const createTableWithPlaceholders = () => {
         try {
             // Convert Column to ColumnDefinition
-            const columnDefinitions = columns.map((col, idx) => columnToDefinition(col, idx));
-            // Limit to 10 columns as per requirement
-            const limitedColumns = columnDefinitions.slice(0, 10);
+            const columnDefinitions = columns.map((col, idx) => ({
+                ...columnToDefinition(col, idx),
+                textOverflow: 'clip' as const // Set default to clip
+            }));
+
+            const MIN_COLUMNS = 10;
+
+            // Pad to minimum 10 columns (A~J)
+            let finalColumns = [...columnDefinitions];
+            if (finalColumns.length < MIN_COLUMNS) {
+                const needed = MIN_COLUMNS - finalColumns.length;
+                const getColumnLetter = (colIndex: number) => {
+                    let letter = '';
+                    while (colIndex >= 0) {
+                        letter = String.fromCharCode((colIndex % 26) + 65) + letter;
+                        colIndex = Math.floor(colIndex / 26) - 1;
+                    }
+                    return letter;
+                };
+
+                for (let i = 0; i < needed; i++) {
+                    const colIndex = finalColumns.length + i;
+                    const colLetter = getColumnLetter(colIndex);
+                    finalColumns.push({
+                        id: `col_placeholder_${Date.now()}_${i}`,
+                        name: `Column ${colLetter}`,
+                        type: 'text',
+                        description: '',
+                        required: false,
+                        order: colIndex,
+                        textOverflow: 'clip' as const
+                    });
+                }
+            }
+
             // Generate 50 placeholder rows (empty values) with required 'id'
             const placeholderRows: Row[] = Array.from({ length: 50 }, (_, i) => {
                 const row: Row = { id: `row_${Date.now()}_${i}` };
-                limitedColumns.forEach(col => {
+                finalColumns.forEach(col => {
                     (row as any)[col.id] = null; // empty placeholder
                 });
                 return row;
@@ -64,7 +96,7 @@ export const TableCreator: React.FC<TableCreatorProps> = ({ onTableCreated, onCa
                 org_id: orgId || 'default',
                 name,
                 description,
-                columns: limitedColumns,
+                columns: finalColumns,
                 rows: placeholderRows,
             };
             onTableCreated(newTable);
@@ -106,7 +138,7 @@ export const TableCreator: React.FC<TableCreatorProps> = ({ onTableCreated, onCa
                         <Label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">スキーマ定義</Label>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {columns.map((col, idx) => (
-                                <div key={col.id} className="flex gap-3 items-start p-4 bg-gray-50 border border-gray-100 rounded-lg group hover:border-gray-300 transition-all relative">
+                                <div key={col.id} className="flex gap-3 items-center p-4 bg-gray-50 border border-gray-200 group hover:border-gray-400 transition-all relative" style={{ borderRadius: '4px' }}>
                                     <button
                                         onClick={() => removeColumn(idx)}
                                         className="absolute top-2 right-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -114,20 +146,13 @@ export const TableCreator: React.FC<TableCreatorProps> = ({ onTableCreated, onCa
                                     >
                                         <IconTrash className="w-3.5 h-3.5" />
                                     </button>
-                                    <div className="flex-1 space-y-2">
+                                    <div className="flex-1">
                                         <Input
                                             type="text"
                                             value={col.title}
                                             onChange={e => updateColumn(idx, 'title', e.target.value)}
-                                            className="border-0 border-b border-gray-300 rounded-none px-0 focus-visible:ring-0 focus-visible:border-blue-600 font-bold placeholder:font-normal"
+                                            className="border-0 rounded-none px-0 focus-visible:ring-0 focus-visible:border-blue-600 font-bold placeholder:font-normal"
                                             placeholder="カラム名"
-                                        />
-                                        <Input
-                                            type="text"
-                                            value={col.description || ''}
-                                            onChange={e => updateColumn(idx, 'description', e.target.value)}
-                                            className="border-0 h-auto py-0 px-0 text-xs text-gray-500 focus-visible:ring-0 placeholder:text-gray-300"
-                                            placeholder="説明 (オプション)"
                                         />
                                     </div>
                                     <div className="w-32">

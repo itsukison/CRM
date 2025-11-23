@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/Sidebar';
@@ -8,6 +8,7 @@ import { OrganizationSwitcher } from '@/components/OrganizationSwitcher';
 import { AsciiBackground } from '@/components/AsciiBackground';
 import { getTables } from '@/services/tableService';
 import { TableData } from '@/types';
+import { TablesProvider } from '@/contexts/TablesContext';
 import { Toaster } from '@/components/ui/sonner';
 
 export default function DashboardLayout({
@@ -127,9 +128,11 @@ export default function DashboardLayout({
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-auto">
-                    {children}
-                </div>
+                <TablesProvider tables={tables}>
+                    <div className="flex-1 overflow-auto">
+                        {children}
+                    </div>
+                </TablesProvider>
             </main>
             <Toaster />
         </div>

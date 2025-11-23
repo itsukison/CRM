@@ -269,7 +269,7 @@ While the`google_search`tool is recommended for Gemini 2.0 and later, Gemini 1.5
     )
 
     response = client.models.generate_content(
-        model='gemini-2.5-flash',
+        model='gemini-1.5-flash',
         contents="Who won the euro 2024?",
         config=config,
     )

@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { TableData } from '../types';
-import { IconDatabase } from '../components/Icons';
-import { useAuth } from '../contexts/AuthContext';
-import { getTables } from '../services/tableService';
+import { useTables } from '../contexts/TablesContext';
+
 
 import {
     DropdownMenu,
@@ -25,41 +24,20 @@ import {
 } from "../components/ui/alert-dialog";
 import { deleteTable } from '../services/tableService';
 import { toast } from 'sonner';
-import { IconDots, IconTrash } from '../components/Icons';
+import { IconDatabase, IconDots, IconTrash } from '../components/Icons';
 
 const DashboardPage: React.FC = () => {
     const router = useRouter();
-    const { currentOrganization, loading: authLoading } = useAuth();
-    const [tables, setTables] = useState<TableData[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const { tables } = useTables();
     const [tableToDelete, setTableToDelete] = useState<string | null>(null);
+    const [localTables, setLocalTables] = useState<TableData[]>(tables);
 
-    useEffect(() => {
-        async function fetchTables() {
-            if (!currentOrganization) {
-                setTables([]);
-                setLoading(false);
-                return;
-            }
+    // Update local tables when prop changes
+    React.useEffect(() => {
+        setLocalTables(tables);
+    }, [tables]);
 
-            try {
-                setLoading(true);
-                const { tables, error } = await getTables(currentOrganization.id);
-                if (error) throw error;
-                setTables(tables);
-            } catch (err) {
-                console.error('Error fetching tables:', err);
-                setError('テーブルの取得に失敗しました');
-            } finally {
-                setLoading(false);
-            }
-        }
 
-        if (!authLoading) {
-            fetchTables();
-        }
-    }, [currentOrganization, authLoading]);
 
     const handleTableClick = (tableId: string) => {
         router.push(`/dashboard/tables/${tableId}`);
@@ -78,47 +56,28 @@ const DashboardPage: React.FC = () => {
             toast.error('テーブルの削除に失敗しました');
         } else {
             toast.success('テーブルを削除しました');
-            setTables(prev => prev.filter(t => t.id !== tableToDelete));
+            setLocalTables(prev => prev.filter(t => t.id !== tableToDelete));
         }
         setTableToDelete(null);
     };
 
-    if (loading || authLoading) {
-        return (
-            <div className="flex items-center justify-center h-full">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            </div>
-        );
-    }
 
-    if (error) {
-        return (
-            <div className="flex items-center justify-center h-full text-red-500">
-                {error}
-            </div>
-        );
-    }
 
     return (
         <div className="p-12 animate-in fade-in duration-500 overflow-y-auto h-full">
             <div className="flex justify-between items-center mb-8">
                 <h1 className="text-4xl font-bold tracking-tight text-[#323232]">ダッシュボード</h1>
-                {currentOrganization && (
-                    <span className="px-3 py-1 bg-gray-100 rounded-full text-sm font-medium text-gray-600">
-                        {currentOrganization.name}
-                    </span>
-                )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
                 <div className="p-6 border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all group">
                     <h3 className="text-gray-500 text-xs font-bold font-mono uppercase tracking-wider mb-2 group-hover:text-blue-600">データベース数</h3>
-                    <p className="text-4xl font-bold tracking-tighter text-[#323232]">{tables.length}</p>
+                    <p className="text-4xl font-bold tracking-tighter text-[#323232]">{localTables.length}</p>
                 </div>
                 <div className="p-6 border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all group">
                     <h3 className="text-gray-500 text-xs font-bold font-mono uppercase tracking-wider mb-2 group-hover:text-blue-600">総レコード数</h3>
                     <p className="text-4xl font-bold tracking-tighter text-[#323232]">
-                        {tables.reduce((acc, t) => acc + (t.rows?.length || 0), 0)}
+                        {localTables.reduce((acc, t) => acc + (t.rows?.length || 0), 0)}
                     </p>
                 </div>
                 <div className="p-6 border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all group">
@@ -132,7 +91,7 @@ const DashboardPage: React.FC = () => {
 
             <h2 className="text-xl font-bold mb-6 tracking-tight text-[#323232] border-b border-gray-100 pb-2">データベース一覧</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {tables.map(table => (
+                {localTables.map(table => (
                     <div
                         key={table.id}
                         onClick={() => handleTableClick(table.id)}

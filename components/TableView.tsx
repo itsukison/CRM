@@ -1,11 +1,18 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { TableData, Row, Column, ColumnDefinition, ColumnType, SortState, Filter, TextOverflowMode, definitionToColumn, columnToDefinition } from '../types';
-import { enrichRowData, generateRows } from '../services/geminiService';
+import { identifyCompanies, scrapeCompanyDetails } from '../services/companyService';
+import type { EnrichmentProgress, GenerationProgress } from '../services/enrichmentService';
 import {
     IconSparkles, IconPlus, IconTrash, IconCheck, IconBolt, IconX, IconDatabase, IconSettings,
-    IconFilter, IconSort, IconChevronRight, IconWrapText, IconClip, IconOverflowVisible
+    IconFilter, IconSort, IconChevronRight, IconWrapText, IconClip, IconOverflowVisible,
+    IconFileText, IconAlertTriangle, IconInfo, IconSearch
 } from './Icons';
+
+// ... (rest of imports)
+
+// ... (inside component)
+
 import {
     AlertDialog,
     AlertDialogAction,
@@ -144,6 +151,9 @@ export const TableView: React.FC<TableViewProps> = ({
     const [loadingCells, setLoadingCells] = useState<Set<string>>(new Set());
     const [generatingRowIds, setGeneratingRowIds] = useState<Set<string>>(new Set());
 
+    // Enrichment Progress State (NEW)
+    const [enrichmentProgress, setEnrichmentProgress] = useState<Map<string, EnrichmentProgress>>(new Map());
+
     // Generation Inputs
     const [genPrompt, setGenPrompt] = useState('');
     const [genCount, setGenCount] = useState(3);
@@ -152,6 +162,9 @@ export const TableView: React.FC<TableViewProps> = ({
 
     // Enrichment Inputs
     const [enrichTargetCols, setEnrichTargetCols] = useState<Set<string>>(new Set());
+
+    // Generation Progress State (NEW)
+    const [generationProgress, setGenerationProgress] = useState<GenerationProgress | null>(null);
 
     // New Filter/Sort Inputs (for adding NEW rules)
     const [newFilter, setNewFilter] = useState<Filter>({ columnId: '', operator: 'contains', value: '' });
@@ -189,7 +202,16 @@ export const TableView: React.FC<TableViewProps> = ({
 
     // Helper to check for placeholder columns
     const isPlaceholderColumn = useCallback((col: Column) => {
-        return /^Column \d+$/.test(col.title) && (!col.description || col.description.trim() === '');
+        const title = (col.title || '').trim();
+        const isAutoColumnNumber = /^Column \d+$/i.test(title);
+        const isAutoColumnLetter = /^Column [A-Z]+$/i.test(title);
+        const hasNoDescription = !col.description || col.description.trim() === '';
+
+        // Treat unnamed or auto-generated "Column X" / "Column A" style headers as placeholders
+        if (!title) return true;
+        if ((isAutoColumnNumber || isAutoColumnLetter) && hasNoDescription) return true;
+
+        return false;
     }, []);
 
     useEffect(() => {
@@ -206,6 +228,12 @@ export const TableView: React.FC<TableViewProps> = ({
     // Ensure we have enough empty rows for spreadsheet feel
     useEffect(() => {
         const MIN_ROWS = 50;
+        const MIN_COLUMNS = 10;
+
+        let needsUpdate = false;
+        let updatedTable = { ...table };
+
+        // Check and add minimum rows
         if (table.rows.length < MIN_ROWS) {
             const needed = MIN_ROWS - table.rows.length;
             const newRows: Row[] = [];
@@ -214,11 +242,51 @@ export const TableView: React.FC<TableViewProps> = ({
                 table.columns.forEach(c => r[c.id] = '');
                 newRows.push(r);
             }
+            updatedTable.rows = [...table.rows, ...newRows];
+            needsUpdate = true;
+        }
+
+        // Check and add minimum columns (A~J = 10 columns)
+        if (table.columns.length < MIN_COLUMNS) {
+            const needed = MIN_COLUMNS - table.columns.length;
+            const newColumns: ColumnDefinition[] = [];
+
+            for (let i = 0; i < needed; i++) {
+                const colIndex = table.columns.length + i;
+                const colLetter = getColumnLetter(colIndex);
+                const newColId = `col_placeholder_${Date.now()}_${i}`;
+
+                newColumns.push({
+                    id: newColId,
+                    name: `Column ${colLetter}`,
+                    type: 'text',
+                    description: '',
+                    required: false,
+                    order: colIndex,
+                    textOverflow: 'clip' // Set default to clip
+                });
+            }
+
+            updatedTable.columns = [...table.columns, ...newColumns];
+
+            // Add empty values for new columns to all existing rows
+            updatedTable.rows = updatedTable.rows.map(row => {
+                const newRow = { ...row };
+                newColumns.forEach(col => {
+                    newRow[col.id] = '';
+                });
+                return newRow;
+            });
+
+            needsUpdate = true;
+        }
+
+        if (needsUpdate) {
             setTimeout(() => {
-                onUpdateTable(prev => ({ ...prev, rows: [...prev.rows, ...newRows] }));
+                onUpdateTable(updatedTable);
             }, 0);
         }
-    }, [table.rows.length, table.columns]);
+    }, [table.rows.length, table.columns.length]);
 
     // --- Column Resize Logic ---
     const handleColResizeMove = useCallback((e: MouseEvent) => {
@@ -532,11 +600,11 @@ export const TableView: React.FC<TableViewProps> = ({
     };
 
 
-    // --- Generation Logic ---
+    // --- Generation Logic with Two-Phase Approach (row-based, shared with WebScraper) ---
     const handleGenerateStart = async () => {
         setShowGenPanel(false);
         setGenPrompt('');
-
+        // 1. Ensure columns (including any new ones) are present
         let currentColumns = [...table.columns];
         const newColsCreated: Column[] = [];
 
@@ -558,118 +626,309 @@ export const TableView: React.FC<TableViewProps> = ({
             newColsCreated.forEach(c => genSelectedColIds.add(c.id));
         }
 
-        const columnsToGenerate = currentColumns.filter(c => genSelectedColIds.has(c.id) || newColsCreated.find(nc => nc.id === c.id));
+        const columnsToGenerate = currentColumns.filter(c =>
+            genSelectedColIds.has(c.id) || newColsCreated.find(nc => nc.id === c.id)
+        );
 
-        // Convert ColumnDefinition to Column for generateRows function
+        // Convert ColumnDefinition to Column for easier handling
         const columnsForGeneration = columnsToGenerate.map(definitionToColumn);
 
-        // Logic to find existing empty rows to fill
-        const emptyRowIndices = table.rows.reduce((acc, row, idx) => {
-            const isEmpty = table.columns.every(col => !row[col.id] || row[col.id] === '');
-            if (isEmpty) acc.push(idx);
-            return acc;
-        }, [] as number[]);
-
-        const availableIndices = emptyRowIndices.slice(0, genCount);
-        const newRowsNeeded = genCount - availableIndices.length;
-
-        const targetRowIds = new Set<string>();
-        availableIndices.forEach(idx => targetRowIds.add(table.rows[idx].id));
-
-        const newPlaceholderRows: Row[] = [];
-        for (let i = 0; i < newRowsNeeded; i++) {
-            const id = `gen_temp_${Date.now()}_${i}`;
-            const row: Row = { id };
-            currentColumns.forEach(c => row[c.id] = '');
-            newPlaceholderRows.push(row);
-            targetRowIds.add(id);
-        }
-
-        if (newPlaceholderRows.length > 0) {
-            onUpdateTable(prev => ({ ...prev, rows: [...prev.rows, ...newPlaceholderRows] }));
-        }
-
-        setGeneratingRowIds(targetRowIds);
+        // Clear generation progress
+        setGenerationProgress(null);
+        setGeneratingRowIds(new Set());
 
         try {
-            const generatedRows = await generateRows(columnsForGeneration, genCount, genPrompt || `既存のデータと同様のもの`);
+            // 2. Identify company names (batch) – shared with WebScraper
+            const query = genPrompt || '日本の実在する企業';
+            setGenerationProgress({
+                phase: 'generating_names',
+                currentRow: 0,
+                totalRows: genCount
+            });
+
+            const companyNames = await identifyCompanies(query, genCount);
+
+            if (!companyNames || companyNames.length === 0) {
+                throw new Error('企業名の生成に失敗しました');
+            }
+
+            // Determine company name column (prefer canonical id or name-like titles)
+            const columnsAsLegacy = currentColumns.map(definitionToColumn);
+            const companyNameColumn =
+                columnsAsLegacy.find(c => c.id === 'company_name') ||
+                columnsAsLegacy.find(c =>
+                    c.title.includes('会社') ||
+                    c.title.includes('企業') ||
+                    c.title.toLowerCase().includes('company') ||
+                    c.title.toLowerCase().includes('name')
+                ) ||
+                columnsAsLegacy[0];
+
+            if (!companyNameColumn) {
+                throw new Error('会社名カラムが見つかりません');
+            }
+
+            // 3. Reuse existing empty rows where possible and place new records
+            //    directly below the last non-empty row.
+            const baseRows: Row[] = [];
+
             onUpdateTable(prev => {
-                const newRows = [...prev.rows];
-                const targetIds = Array.from(targetRowIds);
+                const rowsCopy = [...prev.rows];
 
-                generatedRows.forEach((genRow, i) => {
-                    if (i >= targetIds.length) return;
-                    const tId = targetIds[i];
-                    const rIdx = newRows.findIndex(r => r.id === tId);
+                // Helper to determine if a row has any meaningful data
+                const rowHasData = (row: Row) =>
+                    currentColumns.some(col => {
+                        const v = row[col.id];
+                        return v !== undefined && v !== null && String(v).trim() !== '';
+                    });
 
-                    if (rIdx !== -1) {
-                        const updatedRow = { ...newRows[rIdx] };
-                        columnsToGenerate.forEach(col => {
-                            updatedRow[col.id] = genRow[col.id] || '';
-                        });
-                        newRows[rIdx] = updatedRow;
+                // Find last row index that has any data
+                let lastFilledIndex = -1;
+                for (let i = 0; i < rowsCopy.length; i++) {
+                    if (rowHasData(rowsCopy[i])) {
+                        lastFilledIndex = i;
                     }
+                }
+
+                const effectiveNames = companyNames.slice(0, genCount);
+                const insertStart = lastFilledIndex + 1;
+
+                effectiveNames.forEach((name, idx) => {
+                    const targetIndex = insertStart + idx;
+                    let row: Row;
+
+                    if (targetIndex < rowsCopy.length) {
+                        // Reuse existing placeholder/empty row
+                        row = { ...rowsCopy[targetIndex] };
+                    } else {
+                        // Not enough existing rows – append a new one
+                        row = { id: `gen_${Date.now()}_${idx}` };
+                        currentColumns.forEach(col => {
+                            row[col.id] = '';
+                        });
+                    }
+
+                    row[companyNameColumn.id] = name;
+                    rowsCopy[targetIndex] = row;
+                    baseRows.push(row);
                 });
-                return { ...prev, rows: newRows };
+
+                return { ...prev, rows: rowsCopy };
+            });
+
+            const generatedRowIds = new Set<string>();
+
+            // 4. Enrich each row sequentially (one API call per row)
+            setGenerationProgress({
+                phase: 'enriching_details',
+                currentRow: 0,
+                totalRows: baseRows.length
+            });
+
+            for (let i = 0; i < baseRows.length; i++) {
+                const row = baseRows[i];
+                const companyName = row[companyNameColumn.id] as string;
+
+                setGenerationProgress({
+                    phase: 'enriching_details',
+                    currentRow: i + 1,
+                    totalRows: baseRows.length,
+                    currentColumn: companyNameColumn.title,
+                    rowId: row.id
+                });
+
+                setGeneratingRowIds(prev => {
+                    const next = new Set(prev);
+                    next.add(row.id);
+                    return next;
+                });
+
+                const targetColumnTitles = columnsForGeneration.map(c => c.title);
+
+                try {
+                    const { data } = await scrapeCompanyDetails(companyName, targetColumnTitles);
+
+                    const updatedRow: Row = { ...row };
+                    columnsForGeneration.forEach(col => {
+                        const value = data[col.title];
+                        if (value !== undefined) {
+                            updatedRow[col.id] = value;
+                        }
+                    });
+
+                    generatedRowIds.add(updatedRow.id);
+
+                    onUpdateTable(prev => {
+                        const existingIdx = prev.rows.findIndex(r => r.id === updatedRow.id);
+                        const newRows = [...prev.rows];
+                        if (existingIdx !== -1) {
+                            newRows[existingIdx] = updatedRow;
+                        } else {
+                            newRows.push(updatedRow);
+                        }
+                        return { ...prev, rows: newRows };
+                    });
+                } catch (e) {
+                    console.error(`Failed to enrich row for ${companyName}`, e);
+                } finally {
+                    setGeneratingRowIds(prev => {
+                        const next = new Set(prev);
+                        next.delete(row.id);
+                        return next;
+                    });
+                }
+            }
+
+            setGenerationProgress({
+                phase: 'complete',
+                currentRow: baseRows.length,
+                totalRows: baseRows.length
             });
         } catch (e) {
             console.error(e);
             alert("生成に失敗しました");
         } finally {
             setGeneratingRowIds(new Set());
+            setGenerationProgress(null);
             setGenNewColsString('');
         }
     };
 
-    // --- Enrichment Logic ---
+    // --- Enrichment Logic (row-based, using shared company service) ---
     const handleEnrichmentStart = async () => {
         if (selectedRowIds.size === 0 || enrichTargetCols.size === 0) return;
         setShowEnrichPanel(false);
 
         const targetColIds = Array.from(enrichTargetCols);
-        const targetCols = table.columns.filter(c => targetColIds.includes(c.id));
-        const otherCols = table.columns.filter(c => !targetColIds.includes(c.id));
+        const targetColDefs = table.columns.filter(c => targetColIds.includes(c.id));
+        const targetCols = targetColDefs.map(definitionToColumn);
+        const allColumns = table.columns.map(definitionToColumn);
 
-        // Convert ColumnDefinition to Column for enrichRowData function
-        const targetColsForGeneration = targetCols.map(definitionToColumn);
-        const otherColsForGeneration = otherCols.map(definitionToColumn);
+        // Prefer canonical company name column, then name/domain-like columns
+        const companyKeyColumn =
+            allColumns.find(c => c.id === 'company_name') ||
+            allColumns.find(c => {
+                const title = c.title.toLowerCase();
+                return (
+                    title.includes('会社') ||
+                    title.includes('企業') ||
+                    title.includes('社名') ||
+                    title.includes('company') ||
+                    title.includes('name') ||
+                    title.includes('domain') ||
+                    title.includes('ドメイン') ||
+                    title.includes('website') ||
+                    title.includes('サイト') ||
+                    title.includes('url')
+                );
+            }) ||
+            null;
 
-        const newLoadingCells = new Set(loadingCells);
-        selectedRowIds.forEach(rowId => {
-            targetColIds.forEach(colId => {
-                newLoadingCells.add(`${rowId}-${colId}`);
-            });
-        });
-        setLoadingCells(newLoadingCells);
+        if (!companyKeyColumn) {
+            alert('会社名またはドメインを表すカラムが見つかりません。');
+            return;
+        }
 
-        const tasks: Promise<void>[] = [];
-        selectedRowIds.forEach(rowId => {
-            const row = table.rows.find(r => r.id === rowId);
-            if (!row) return;
-            targetColsForGeneration.forEach(col => {
-                const task = (async () => {
-                    try {
-                        const val = await enrichRowData(row, col, otherColsForGeneration);
-                        onUpdateTable((prevTable) => {
-                            const newRows = prevTable.rows.map(r =>
-                                r.id === rowId ? { ...r, [col.id]: val } : r
-                            );
-                            return { ...prevTable, rows: newRows };
+        setEnrichmentProgress(new Map());
+
+        const rowsToEnrich = table.rows.filter(r => selectedRowIds.has(r.id));
+
+        for (const row of rowsToEnrich) {
+            const companyKey = row[companyKeyColumn.id] as string;
+
+            if (!companyKey || typeof companyKey !== 'string' || companyKey.trim() === '') {
+                // Mark error for all target cells in this row
+                setEnrichmentProgress(prev => {
+                    const next = new Map(prev);
+                    targetCols.forEach(col => {
+                        const cellKey = `${row.id}-${col.id}`;
+                        next.set(cellKey, {
+                            rowId: row.id,
+                            columnId: col.id,
+                            phase: 'error',
+                            error: 'キーとなる会社名/ドメインが空です'
                         });
-                    } catch (e) {
-                        console.error(`Failed to enrich ${rowId} - ${col.id}`, e);
-                    } finally {
-                        setLoadingCells(prev => {
-                            const next = new Set(prev);
-                            next.delete(`${rowId}-${col.id}`);
-                            return next;
-                        });
-                    }
-                })();
-                tasks.push(task);
+                    });
+                    return next;
+                });
+                continue;
+            }
+
+            // Set progress to "discovery" for all target cells
+            setEnrichmentProgress(prev => {
+                const next = new Map(prev);
+                targetCols.forEach(col => {
+                    const cellKey = `${row.id}-${col.id}`;
+                    next.set(cellKey, {
+                        rowId: row.id,
+                        columnId: col.id,
+                        phase: 'discovery'
+                    });
+                });
+                return next;
             });
-        });
-        await Promise.all(tasks);
+
+            try {
+                const columnTitles = targetCols.map(col => col.title);
+                const { data } = await scrapeCompanyDetails(companyKey, columnTitles);
+
+                // Update row in table
+                onUpdateTable(prevTable => {
+                    const newRows = prevTable.rows.map(r => {
+                        if (r.id !== row.id) return r;
+                        const updated: Row = { ...r };
+                        targetCols.forEach(col => {
+                            const value = data[col.title];
+                            if (value !== undefined) {
+                                updated[col.id] = value;
+                            }
+                        });
+                        return updated;
+                    });
+                    return { ...prevTable, rows: newRows };
+                });
+
+                // Mark complete for all target cells
+                setEnrichmentProgress(prev => {
+                    const next = new Map(prev);
+                    targetCols.forEach(col => {
+                        const cellKey = `${row.id}-${col.id}`;
+                        const value = data[col.title];
+                        next.set(cellKey, {
+                            rowId: row.id,
+                            columnId: col.id,
+                            phase: 'complete',
+                            result: value !== undefined ? {
+                                field: col.title,
+                                value,
+                                confidence: 'high'
+                            } : undefined
+                        });
+                    });
+                    return next;
+                });
+            } catch (e) {
+                console.error(`Failed to enrich row ${row.id}`, e);
+                setEnrichmentProgress(prev => {
+                    const next = new Map(prev);
+                    targetCols.forEach(col => {
+                        const cellKey = `${row.id}-${col.id}`;
+                        next.set(cellKey, {
+                            rowId: row.id,
+                            columnId: col.id,
+                            phase: 'error',
+                            error: e instanceof Error ? e.message : '不明なエラー'
+                        });
+                    });
+                    return next;
+                });
+            }
+        }
+
+        setTimeout(() => {
+            setEnrichmentProgress(new Map());
+        }, 3000);
+
         setEnrichTargetCols(new Set());
     };
 
@@ -693,84 +952,6 @@ export const TableView: React.FC<TableViewProps> = ({
                 </div>
 
                 <div className="flex items-center gap-2">
-                    {/* Multi-Filter Menu */}
-                    <div className="relative" ref={filterMenuRef}>
-                        <button
-                            onClick={() => setShowFilterMenu(!showFilterMenu)}
-                            className={`p-1.5 rounded transition-colors flex items-center gap-2 ${activeFilters.length > 0 ? 'text-blue-600 bg-blue-50' : 'text-gray-500 hover:text-[#323232] hover:bg-gray-100'}`}
-                            title="フィルタ"
-                        >
-                            <IconFilter className="w-4 h-4" />
-                            {activeFilters.length > 0 && <span className="text-xs font-bold">{activeFilters.length}</span>}
-                        </button>
-                        {showFilterMenu && (
-                            <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-gray-200 shadow-xl rounded-lg p-0 z-50 animate-in fade-in zoom-in-95 duration-100">
-                                <div className="p-3 border-b border-gray-100 bg-[#f2f2f2]">
-                                    <h4 className="text-xs font-bold uppercase text-gray-500">フィルタリング</h4>
-                                </div>
-                                <div className="p-3 space-y-3 max-h-60 overflow-y-auto">
-                                    {activeFilters.length === 0 && (
-                                        <p className="text-xs text-gray-400 italic">有効なフィルタはありません</p>
-                                    )}
-                                    {activeFilters.map((f, idx) => (
-                                        <div key={idx} className="flex items-center gap-2 text-xs bg-gray-50 p-2 rounded border border-gray-100">
-                                            <span className="font-bold text-[#323232]">{table.columns.find(c => c.id === f.columnId)?.name}</span>
-                                            <span className="text-gray-500">{f.operator}</span>
-                                            <span className="text-[#323232] bg-white px-1 rounded border border-gray-200">{f.value}</span>
-                                            <button
-                                                onClick={() => onUpdateFilters(activeFilters.filter((_, i) => i !== idx))}
-                                                className="ml-auto text-gray-400 hover:text-red-500"
-                                            >
-                                                <IconX className="w-3 h-3" />
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className="p-3 border-t border-gray-100 bg-gray-50/50 space-y-2">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase">新規フィルタ追加</p>
-                                    <CustomSelect
-                                        value={newFilter.columnId}
-                                        onChange={(v) => setNewFilter({ ...newFilter, columnId: v })}
-                                        options={table.columns.map(c => ({ value: c.id, label: c.name }))}
-                                    />
-                                    <div className="flex gap-2">
-                                        <CustomSelect
-                                            className="flex-1"
-                                            value={newFilter.operator}
-                                            onChange={(v) => setNewFilter({ ...newFilter, operator: v as any })}
-                                            options={[
-                                                { value: 'contains', label: 'を含む' },
-                                                { value: 'equals', label: 'と等しい' },
-                                                { value: 'greater', label: 'より大きい' },
-                                                { value: 'less', label: 'より小さい' },
-                                            ]}
-                                        />
-                                        <input
-                                            className="flex-1 text-xs border border-gray-200 rounded px-2 py-1 outline-none bg-white text-[#323232] h-9"
-                                            placeholder="値..."
-                                            value={newFilter.value}
-                                            onChange={(e) => setNewFilter({ ...newFilter, value: e.target.value })}
-                                        />
-                                    </div>
-                                    <button
-                                        onClick={() => {
-                                            if (newFilter.columnId) {
-                                                onUpdateFilters([...activeFilters, newFilter]);
-                                                setNewFilter({ ...newFilter, value: '' });
-                                            }
-                                        }}
-                                        disabled={!newFilter.columnId || !newFilter.value}
-                                        className="w-full bg-[#323232] text-white text-xs font-bold py-2 rounded hover:bg-black disabled:opacity-50 transition-colors"
-                                    >
-                                        フィルタを追加
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="h-4 w-px bg-gray-200 mx-1"></div>
 
                     {/* Text Overflow Controls */}
                     <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-md border border-gray-100">
@@ -799,6 +980,87 @@ export const TableView: React.FC<TableViewProps> = ({
 
                     <div className="h-4 w-px bg-gray-200 mx-1"></div>
 
+                    {/* Multi-Filter Menu */}
+                    <div className="relative" ref={filterMenuRef}>
+                        <button
+                            onClick={() => setShowFilterMenu(!showFilterMenu)}
+                            className={`p-1.5 rounded transition-colors flex items-center gap-2 ${activeFilters.length > 0 ? 'text-blue-600 bg-blue-50' : 'text-gray-500 hover:text-[#323232] hover:bg-gray-100'}`}
+                            title="フィルタ"
+                        >
+                            <IconFilter className="w-4 h-4" />
+                            {activeFilters.length > 0 && <span className="text-xs font-bold">{activeFilters.length}</span>}
+                        </button>
+                        {showFilterMenu && (
+                            <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-[#DEE1E7] shadow-xl rounded p-0 z-50 animate-in fade-in zoom-in-95 duration-100">
+                                <div className="p-3 border-b border-[#DEE1E7] bg-[#0A0B0D]">
+                                    <h4 className="text-xs font-bold uppercase text-white tracking-wider">フィルタリング</h4>
+                                </div>
+                                <div className="p-3 space-y-3 max-h-60 overflow-y-auto">
+                                    {activeFilters.length === 0 && (
+                                        <p className="text-xs text-[#B1B7C3] italic">有効なフィルタはありません</p>
+                                    )}
+                                    {activeFilters.map((f, idx) => (
+                                        <div key={idx} className="flex items-center gap-2 text-xs bg-[#EEF0F3] p-2 rounded border border-[#DEE1E7]">
+                                            <span className="font-bold text-[#0A0B0D]">{table.columns.find(c => c.id === f.columnId)?.name}</span>
+                                            <span className="text-[#717886]">{f.operator}</span>
+                                            <span className="text-[#0A0B0D] bg-white px-1 rounded border border-[#DEE1E7]">{f.value}</span>
+                                            <button
+                                                onClick={() => onUpdateFilters(activeFilters.filter((_, i) => i !== idx))}
+                                                className="ml-auto text-[#B1B7C3] hover:text-[#FC401F]"
+                                            >
+                                                <IconX className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="p-3 border-t border-[#DEE1E7] bg-[#EEF0F3] space-y-2">
+                                    <p className="text-[10px] font-bold text-[#717886] uppercase tracking-wider">新規フィルタ追加</p>
+                                    <CustomSelect
+                                        value={newFilter.columnId}
+                                        onChange={(v) => setNewFilter({ ...newFilter, columnId: v })}
+                                        options={table.columns.map(c => ({ value: c.id, label: c.name }))}
+                                    />
+                                    <div className="flex gap-2">
+                                        <CustomSelect
+                                            className="flex-1"
+                                            value={newFilter.operator}
+                                            onChange={(v) => setNewFilter({ ...newFilter, operator: v as any })}
+                                            options={[
+                                                { value: 'contains', label: 'を含む' },
+                                                { value: 'equals', label: 'と等しい' },
+                                                { value: 'greater', label: 'より大きい' },
+                                                { value: 'less', label: 'より小さい' },
+                                            ]}
+                                        />
+                                        <input
+                                            className="flex-1 text-xs border border-[#DEE1E7] rounded px-2 py-1 outline-none focus:ring-1 focus:ring-[#0000FF] bg-white text-[#0A0B0D] h-9"
+                                            placeholder="値..."
+                                            value={newFilter.value}
+                                            onChange={(e) => setNewFilter({ ...newFilter, value: e.target.value })}
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            if (newFilter.columnId) {
+                                                onUpdateFilters([...activeFilters, newFilter]);
+                                                setNewFilter({ ...newFilter, value: '' });
+                                            }
+                                        }}
+                                        disabled={!newFilter.columnId || !newFilter.value}
+                                        className="w-full bg-[#0000FF] text-white text-xs font-bold py-2 rounded hover:bg-[#0000CC] disabled:opacity-50 transition-colors"
+                                    >
+                                        フィルタを追加
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="h-4 w-px bg-gray-200 mx-1"></div>
+
+
+
                     {/* Multi-Sort Menu */}
                     <div className="relative" ref={sortMenuRef}>
                         <button
@@ -810,30 +1072,30 @@ export const TableView: React.FC<TableViewProps> = ({
                             {activeSorts.length > 0 && <span className="text-xs font-bold">{activeSorts.length}</span>}
                         </button>
                         {showSortMenu && (
-                            <div className="absolute right-0 top-full mt-2 w-72 bg-white border border-gray-200 shadow-xl rounded-lg p-0 z-50 animate-in fade-in zoom-in-95 duration-100">
-                                <div className="p-3 border-b border-gray-100 bg-[#f2f2f2]">
-                                    <h4 className="text-xs font-bold uppercase text-gray-500">並べ替えルール</h4>
+                            <div className="absolute right-0 top-full mt-2 w-72 bg-white border border-[#DEE1E7] shadow-xl rounded p-0 z-50 animate-in fade-in zoom-in-95 duration-100">
+                                <div className="p-3 border-b border-[#DEE1E7] bg-[#0A0B0D]">
+                                    <h4 className="text-xs font-bold uppercase text-white tracking-wider">並べ替えルール</h4>
                                 </div>
                                 <div className="p-3 space-y-3 max-h-60 overflow-y-auto">
                                     {activeSorts.length === 0 && (
-                                        <p className="text-xs text-gray-400 italic">有効な並べ替えはありません</p>
+                                        <p className="text-xs text-[#B1B7C3] italic">有効な並べ替えはありません</p>
                                     )}
                                     {activeSorts.map((s, idx) => (
-                                        <div key={idx} className="flex items-center gap-2 text-xs bg-gray-50 p-2 rounded border border-gray-100">
-                                            <span className="text-[10px] text-gray-400 font-mono mr-1">{idx + 1}.</span>
-                                            <span className="font-bold text-[#323232]">{table.columns.find(c => c.id === s.columnId)?.name}</span>
-                                            <span className="text-blue-600 bg-blue-50 px-1 rounded border border-blue-100 text-[10px] uppercase">{s.direction}</span>
+                                        <div key={idx} className="flex items-center gap-2 text-xs bg-[#EEF0F3] p-2 rounded border border-[#DEE1E7]">
+                                            <span className="text-[10px] text-[#717886] font-mono mr-1">{idx + 1}.</span>
+                                            <span className="font-bold text-[#0A0B0D]">{table.columns.find(c => c.id === s.columnId)?.name}</span>
+                                            <span className="text-[#0000FF] bg-white px-1 rounded border border-[#DEE1E7] text-[10px] uppercase font-bold">{s.direction}</span>
                                             <button
                                                 onClick={() => onUpdateSorts(activeSorts.filter((_, i) => i !== idx))}
-                                                className="ml-auto text-gray-400 hover:text-red-500"
+                                                className="ml-auto text-[#B1B7C3] hover:text-[#FC401F]"
                                             >
                                                 <IconX className="w-3 h-3" />
                                             </button>
                                         </div>
                                     ))}
                                 </div>
-                                <div className="p-3 border-t border-gray-100 bg-gray-50/50 space-y-2">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase">新規ルール追加</p>
+                                <div className="p-3 border-t border-[#DEE1E7] bg-[#EEF0F3] space-y-2">
+                                    <p className="text-[10px] font-bold text-[#717886] uppercase tracking-wider">新規ルール追加</p>
                                     <CustomSelect
                                         value={newSort.columnId}
                                         onChange={(v) => setNewSort({ ...newSort, columnId: v })}
@@ -855,7 +1117,7 @@ export const TableView: React.FC<TableViewProps> = ({
                                             }
                                         }}
                                         disabled={!newSort.columnId}
-                                        className="w-full bg-[#323232] text-white text-xs font-bold py-2 rounded hover:bg-black disabled:opacity-50 transition-colors"
+                                        className="w-full bg-[#0000FF] text-white text-xs font-bold py-2 rounded hover:bg-[#0000CC] disabled:opacity-50 transition-colors"
                                     >
                                         並べ替えを追加
                                     </button>
@@ -913,7 +1175,13 @@ export const TableView: React.FC<TableViewProps> = ({
                                         </label>
                                     ))}
                                 </div>
-                                <div className="p-3 border-t border-gray-100 bg-[#f2f2f2]">
+                                <div className="p-3 border-t border-gray-100 bg-[#f2f2f2] space-y-2">
+                                    {enrichTargetCols.size > 0 && (
+                                        <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded flex items-center gap-2">
+                                            <IconInfo className="w-3.5 h-3.5" />
+                                            <span>選択された {selectedRowIds.size} 行 × {enrichTargetCols.size} カラムのエンリッチを実行します</span>
+                                        </div>
+                                    )}
                                     <button
                                         onClick={handleEnrichmentStart}
                                         disabled={enrichTargetCols.size === 0}
@@ -925,17 +1193,6 @@ export const TableView: React.FC<TableViewProps> = ({
                             </div>
                         )}
                     </div>
-
-                    {/* Unified Delete Button */}
-                    {(selectedCellIds.size > 0 || selectedRowIds.size > 0) && (
-                        <button
-                            onClick={handleUnifiedDelete}
-                            className="p-1.5 bg-white border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 rounded-md transition-colors shadow-sm"
-                            title="削除 / クリア"
-                        >
-                            <IconTrash className="w-4 h-4" />
-                        </button>
-                    )}
 
                     {/* Add Button */}
                     <div className="relative" ref={addMenuRef}>
@@ -966,6 +1223,18 @@ export const TableView: React.FC<TableViewProps> = ({
                             </div>
                         )}
                     </div>
+
+                    {/* Unified Delete Button */}
+                    {(selectedCellIds.size > 0 || selectedRowIds.size > 0) && (
+                        <button
+                            onClick={handleUnifiedDelete}
+                            className="p-1.5 bg-white border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 rounded-md transition-colors shadow-sm"
+                            title="削除 / クリア"
+                        >
+                            <IconTrash className="w-4 h-4" />
+                        </button>
+                    )}
+
 
                     {/* Generation Config Panel */}
                     {showGenPanel && (
@@ -1052,7 +1321,7 @@ export const TableView: React.FC<TableViewProps> = ({
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                             <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                            <AlertDialogAction onClick={confirmDialog.onConfirm}>
+                            <AlertDialogAction onClick={() => { confirmDialog.onConfirm(); setConfirmDialog(prev => ({ ...prev, isOpen: false })); }}>
                                 実行
                             </AlertDialogAction>
                         </AlertDialogFooter>
@@ -1060,7 +1329,57 @@ export const TableView: React.FC<TableViewProps> = ({
                 </AlertDialog>
             </div>
 
-            {/* --- Table Grid --- */}
+            {/* Generation Progress Banner */}
+            {
+                generationProgress && (
+                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-b border-blue-200 px-4 py-3">
+                        <div className="flex items-center gap-3">
+                            {/* Phase indicator */}
+                            {generationProgress.phase === 'generating_names' && (
+                                <>
+                                    <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center">
+                                        <span className="text-white text-xs font-bold">1</span>
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="text-sm font-bold text-blue-900">企業名を生成中...</div>
+                                        <div className="text-xs text-blue-700">Google検索で実在する企業を探しています</div>
+                                    </div>
+                                    <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+                                </>
+                            )}
+                            {generationProgress.phase === 'enriching_details' && (
+                                <>
+                                    <div className="w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center">
+                                        <span className="text-white text-xs font-bold">2</span>
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="text-sm font-bold text-purple-900">
+                                            詳細情報をエンリッチ中... ({generationProgress.currentRow || 0}/{generationProgress.totalRows})
+                                        </div>
+                                        <div className="text-xs text-purple-700">
+                                            {generationProgress.currentColumn && `${generationProgress.currentColumn}を取得中`}
+                                        </div>
+                                    </div>
+                                    {/* Progress bar */}
+                                    <div className="w-48 h-2 bg-white/50 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-purple-600 transition-all duration-300"
+                                            style={{
+                                                width: `${((generationProgress.currentRow || 0) / generationProgress.totalRows) * 100}%`
+                                            }}
+                                        ></div>
+                                    </div>
+                                    <span className="text-xs font-mono text-purple-700">
+                                        {Math.round(((generationProgress.currentRow || 0) / generationProgress.totalRows) * 100)}%
+                                    </span>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* --- Table Content --- */}
             <div className="flex-1 overflow-auto bg-[#f2f2f2] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent select-none overscroll-x-none" style={{ overscrollBehaviorX: 'none' }}>
                 <table className="w-max table-fixed border-collapse text-sm bg-white">
                     <thead className="sticky top-0 z-30 bg-white shadow-sm">
@@ -1240,15 +1559,50 @@ export const TableView: React.FC<TableViewProps> = ({
                                     </td>
 
                                     {table.columns.map(col => {
-                                        const isLoading = loadingCells.has(`${row.id}-${col.id}`);
+                                        const cellKey = `${row.id}-${col.id}`;
+                                        const isLoading = loadingCells.has(cellKey);
                                         const cellId = `${row.id}:${col.id}`;
                                         const isSelected = selectedCellIds.has(cellId);
                                         const isEditing = editingCell?.rowId === row.id && editingCell?.colId === col.id;
                                         const rawValue = row[col.id];
 
+                                        // Check enrichment progress
+                                        const progress = enrichmentProgress.get(cellKey);
+
                                         let displayValue = rawValue;
                                         if (typeof rawValue === 'string' && rawValue.startsWith('=')) {
                                             displayValue = evaluateFormula(rawValue, row, table.columns.map(definitionToColumn));
+                                        }
+
+                                        // Determine phase display
+                                        let phaseDisplay = null;
+                                        if (progress && progress.phase !== 'complete') {
+                                            const phaseLabels: Record<string, string> = {
+                                                'discovery': '検索中',
+                                                'extraction': '抽出中',
+                                                'financial': '財務情報',
+                                                'error': 'エラー'
+                                            };
+                                            const phaseColors: Record<string, string> = {
+                                                'discovery': 'text-blue-600',
+                                                'extraction': 'text-purple-600',
+                                                'financial': 'text-green-600',
+                                                'error': 'text-red-600'
+                                            };
+
+                                            phaseDisplay = (
+                                                <div className="w-full h-full flex items-center px-3 gap-2">
+                                                    <span className={phaseColors[progress.phase]}>
+                                                        {progress.phase === 'discovery' && <IconSearch className="w-3.5 h-3.5 animate-pulse" />}
+                                                        {progress.phase === 'extraction' && <IconFileText className="w-3.5 h-3.5 animate-pulse" />}
+                                                        {progress.phase === 'financial' && <IconDatabase className="w-3.5 h-3.5 animate-pulse" />}
+                                                        {progress.phase === 'error' && <IconAlertTriangle className="w-3.5 h-3.5" />}
+                                                    </span>
+                                                    <span className={`text-xs font-mono ${phaseColors[progress.phase]}`}>
+                                                        {phaseLabels[progress.phase]}
+                                                    </span>
+                                                </div>
+                                            );
                                         }
 
                                         return (
@@ -1261,7 +1615,7 @@ export const TableView: React.FC<TableViewProps> = ({
                                                 onDoubleClick={() => handleCellDoubleClick(row.id, col.id)}
                                                 style={{ verticalAlign: 'top', height: '40px', width: columnWidths[col.id] || 200 }}
                                             >
-                                                {isLoading ? (
+                                                {phaseDisplay ? phaseDisplay : isLoading ? (
                                                     <div className="w-full h-full flex items-center px-3">
                                                         <div className="h-2 w-2/3 bg-gray-200 rounded animate-pulse"></div>
                                                     </div>
@@ -1284,7 +1638,7 @@ export const TableView: React.FC<TableViewProps> = ({
                                                     <div className={`px-3 py-2.5 w-full h-full text-[#323232] text-sm 
                                                         ${col.textOverflow === 'wrap' ? 'whitespace-normal break-words leading-snug' :
                                                             col.textOverflow === 'visible' ? 'whitespace-nowrap overflow-visible z-10 bg-transparent relative' :
-                                                                col.textOverflow === 'clip' ? 'whitespace-nowrap overflow-hidden text-clip' :
+                                                                col.textOverflow === 'clip' ? 'whitespace-nowrap overflow-hidden' :
                                                                     'whitespace-nowrap truncate'}
                                                     `}>
                                                         {renderCell(displayValue, col.type)}
@@ -1313,7 +1667,7 @@ export const TableView: React.FC<TableViewProps> = ({
                     </tbody>
                 </table>
             </div>
-        </div>
+        </div >
     );
 };
 

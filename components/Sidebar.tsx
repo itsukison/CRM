@@ -1,19 +1,8 @@
 import React, { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { COLORS } from '../constants';
-import { IconDatabase, IconPlus, IconSettings, IconChevronRight, IconTrash } from './Icons';
-import { deleteTable } from '../services/tableService';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "./ui/alert-dialog";
-import { toast } from 'sonner';
+import { IconDatabase, IconPlus, IconSettings, IconChevronRight } from './Icons';
+
 
 interface SidebarProps {
     tables: { id: string, name: string }[];
@@ -23,7 +12,6 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ tables, currentTableId, onSelectTable }) => {
     const [isCollapsed, setIsCollapsed] = useState(false);
-    const [tableToDelete, setTableToDelete] = useState<string | null>(null);
     const router = useRouter();
     const pathname = usePathname();
 
@@ -33,24 +21,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ tables, currentTableId, onSele
     const isCreateTable = pathname === '/dashboard/create';
     const isTableView = pathname?.startsWith('/dashboard/tables/');
 
-    const handleDeleteTable = async () => {
-        if (!tableToDelete) return;
 
-        const { error } = await deleteTable(tableToDelete);
-        if (error) {
-            console.error('Failed to delete table:', error);
-            toast.error('テーブルの削除に失敗しました');
-        } else {
-            toast.success('テーブルを削除しました');
-            // Refresh the page or update state (parent should handle this, but for now force refresh or redirect)
-            if (currentTableId === tableToDelete) {
-                router.push('/dashboard');
-            } else {
-                window.location.reload(); // Simple reload to refresh list for now
-            }
-        }
-        setTableToDelete(null);
-    };
 
     return (
         <>
@@ -88,35 +59,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ tables, currentTableId, onSele
                     {isCollapsed && <div className="h-6"></div>}
 
                     {tables.map(table => (
-                        <div key={table.id} className="group/item relative flex items-center px-3 py-2 rounded-sm text-sm font-medium transition-colors "
-                            style={{ justifyContent: isCollapsed ? 'center' : 'space-between' }}
+                        <button
+                            key={table.id}
+                            onClick={() => {
+                                onSelectTable(table.id);
+                                router.push(`/dashboard/tables/${table.id}`);
+                            }}
+                            className={`w-full text-left px-3 py-2 rounded-sm text-sm font-medium transition-colors flex items-center ${currentTableId === table.id && isTableView ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-50'} ${isCollapsed ? 'justify-center' : 'gap-2'}`}
+                            title={table.name}
                         >
-                            <button
-                                onClick={() => {
-                                    onSelectTable(table.id);
-                                    router.push(`/dashboard/tables/${table.id}`);
-                                }}
-                                className={`w-full text-left ${isCollapsed ? 'flex justify-center' : 'flex items-center'} ${currentTableId === table.id && isTableView ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-50'}`}
-                                title={table.name}
-                            >
-                                <div className={`flex items-center ${isCollapsed ? '' : 'gap-2'} overflow-hidden`}>
-                                    <IconDatabase className={`w-4 h-4 shrink-0 ${currentTableId === table.id && isTableView ? 'text-blue-500' : 'text-gray-400'}`} />
-                                    {!isCollapsed && <span className="truncate">{table.name}</span>}
-                                </div>
-                                {!isCollapsed && currentTableId === table.id && isTableView && <div className="w-1.5 h-1.5 bg-blue-600 rounded-full shrink-0"></div>}
-                            </button>
-                            {/* Delete button */}
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setTableToDelete(table.id);
-                                }}
-                                className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                                title="削除"
-                            >
-                                <IconTrash className="w-3.5 h-3.5" />
-                            </button>
-                        </div>
+                            <IconDatabase className={`w-4 h-4 shrink-0 ${currentTableId === table.id && isTableView ? 'text-blue-500' : 'text-gray-400'}`} />
+                            {!isCollapsed && <span className="truncate">{table.name}</span>}
+                            {!isCollapsed && currentTableId === table.id && isTableView && <div className="w-1.5 h-1.5 bg-blue-600 rounded-full shrink-0"></div>}
+                        </button>
                     ))}
 
                     <button
@@ -142,23 +97,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ tables, currentTableId, onSele
                     </button>
                 </div>
             </div>
-
-            <AlertDialog open={!!tableToDelete} onOpenChange={(open) => !open && setTableToDelete(null)}>
-                <AlertDialogContent className="fixed inset-0 flex items-center justify-center">
-                    <AlertDialogHeader>
-                        <AlertDialogTitle className="text-red-600">テーブルの削除</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            本当にこのテーブルを削除しますか？この操作は取り消せません。
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel className="bg-gray-200 hover:bg-gray-300">キャンセル</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDeleteTable} className="bg-red-600 hover:bg-red-700">
-                            削除する
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
         </>
     );
 };
