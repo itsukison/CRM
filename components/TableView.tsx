@@ -7,8 +7,8 @@ import { identifyCompanies, scrapeCompanyDetails } from '../services/companyServ
 import type { EnrichmentProgress, GenerationProgress } from '../services/enrichmentService';
 import {
     IconSparkles, IconPlus, IconTrash, IconCheck, IconBolt, IconX, IconDatabase, IconSettings,
-    IconFilter, IconSort, IconChevronRight, IconWrapText, IconClip, IconOverflowVisible,
-    IconFileText, IconAlertTriangle, IconInfo, IconSearch
+    IconFilter, IconSort, IconChevronRight, IconFileText, IconAlertTriangle, IconInfo, IconSearch,
+    IconTextClip, IconTextWrap, IconTextVisible
 } from './Icons';
 
 // ... (rest of imports)
@@ -525,7 +525,8 @@ export const TableView: React.FC<TableViewProps> = ({
             id: newColId,
             title: `新規カラム`,
             type: 'text',
-            description: ''
+            description: '',
+            textOverflow: 'clip'
         };
         onUpdateTable(prev => {
             const newColDef = columnToDefinition(newCol, prev.columns.length);
@@ -830,6 +831,21 @@ export const TableView: React.FC<TableViewProps> = ({
         }));
     };
 
+    // Helper function to check if a mode is active for selected columns
+    const getModeIsActive = (mode: TextOverflowMode) => {
+        const affectedColIds = new Set<string>();
+        (Array.from(selectedCellIds) as string[]).forEach((cellId) => {
+            const [, cId] = cellId.split(':');
+            affectedColIds.add(cId);
+        });
+
+        if (affectedColIds.size === 0) return false;
+
+        return Array.from(affectedColIds).every(colId => {
+            const col = table.columns.find(c => c.id === colId);
+            return col?.textOverflow === mode;
+        });
+    };
 
     // --- Generation Logic with Two-Phase Approach (row-based, shared with WebScraper) ---
     const handleGenerateStart = async () => {
@@ -840,7 +856,7 @@ export const TableView: React.FC<TableViewProps> = ({
         const newColsCreated: Column[] = [];
 
         if (genNewColsString.trim()) {
-            const newColNames = genNewColsString.split(',').map(s => s.trim()).filter(s => s);
+            const newColNames = genNewColsString.split(/[,、]/).map(s => s.trim()).filter(s => s);
             const newColDefs: ColumnDefinition[] = [];
             newColNames.forEach((name, idx) => {
                 const newCol: Column = {
@@ -1188,24 +1204,30 @@ export const TableView: React.FC<TableViewProps> = ({
                     <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-md border border-gray-100">
                         <button
                             onClick={() => handleSetTextOverflow('wrap')}
-                            className="p-1 rounded hover:bg-white hover:shadow-sm text-gray-500 hover:text-black transition-all"
+                            className={`p-1 rounded hover:bg-white hover:shadow-sm transition-all
+                                ${getModeIsActive('wrap') ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-500 hover:text-black'}
+                            `}
                             title="テキストを折り返す"
                         >
-                            <IconWrapText className="w-3.5 h-3.5" />
+                            <IconTextWrap className="w-3.5 h-3.5" />
                         </button>
                         <button
                             onClick={() => handleSetTextOverflow('clip')}
-                            className="p-1 rounded hover:bg-white hover:shadow-sm text-gray-500 hover:text-black transition-all"
+                            className={`p-1 rounded hover:bg-white hover:shadow-sm transition-all
+                                ${getModeIsActive('clip') ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-500 hover:text-black'}
+                            `}
                             title="はみ出しを隠す"
                         >
-                            <IconClip className="w-3.5 h-3.5" />
+                            <IconTextClip className="w-3.5 h-3.5" />
                         </button>
                         <button
                             onClick={() => handleSetTextOverflow('visible')}
-                            className="p-1 rounded hover:bg-white hover:shadow-sm text-gray-500 hover:text-black transition-all"
+                            className={`p-1 rounded hover:bg-white hover:shadow-sm transition-all
+                                ${getModeIsActive('visible') ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-500 hover:text-black'}
+                            `}
                             title="はみ出しを表示"
                         >
-                            <IconOverflowVisible className="w-3.5 h-3.5" />
+                            <IconTextVisible className="w-3.5 h-3.5" />
                         </button>
                     </div>
 
@@ -1363,7 +1385,7 @@ export const TableView: React.FC<TableViewProps> = ({
                         <button
                             onClick={() => {
                                 if (selectedRowIds.size === 0) {
-                                    alert("エンリッチする行を選択してください。");
+                                    alert("補完する行を選択してください。");
                                     return;
                                 }
                                 setShowEnrichPanel(!showEnrichPanel);
@@ -1377,7 +1399,7 @@ export const TableView: React.FC<TableViewProps> = ({
                                 }`}
                         >
                             <IconSparkles className="w-3.5 h-3.5" />
-                            AIエンリッチ
+                            AI補完
                         </button>
 
                         {/* Enrichment Panel */}
@@ -1410,7 +1432,7 @@ export const TableView: React.FC<TableViewProps> = ({
                                     {enrichTargetCols.size > 0 && (
                                         <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded flex items-center gap-2">
                                             <IconInfo className="w-3.5 h-3.5" />
-                                            <span>選択された {selectedRowIds.size} 行 × {enrichTargetCols.size} カラムのエンリッチを実行します</span>
+                                            <span>選択された {selectedRowIds.size} 行 × {enrichTargetCols.size} カラムの補完を実行します</span>
                                         </div>
                                     )}
                                     <button
@@ -1418,7 +1440,7 @@ export const TableView: React.FC<TableViewProps> = ({
                                         disabled={enrichTargetCols.size === 0}
                                         className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold uppercase tracking-wider rounded disabled:opacity-50"
                                     >
-                                        エンリッチ実行
+                                        補完実行
                                     </button>
                                 </div>
                             </div>
@@ -1503,14 +1525,15 @@ export const TableView: React.FC<TableViewProps> = ({
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">生成数: {genCount}</label>
+                                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">生成数</label>
                                     <input
-                                        type="range"
+                                        type="number"
                                         min="1"
-                                        max="10"
+                                        max="50"
                                         value={genCount}
-                                        onChange={(e) => setGenCount(parseInt(e.target.value))}
-                                        className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                        onChange={(e) => setGenCount(Math.min(50, Math.max(1, parseInt(e.target.value) || 1)))}
+                                        className="w-full border border-gray-200 bg-white p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md text-[#323232]"
+                                        placeholder="1-50"
                                     />
                                 </div>
                                 <div>
@@ -1535,13 +1558,13 @@ export const TableView: React.FC<TableViewProps> = ({
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">新しいカラムを追加 (カンマ区切り)</label>
+                                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">新しいカラムを追加 (カンマ、読点区切り)</label>
                                     <input
                                         type="text"
                                         value={genNewColsString}
                                         onChange={(e) => setGenNewColsString(e.target.value)}
                                         className="w-full border border-gray-200 bg-white p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md text-[#323232]"
-                                        placeholder="例: 設立年, 従業員数"
+                                        placeholder="例: 設立年, 従業員数、本社所在地"
                                     />
                                 </div>
                                 <button
@@ -1635,7 +1658,7 @@ export const TableView: React.FC<TableViewProps> = ({
 
             {/* --- Table Content --- */}
             <div className="flex-1 overflow-auto bg-[#f2f2f2] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent select-none overscroll-x-none" style={{ overscrollBehaviorX: 'none' }}>
-                <table className="w-max table-fixed border-collapse text-sm bg-white">
+                <table className="w-full table-fixed border-collapse text-sm bg-white">
                     <thead className="sticky top-0 z-30 bg-white shadow-sm">
                         <tr>
                             {/* Fixed Width Checkbox Column */}
@@ -1654,8 +1677,8 @@ export const TableView: React.FC<TableViewProps> = ({
                             {table.columns.map((col, index) => (
                                 <th
                                     key={col.id}
-                                    style={{ width: columnWidths[col.id] || 200 }}
-                                    className="min-w-[50px] p-0 border-b border-r border-gray-200 bg-gray-50/90 backdrop-blur-sm text-left relative group"
+                                    style={{ width: columnWidths[col.id] || 200, minWidth: columnWidths[col.id] || 200, maxWidth: columnWidths[col.id] || 200 }}
+                                    className="p-0 border-b border-r border-gray-200 bg-gray-50/90 backdrop-blur-sm text-left relative group"
                                 >
                                     <div className="flex flex-col h-full">
                                         {/* Column Letter Header */}
@@ -1862,12 +1885,12 @@ export const TableView: React.FC<TableViewProps> = ({
                                         return (
                                             <td
                                                 key={cellId}
-                                                className={`border-b border-r border-gray-100 relative h-10 p-0 box-border
+                                                className={`border-b border-r border-gray-100 relative h-10 p-0 box-border overflow-hidden
                                                     ${isSelected && !isEditing ? 'ring-2 ring-inset ring-blue-500 bg-blue-50' : ''}
                                                 `}
                                                 onClick={(e) => handleCellClick(e, row.id, col.id)}
                                                 onDoubleClick={() => handleCellDoubleClick(row.id, col.id)}
-                                                style={{ verticalAlign: 'top', height: '40px', width: columnWidths[col.id] || 200 }}
+                                                style={{ verticalAlign: 'top', height: '40px', width: columnWidths[col.id] || 200, minWidth: columnWidths[col.id] || 200, maxWidth: columnWidths[col.id] || 200 }}
                                             >
                                                 {phaseDisplay ? phaseDisplay : isLoading ? (
                                                     <div className="w-full h-full flex items-center px-3">
@@ -1889,12 +1912,14 @@ export const TableView: React.FC<TableViewProps> = ({
                                                         }}
                                                     />
                                                 ) : (
-                                                    <div className={`px-3 py-2.5 w-full h-full text-[#323232] text-sm 
+                                                    <div className={`px-3 py-2.5 w-full h-full text-[#323232] text-sm overflow-hidden
                                                         ${col.textOverflow === 'wrap' ? 'whitespace-normal break-words leading-snug' :
-                                                            col.textOverflow === 'visible' ? 'whitespace-nowrap overflow-visible z-10 bg-transparent relative' :
-                                                                col.textOverflow === 'clip' ? 'whitespace-nowrap overflow-hidden' :
-                                                                    'whitespace-nowrap truncate'}
-                                                    `}>
+                                                            col.textOverflow === 'visible' ? 'whitespace-nowrap' :
+                                                                'whitespace-nowrap'}
+                                                    `}
+                                                    style={{
+                                                        textOverflow: col.textOverflow === 'clip' ? 'clip' : col.textOverflow === 'visible' ? 'visible' : 'ellipsis'
+                                                    }}>
                                                         {renderCell(displayValue, col.type)}
                                                     </div>
                                                 )}

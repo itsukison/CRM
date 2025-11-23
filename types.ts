@@ -109,10 +109,54 @@ export interface Filter {
   columnId: string;
   operator: 'contains' | 'equals' | 'greater' | 'less';
   value: string;
+  // Optional scope used by AI tools (e.g. apply only to selected rows)
+  scope?: 'all' | 'selected';
 }
 
 export interface SortState {
   columnId: string;
   direction: 'asc' | 'desc';
+}
+
+// --- AI Chat / Agent tool types ---
+
+export type ChatTool =
+  | 'none'
+  | 'filter'
+  | 'sort'
+  | 'enrich'
+  | 'generate_data'
+  | 'calculate_max'
+  | 'calculate_min'
+  | 'calculate_mean';
+
+export interface ChatAggregateParams {
+  columnId: string;
+  operation: 'max' | 'min' | 'mean';
+  scope?: 'all' | 'selected';
+}
+
+export interface ChatEnrichParams {
+  targetColumnIds: string[];
+  scope: 'selected' | 'all';
+}
+
+export interface ChatGenerateParams {
+  count: number;
+  targetColumnIds: string[];
+  prompt?: string;
+  scope?: 'all' | 'selected';
+}
+
+export interface AnalyzeChatResult {
+  intent: 'FILTER' | 'SORT' | 'EDIT' | 'CHAT';
+  tool: ChatTool;
+  reply: string;
+  filterParams?: Filter;
+  sortParams?: SortState;
+  enrichParams?: ChatEnrichParams;
+  generateParams?: ChatGenerateParams;
+  aggregateParams?: ChatAggregateParams;
+  suggestedAction?: string;
 }
 
