@@ -1,5 +1,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import Fuse from 'fuse.js';
+import * as XLSX from 'xlsx';
 import { TableData, Row, Column, ColumnDefinition, ColumnType, SortState, Filter, TextOverflowMode, definitionToColumn, columnToDefinition } from '../types';
 import { identifyCompanies, scrapeCompanyDetails } from '../services/companyService';
 import type { EnrichmentProgress, GenerationProgress } from '../services/enrichmentService';
@@ -178,6 +180,7 @@ export const TableView: React.FC<TableViewProps> = ({
     const colMenuRef = useRef<HTMLDivElement>(null);
     const filterMenuRef = useRef<HTMLDivElement>(null);
     const sortMenuRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -199,6 +202,13 @@ export const TableView: React.FC<TableViewProps> = ({
             setNewSort(prev => ({ ...prev, columnId: table.columns[0].id }));
         }
     }, [showFilterMenu, showSortMenu, table.columns]);
+
+    // --- Import (Excel/CSV) State ---
+    const [showImportModal, setShowImportModal] = useState(false);
+    const [importHeaders, setImportHeaders] = useState<string[]>([]);
+    const [importRows, setImportRows] = useState<any[][]>([]);
+    const [importPreviewRows, setImportPreviewRows] = useState<any[][]>([]);
+    const [importFileName, setImportFileName] = useState<string | null>(null);
 
     // Helper to check for placeholder columns
     const isPlaceholderColumn = useCallback((col: Column) => {
@@ -576,6 +586,227 @@ export const TableView: React.FC<TableViewProps> = ({
         table.columns.forEach(c => newRow[c.id] = '');
         onUpdateTable({ ...table, rows: [...table.rows, newRow] });
         setShowAddMenu(false);
+    };
+
+    // --- Excel/CSV Import Logic ---
+    const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        // Allow selecting the same file again
+        e.target.value = '';
+
+        if (!file) return;
+
+        const ext = file.name.split('.').pop()?.toLowerCase();
+        if (!ext || (ext !== 'xlsx' && ext !== 'csv')) {
+            alert('対応していないファイル形式です。xlsx または csv を選択してください。');
+            return;
+        }
+
+        const MAX_SIZE_BYTES = 5 * 1024 * 1024;
+        if (file.size > MAX_SIZE_BYTES) {
+            alert('ファイルサイズが大きすぎます。5MB 以下のファイルを選択してください。');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onerror = () => {
+            console.error('ファイル読み込みに失敗しました');
+            alert('ファイルの読み込みに失敗しました。');
+        };
+        reader.onload = (event) => {
+            try {
+                const data = new Uint8Array(event.target?.result as ArrayBuffer);
+                const workbook = XLSX.read(data, { type: 'array' });
+
+                if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+                    alert('シートが見つかりませんでした。');
+                    return;
+                }
+
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                if (!worksheet) {
+                    alert('シートが無効です。');
+                    return;
+                }
+
+                const sheetData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+                if (!sheetData || sheetData.length === 0) {
+                    alert('データが見つかりませんでした。');
+                    return;
+                }
+
+                const headerRow = sheetData[0] || [];
+                const headers = headerRow.map((cell, idx) => {
+                    const raw = cell == null ? '' : String(cell).trim();
+                    return raw || `列${idx + 1}`;
+                });
+
+                const bodyRows = sheetData.slice(1).filter(row =>
+                    row && row.some(cell => {
+                        if (cell === null || cell === undefined) return false;
+                        return String(cell).trim() !== '';
+                    })
+                );
+
+                if (bodyRows.length === 0) {
+                    alert('有効なデータ行が見つかりませんでした。');
+                    return;
+                }
+
+                const MAX_ROWS = 500;
+                const limitedRows = bodyRows.slice(0, MAX_ROWS);
+                const preview = limitedRows.slice(0, 10);
+
+                setImportHeaders(headers);
+                setImportRows(limitedRows);
+                setImportPreviewRows(preview);
+                setImportFileName(file.name);
+                setShowImportModal(true);
+            } catch (err) {
+                console.error('Excel/CSV の解析に失敗しました', err);
+                alert('ファイルの解析に失敗しました。対応している形式か確認してください。');
+            }
+        };
+
+        reader.readAsArrayBuffer(file);
+    };
+
+    interface ImportMapping {
+        sourceHeader: string;
+        action: 'existing' | 'new' | 'ignore';
+        existingColumnId?: string;
+        newColumnName?: string;
+        newColumnType?: ColumnType;
+    }
+
+    const handleImportConfirm = (mappings: ImportMapping[]) => {
+        if (importRows.length === 0) {
+            alert('インポートするデータがありません。');
+            return;
+        }
+
+        const hasAnyMapping = mappings.some(
+            (m) => m.action === 'existing' || m.action === 'new'
+        );
+        if (!hasAnyMapping) {
+            alert('少なくとも1つの列をマッピングしてください。');
+            return;
+        }
+
+        const dataRows = importRows;
+
+        onUpdateTable(prev => {
+            if (!prev) return prev;
+
+            const existingColumns = prev.columns;
+            const updatedColumns: ColumnDefinition[] = [...existingColumns];
+            const headerToTargetColId: Record<number, string> = {};
+            const newColumns: ColumnDefinition[] = [];
+
+            mappings.forEach((mapping, index) => {
+                if (mapping.action === 'existing' && mapping.existingColumnId) {
+                    const exists = existingColumns.some(c => c.id === mapping.existingColumnId);
+                    if (exists) {
+                        headerToTargetColId[index] = mapping.existingColumnId;
+                    }
+                    return;
+                }
+
+                if (mapping.action === 'new') {
+                    const name = (mapping.newColumnName || mapping.sourceHeader || '').trim();
+                    if (!name) return;
+                    const type = mapping.newColumnType || 'text';
+                    const newId = `import_col_${Date.now()}_${index}`;
+                    const order = updatedColumns.length + newColumns.length;
+                    const newColDef: ColumnDefinition = {
+                        id: newId,
+                        name,
+                        type,
+                        description: name,
+                        required: false,
+                        order,
+                        textOverflow: 'clip'
+                    };
+                    newColumns.push(newColDef);
+                    headerToTargetColId[index] = newId;
+                    return;
+                }
+
+                // ignore -> do nothing
+            });
+
+            if (newColumns.length > 0) {
+                updatedColumns.push(...newColumns);
+            }
+
+            // If after processing we still have no target columns, don't modify table
+            if (Object.keys(headerToTargetColId).length === 0) {
+                return prev;
+            }
+
+            const updatedRows: Row[] = [...prev.rows];
+
+            const isRowEmptyForExistingColumns = (row: Row) => {
+                return existingColumns.every(col => {
+                    const val = row[col.id];
+                    if (val === undefined || val === null) return true;
+                    return String(val).trim() === '';
+                });
+            };
+
+            const emptyRowIndices: number[] = [];
+            updatedRows.forEach((row, idx) => {
+                if (row.id.startsWith('empty_') && isRowEmptyForExistingColumns(row)) {
+                    emptyRowIndices.push(idx);
+                }
+            });
+
+            dataRows.forEach((dataRow, rowIndex) => {
+                if (!dataRow || dataRow.length === 0) return;
+
+                let targetRow: Row;
+                let targetIndex: number;
+
+                if (rowIndex < emptyRowIndices.length) {
+                    targetIndex = emptyRowIndices[rowIndex];
+                    targetRow = { ...updatedRows[targetIndex] };
+                } else {
+                    targetIndex = updatedRows.length;
+                    targetRow = { id: `empty_import_${Date.now()}_${rowIndex}` };
+                    updatedColumns.forEach(col => {
+                        (targetRow as any)[col.id] = '';
+                    });
+                }
+
+                Object.keys(headerToTargetColId).forEach((headerIndexStr) => {
+                    const headerIndex = Number(headerIndexStr);
+                    const targetColId = headerToTargetColId[headerIndex];
+                    if (!targetColId) return;
+                    const value = dataRow[headerIndex];
+                    (targetRow as any)[targetColId] = value == null ? '' : value;
+                });
+
+                if (targetIndex < updatedRows.length) {
+                    updatedRows[targetIndex] = targetRow;
+                } else {
+                    updatedRows.push(targetRow);
+                }
+            });
+
+            return {
+                ...prev,
+                columns: updatedColumns,
+                rows: updatedRows
+            };
+        });
+
+        // Reset import state
+        setShowImportModal(false);
+        setImportHeaders([]);
+        setImportRows([]);
+        setImportPreviewRows([]);
+        setImportFileName(null);
     };
 
     // Text Overflow Controls Logic
@@ -1210,8 +1441,14 @@ export const TableView: React.FC<TableViewProps> = ({
                         {showAddMenu && (
                             <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 shadow-xl rounded-lg overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-100 origin-top-right">
                                 <div className="py-1">
-                                    <button onClick={handleAddEmptyRow} className="w-full text-left px-4 py-2 text-sm text-[#323232] hover:bg-[#f2f2f2] flex items-center gap-2">
-                                        <IconPlus className="w-3 h-3 text-gray-400" /> 空の行
+                                    <button
+                                        onClick={() => {
+                                            setShowAddMenu(false);
+                                            fileInputRef.current?.click();
+                                        }}
+                                        className="w-full text-left px-4 py-2 text-sm text-[#323232] hover:bg-[#f2f2f2] flex items-center gap-2"
+                                    >
+                                        <IconPlus className="w-3 h-3 text-gray-400" /> ファイルアップロード
                                     </button>
                                     <button
                                         onClick={() => { setShowGenPanel(true); setShowAddMenu(false); }}
@@ -1223,6 +1460,13 @@ export const TableView: React.FC<TableViewProps> = ({
                             </div>
                         )}
                     </div>
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".xlsx,.csv"
+                        onChange={handleFileSelected}
+                        className="hidden"
+                    />
 
                     {/* Unified Delete Button */}
                     {(selectedCellIds.size > 0 || selectedRowIds.size > 0) && (
@@ -1328,6 +1572,16 @@ export const TableView: React.FC<TableViewProps> = ({
                     </AlertDialogContent>
                 </AlertDialog>
             </div>
+
+            <ExcelImportModal
+                isOpen={showImportModal}
+                onClose={() => setShowImportModal(false)}
+                headers={importHeaders}
+                previewRows={importPreviewRows}
+                columns={table.columns}
+                fileName={importFileName || undefined}
+                onConfirm={handleImportConfirm}
+            />
 
             {/* Generation Progress Banner */}
             {
@@ -1668,6 +1922,276 @@ export const TableView: React.FC<TableViewProps> = ({
                 </table>
             </div>
         </div >
+    );
+};
+
+interface ExcelImportModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    headers: string[];
+    previewRows: any[][];
+    columns: ColumnDefinition[];
+    fileName?: string;
+    onConfirm: (mappings: {
+        sourceHeader: string;
+        action: 'existing' | 'new' | 'ignore';
+        existingColumnId?: string;
+        newColumnName?: string;
+        newColumnType?: ColumnType;
+    }[]) => void;
+}
+
+const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
+    isOpen,
+    onClose,
+    headers,
+    previewRows,
+    columns,
+    fileName,
+    onConfirm,
+}) => {
+    const [mappings, setMappings] = useState<{
+        sourceHeader: string;
+        action: 'existing' | 'new' | 'ignore';
+        existingColumnId?: string;
+        newColumnName?: string;
+        newColumnType?: ColumnType;
+    }[]>([]);
+
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const legacyColumns = columns.map(definitionToColumn);
+        const fuse = new Fuse(legacyColumns, {
+            keys: ['title'],
+            threshold: 0.4,
+        });
+
+        const initialMappings = headers.map((header) => {
+            const trimmed = header.trim();
+            if (!trimmed) {
+                return {
+                    sourceHeader: header,
+                    action: 'ignore' as const,
+                };
+            }
+
+            const results = fuse.search(trimmed);
+            if (results.length > 0 && typeof results[0].score === 'number' && results[0].score <= 0.3) {
+                return {
+                    sourceHeader: header,
+                    action: 'existing' as const,
+                    existingColumnId: results[0].item.id,
+                };
+            }
+
+            return {
+                sourceHeader: header,
+                action: 'new' as const,
+                newColumnName: header,
+                newColumnType: 'text' as ColumnType,
+            };
+        });
+
+        setMappings(initialMappings);
+    }, [isOpen, headers, columns]);
+
+    if (!isOpen) return null;
+
+    const updateMapping = (index: number, patch: Partial<{
+        sourceHeader: string;
+        action: 'existing' | 'new' | 'ignore';
+        existingColumnId?: string;
+        newColumnName?: string;
+        newColumnType?: ColumnType;
+    }>) => {
+        setMappings(prev => {
+            const next = [...prev];
+            next[index] = { ...next[index], ...patch };
+            return next;
+        });
+    };
+
+    const canConfirm = mappings.some(
+        (m) => m.action === 'existing' || m.action === 'new'
+    );
+
+    const handleConfirmClick = () => {
+        if (!canConfirm) {
+            alert('少なくとも1つの列をマッピングしてください。');
+            return;
+        }
+        onConfirm(mappings);
+    };
+
+    const legacyColumns = columns.map(definitionToColumn);
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+            <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[80vh] flex flex-col border border-gray-200">
+                <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between bg-[#f2f2f2]">
+                    <div className="flex flex-col">
+                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Excel / CSV インポート</span>
+                        {fileName && (
+                            <span className="text-xs text-gray-500 mt-1">{fileName}</span>
+                        )}
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="text-gray-400 hover:text-gray-700"
+                    >
+                        <IconX className="w-4 h-4" />
+                    </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                    <div>
+                        <p className="text-xs text-gray-600 mb-2">
+                            アップロードしたファイルの列を、このテーブルの既存カラムにマッピングするか、新しいカラムとして追加します。
+                        </p>
+                        <div className="border border-gray-200 rounded-md overflow-hidden">
+                            <div className="bg-gray-50 px-3 py-2 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                                列マッピング
+                            </div>
+                            <div className="max-h-64 overflow-y-auto divide-y divide-gray-100">
+                                {headers.map((header, index) => {
+                                    const mapping = mappings[index] || {
+                                        sourceHeader: header,
+                                        action: 'ignore' as const,
+                                    };
+
+                                    return (
+                                        <div key={`${header}-${index}`} className="flex items-start gap-3 px-3 py-2 bg-white">
+                                            <div className="w-1/3">
+                                                <div className="text-xs font-mono text-gray-500 mb-0.5">
+                                                    列 {index + 1}
+                                                </div>
+                                                <div className="text-sm font-medium text-[#323232] break-words">
+                                                    {header || <span className="text-gray-400 italic">（ヘッダーなし）</span>}
+                                                </div>
+                                            </div>
+                                            <div className="flex-1 space-y-1">
+                                                <CustomSelect
+                                                    value={mapping.action}
+                                                    onChange={(val) => {
+                                                        const action = val as 'existing' | 'new' | 'ignore';
+                                                        updateMapping(index, { action });
+                                                    }}
+                                                    options={[
+                                                        { value: 'existing', label: '既存カラムにマップ' },
+                                                        { value: 'new', label: '新しいカラムを作成' },
+                                                        { value: 'ignore', label: 'マップしない' },
+                                                    ]}
+                                                />
+
+                                                {mapping.action === 'existing' && (
+                                                    <div className="mt-1">
+                                                        <CustomSelect
+                                                            value={mapping.existingColumnId || ''}
+                                                            onChange={(val) => updateMapping(index, { existingColumnId: val })}
+                                                            options={legacyColumns.map(col => ({
+                                                                value: col.id,
+                                                                label: col.title,
+                                                            }))}
+                                                        />
+                                                    </div>
+                                                )}
+
+                                                {mapping.action === 'new' && (
+                                                    <div className="mt-1 flex gap-2">
+                                                        <input
+                                                            className="flex-1 text-xs border border-gray-200 rounded px-2 py-1 outline-none focus:ring-1 focus:ring-blue-500 bg-white text-[#323232]"
+                                                            placeholder="新しいカラム名"
+                                                            value={mapping.newColumnName || ''}
+                                                            onChange={(e) => updateMapping(index, { newColumnName: e.target.value })}
+                                                        />
+                                                        <CustomSelect
+                                                            className="w-28"
+                                                            value={mapping.newColumnType || 'text'}
+                                                            onChange={(val) => updateMapping(index, { newColumnType: val as ColumnType })}
+                                                            options={[
+                                                                { value: 'text', label: 'テキスト' },
+                                                                { value: 'number', label: '数値' },
+                                                                { value: 'tag', label: 'タグ' },
+                                                                { value: 'url', label: 'URL' },
+                                                                { value: 'date', label: '日付' },
+                                                                { value: 'email', label: 'Eメール' },
+                                                            ]}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                                データプレビュー
+                            </span>
+                            <span className="text-[11px] text-gray-400">
+                                先頭 {Math.min(previewRows.length, 5)} 行を表示
+                            </span>
+                        </div>
+                        <div className="border border-gray-200 rounded-md overflow-auto max-h-48 bg-white">
+                            {previewRows.length === 0 ? (
+                                <div className="p-4 text-xs text-gray-400">
+                                    プレビューできるデータがありません。
+                                </div>
+                            ) : (
+                                <table className="min-w-full text-xs">
+                                    <thead className="bg-gray-50">
+                                        <tr>
+                                            {headers.map((h, idx) => (
+                                                <th key={idx} className="px-2 py-1 border-b border-r border-gray-200 text-left font-medium text-gray-600">
+                                                    {h || `列${idx + 1}`}
+                                                </th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {previewRows.slice(0, 5).map((row, rIdx) => (
+                                            <tr key={rIdx} className="odd:bg-white even:bg-gray-50">
+                                                {headers.map((_, cIdx) => (
+                                                    <td key={cIdx} className="px-2 py-1 border-b border-r border-gray-100 text-gray-700">
+                                                        {row[cIdx] != null ? String(row[cIdx]) : ''}
+                                                    </td>
+                                                ))}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+                    <div className="text-[11px] text-gray-500">
+                        サポート形式: .xlsx, .csv / マップされていない列は無視されます
+                    </div>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={onClose}
+                            className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-black border border-gray-200 rounded-md bg-white"
+                        >
+                            キャンセル
+                        </button>
+                        <button
+                            onClick={handleConfirmClick}
+                            disabled={!canConfirm}
+                            className="px-4 py-1.5 text-xs font-bold text-white rounded-md bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            インポートを実行
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 };
 
