@@ -98,17 +98,24 @@ export async function getCurrentUser(): Promise<User | null> {
 }
 
 /**
- * Subscribe to authentication state changes
+ * Subscribe to authentication state changes.
+ *
+ * Note:
+ * Supabase will emit events such as TOKEN_REFRESHED when a tab is refocused.
+ * To avoid unnecessary reloads across the app, we surface the event type so
+ * callers can decide which events to react to.
  */
-export function onAuthStateChange(callback: (user: User | null) => void) {
-    return supabase.auth.onAuthStateChange((_event, session) => {
+export function onAuthStateChange(
+    callback: (event: string, user: User | null) => void
+) {
+    return supabase.auth.onAuthStateChange((event, session) => {
         if (session?.user) {
-            callback({
+            callback(event, {
                 id: session.user.id,
                 email: session.user.email!,
             });
         } else {
-            callback(null);
+            callback(event, null);
         }
     });
 }

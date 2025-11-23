@@ -30,11 +30,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loadUser();
 
         // Subscribe to auth state changes
-        const { data: { subscription } } = onAuthStateChange((newUser) => {
-            setUser(newUser);
-            if (newUser) {
-                loadOrganizations();
-            } else {
+        const { data: { subscription } } = onAuthStateChange((event, newUser) => {
+            // We only want to react to real sign-in / sign-out transitions.
+            // Events like TOKEN_REFRESHED can fire when the tab is refocused,
+            // but they should not cause us to reload organizations and tables.
+            if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+                setUser(newUser);
+                if (newUser) {
+                    loadOrganizations();
+                }
+            } else if (event === 'SIGNED_OUT') {
+                setUser(null);
                 setOrganizations([]);
                 setCurrentOrganizationState(null);
             }
@@ -69,17 +75,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!error) {
             setOrganizations(orgs);
 
+            // Compute the desired current organization based on saved preference
+            let nextCurrent: Organization | null = null;
             if (orgs.length > 0) {
-                // Restore previously selected org from localStorage
                 const savedOrgId = localStorage.getItem('currentOrganizationId');
                 const savedOrg = savedOrgId ? orgs.find(o => o.id === savedOrgId) : null;
-
-                setCurrentOrganizationState(savedOrg || orgs[0]);
+                nextCurrent = savedOrg || orgs[0];
             } else {
                 // User has no organizations
-                setCurrentOrganizationState(null);
                 localStorage.removeItem('currentOrganizationId');
             }
+
+            // Only update if the selected organization ID actually changed.
+            setCurrentOrganizationState(prev => {
+                if (prev?.id === nextCurrent?.id) {
+                    return prev;
+                }
+                return nextCurrent;
+            });
         }
     }
 
