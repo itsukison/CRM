@@ -66,7 +66,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ tables, currentTableId, onSele
                 {/* Logo Area */}
                 <div className={`p-6 cursor-pointer group ${isCollapsed ? 'flex justify-center px-2' : ''}`} onClick={() => router.push('/')}>
                     <div className="w-6 h-6 transition-transform group-hover:scale-95 shrink-0" style={{ backgroundColor: COLORS.BLUE }}></div>
-                    {!isCollapsed && <h1 className="ml-3 text-lg font-bold tracking-tight group-hover:text-blue-600 transition-colors whitespace-nowrap overflow-hidden">BaseCRM</h1>}
+                    {!isCollapsed && <h1 className="ml-3 text-lg font-bold tracking-tight group-hover:text-blue-600 transition-colors whitespace-nowrap overflow-hidden">Flowly</h1>}
                 </div>
 
                 {/* Main Nav */}

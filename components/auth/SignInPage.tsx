@@ -55,7 +55,7 @@ export const SignInPage: React.FC = () => {
                         marginBottom: '0.5rem',
                         fontFamily: 'Inter, sans-serif',
                     }}>
-                        BaseCRM
+                        Flowly
                     </h1>
                     <p style={{
                         fontSize: '0.875rem',

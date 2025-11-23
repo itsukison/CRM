@@ -1,8 +1,9 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { DataMap, BarChartGraphic, DotMatrix, PixelGrid, BlockStatusGrid } from './BaseGraphics';
-import { IconChevronRight, IconCheck, IconX, IconBolt, IconDatabase, IconSearch, IconMessageCircle } from './Icons';
+import { DataMap, BarChartGraphic, DotMatrix, PixelGrid, BlockStatusGrid, PhoneGraphic, DiamondGraphic, HexagonGraphic, WalletGraphic, SchemaGraphic, GenerationGraphic } from './BaseGraphics';
+import { IconChevronRight, IconCheck, IconX, IconBolt, IconDatabase, IconSearch, IconMessageCircle, IconSparkles } from './Icons';
 import { COLORS } from '../constants';
 
 interface LandingPageProps {
@@ -35,7 +36,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
                 <div className="max-w-[1400px] mx-auto px-6 md:px-12 flex items-center justify-between">
                     <div className="flex items-center gap-3 group cursor-pointer" onClick={onEnter}>
                         <div className="w-5 h-5 transition-transform duration-500" style={{ backgroundColor: COLORS.BLUE }}></div>
-                        <span className="font-bold text-lg tracking-tight font-mono">BaseCRM</span>
+                        <span className="font-bold text-lg tracking-tight font-mono">flowly</span>
                     </div>
 
                     <div className="hidden md:flex items-center gap-8 text-sm font-bold text-gray-500">
@@ -44,13 +45,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
                         <a href="#pricing" className="hover:text-blue-600 transition-colors">料金</a>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
                         <button
                             onClick={onEnter}
-                            className="px-5 py-2.5 text-white text-xs font-bold uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg"
-                            style={{ backgroundColor: COLORS.BLACK }}
+                            className="px-4 py-2 text-gray-700 text-xs font-bold uppercase tracking-wider hover:bg-gray-50 transition-colors border-2 border-gray-200"
                         >
-                            アプリを起動
+                            ログイン
+                        </button>
+                        <button
+                            onClick={onEnter}
+                            className="px-4 py-2 text-white text-xs font-bold uppercase tracking-wider hover:bg-blue-700 transition-all shadow-lg"
+                            style={{ backgroundColor: COLORS.BLUE }}
+                        >
+                            無料で始める
                         </button>
                     </div>
                 </div>
@@ -68,14 +75,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
                         </div>
 
                         <h1 className="text-5xl md:text-7xl font-bold tracking-tighter leading-[1.1] mb-8 font-noto">
-                            データ入力は、<br />
-                            <span style={{ color: COLORS.BLUE }}>AIに任せる時代へ。</span>
+                            データ入力から解放される、<br />
+                            <span style={{ color: COLORS.BLUE }}>AI駆動型CRM。</span>
                         </h1>
 
                         <p className="text-lg text-gray-500 max-w-lg leading-relaxed mb-10 font-medium">
-                            BaseCRMは、ただの顧客管理ツールではありません。
-                            スキーマを定義するだけで、AIが世界中からデータを収集、補完し、
-                            あなたのビジネスを加速させるインテリジェントな基盤となります。
+                            スキーマを定義するだけで、AIが自動的にリード情報を生成・収集。
+                            Web検索による最新データの取得から、自然言語による高度な分析まで。
+                            営業活動の本質に集中できる、次世代の顧客管理基盤です。
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-4">
@@ -115,230 +122,262 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
                 </div>
             </section>
 
-            {/* --- Comparison Section (Dark Mode) --- */}
-            <section id="concept" className="bg-[#0A0B0D] text-white py-24 border-y-2 border-gray-800">
+            {/* --- What is flowly? New Vertical Layout --- */}
+            <section id="concept" className="py-24 md:py-32 bg-gray-50 border-t border-gray-200">
+                <div className="max-w-[1400px] mx-auto px-6 md:px-12">
+                    <div className="max-w-6xl mx-auto">
+                        {/* Header */}
+                        <div className="text-center mb-16">
+                            <div className="text-xs font-mono font-bold text-gray-400 uppercase tracking-wider mb-4">What is flowly?</div>
+                            <h2 className="text-3xl md:text-5xl font-bold tracking-tighter mb-8 leading-tight">
+                                手入力から自動生成へ、<br />
+                                CRMの<span style={{ color: COLORS.BLUE }}>パラダイムシフト</span>
+                            </h2>
+                            <p className="text-lg text-gray-600 mb-10 leading-relaxed max-w-2xl mx-auto">
+                                従来のCRMは膨大な手入力作業が必要でした。flowlyはAIがリード情報を自動生成し、
+                                Web検索で最新データを収集。営業チームは戦略立案と商談に専念できます。
+                            </p>
+                        </div>
+
+                        {/* Three Columns */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {/* Card 1: AI Generation */}
+                            <div className="bg-white border-2 border-gray-800 p-10 hover:bg-gray-50 transition-all group relative">
+                                {/* Terminal-style corner brackets */}
+                                <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-gray-800"></div>
+                                <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-gray-800"></div>
+                                <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-gray-800"></div>
+                                <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-gray-800"></div>
+
+                                <div className="font-mono text-xs text-gray-400 mb-4">[01]</div>
+                                <div className="mb-6">
+                                    <div className="w-12 h-12 bg-gray-100 flex items-center justify-center mb-4 font-mono text-2xl font-bold text-gray-300">*</div>
+                                    <h3 className="text-xl font-bold mb-2">AIによる自動生成</h3>
+                                    <p className="text-xs font-mono text-gray-400 uppercase tracking-wider">AI Generation</p>
+                                </div>
+                                <p className="text-sm text-gray-600 leading-relaxed">
+                                    「東京のFintech企業50社」と指示するだけで、AIが該当する企業リストを自動生成。
+                                    手作業では数日かかる作業が数分で完了します。
+                                </p>
+                            </div>
+
+                            {/* Card 2: Web Search */}
+                            <div className="bg-white border-2 border-gray-800 p-10 hover:bg-gray-50 transition-all group relative">
+                                {/* Terminal-style corner brackets */}
+                                <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-gray-800"></div>
+                                <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-gray-800"></div>
+                                <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-gray-800"></div>
+                                <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-gray-800"></div>
+
+                                <div className="font-mono text-xs mb-4" style={{ color: COLORS.BLUE }}>[02]</div>
+                                <div className="mb-6">
+                                    <div className="w-12 h-12 bg-gray-100 flex items-center justify-center mb-4 font-mono text-2xl font-bold text-gray-300">@</div>
+                                    <h3 className="text-xl font-bold mb-2">リアルタイムWeb検索</h3>
+                                    <p className="text-xs font-mono text-gray-400 uppercase tracking-wider">Live Web Search</p>
+                                </div>
+                                <p className="text-sm text-gray-600 leading-relaxed">
+                                    企業の最新ニュース、財務情報、採用状況まで。AIがWeb検索を通じて
+                                    常に最新の情報をデータベースに反映させます。
+                                </p>
+                            </div>
+
+                            {/* Card 3: Conversational */}
+                            <div className="bg-white border-2 border-gray-800 p-10 hover:bg-gray-50 transition-all group relative">
+                                {/* Terminal-style corner brackets */}
+                                <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-gray-800"></div>
+                                <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-gray-800"></div>
+                                <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-gray-800"></div>
+                                <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-gray-800"></div>
+
+                                <div className="font-mono text-xs text-gray-400 mb-4">[03]</div>
+                                <div className="mb-6">
+                                    <div className="w-12 h-12 bg-gray-100 flex items-center justify-center mb-4 font-mono text-2xl font-bold text-gray-300">{`>`}</div>
+                                    <h3 className="text-xl font-bold mb-2">自然言語での分析</h3>
+                                    <p className="text-xs font-mono text-gray-400 uppercase tracking-wider">Natural Language Query</p>
+                                </div>
+                                <p className="text-sm text-gray-600 leading-relaxed">
+                                    「成長率の高い企業は？」と質問するだけ。SQL不要で複雑なデータ分析が可能。
+                                    経営判断に必要なインサイトを即座に取得できます。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* --- How It Works (Alternating Sections) --- */}
+            <section className="py-24 md:py-32 bg-white border-t border-gray-200">
+                <div className="max-w-[1400px] mx-auto px-6 md:px-12">
+                    <div className="mb-20 text-center">
+                        <h2 className="text-3xl md:text-4xl font-bold tracking-tighter mb-4">
+                            3ステップで始める
+                        </h2>
+                        <p className="text-gray-500 font-mono text-sm">SIMPLE WORKFLOW</p>
+                    </div>
+
+                    {/* Step 1: Image LEFT, Text RIGHT */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 mb-20 items-center">
+                        {/* Left: Visual */}
+                        <div className="order-2 lg:order-1">
+                            <div className="border-2 bg-white p-12 min-h-[350px] flex items-center justify-center relative" style={{ borderColor: COLORS.BLUE }}>
+                                <div className="absolute top-4 left-4 text-[120px] font-bold font-mono leading-none opacity-5" style={{ color: COLORS.BLUE }}>01</div>
+                                <div className="relative z-10">
+                                    <SchemaGraphic />
+                                </div>
+                            </div>
+                        </div>
+                        {/* Right: Text */}
+                        <div className="order-1 lg:order-2">
+                            <div className="text-xs font-mono font-bold mb-3 uppercase tracking-wider" style={{ color: COLORS.BLUE }}>Step 01</div>
+                            <h3 className="text-2xl md:text-3xl font-bold mb-4 tracking-tight">
+                                データ構造を設計
+                            </h3>
+                            <p className="text-gray-600 leading-relaxed mb-6">
+                                まず、必要なデータ項目とその型を定義します。「会社名」「業種」「従業員数」「URL」など、
+                                ビジネスに必要な情報を指定。これがAIのデータ生成の設計図となります。
+                            </p>
+                            <div className="border-l-2 pl-4" style={{ borderColor: COLORS.BLUE }}>
+                                <p className="text-sm font-mono text-gray-500">
+                                    柔軟なスキーマ設計により、あらゆる業種・用途に対応可能
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Step 2: Text LEFT, Image RIGHT */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 mb-20 items-center">
+                        {/* Left: Text */}
+                        <div>
+                            <div className="text-xs font-mono font-bold mb-3 uppercase tracking-wider" style={{ color: COLORS.PINK }}>Step 02</div>
+                            <h3 className="text-2xl md:text-3xl font-bold mb-4 tracking-tight">
+                                AIが自動でリード生成
+                            </h3>
+                            <p className="text-gray-600 leading-relaxed mb-6">
+                                「東京のFintech企業50社」「年商10億円以上のSaaS企業」など、
+                                条件を指定するだけ。AIが該当企業を自動で抽出し、Web検索を通じて
+                                最新の企業情報、ニュース、財務データまで収集します。
+                            </p>
+                            <div className="border-l-2 pl-4" style={{ borderColor: COLORS.PINK }}>
+                                <p className="text-sm font-mono text-gray-500">
+                                    数日かかるリサーチ作業が、数分で完了
+                                </p>
+                            </div>
+                        </div>
+                        {/* Right: Visual */}
+                        <div>
+                            <div className="border-2 bg-white p-12 min-h-[350px] flex items-center justify-center relative" style={{ borderColor: COLORS.PINK }}>
+                                <div className="absolute top-4 right-4 text-[120px] font-bold font-mono leading-none opacity-5" style={{ color: COLORS.PINK }}>02</div>
+                                <div className="relative z-10">
+                                    <GenerationGraphic />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Step 3: Image LEFT, Text RIGHT */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+                        {/* Left: Visual */}
+                        <div className="order-2 lg:order-1">
+                            <div className="border-2 border-gray-200 bg-gray-50 p-12 min-h-[300px] flex items-center justify-center relative">
+                                <div className="absolute top-4 left-4 text-[120px] font-bold text-gray-100 font-mono leading-none">03</div>
+                                <div className="relative z-10 font-mono text-sm text-gray-400">
+                                    <div className="mb-2">{`> SELECT * FROM companies`}</div>
+                                    <div className="mb-2">{`> WHERE revenue > 10M`}</div>
+                                    <div>{`> ORDER BY growth_rate DESC_`}</div>
+                                </div>
+                            </div>
+                        </div>
+                        {/* Right: Text */}
+                        <div className="order-1 lg:order-2">
+                            <div className="text-xs font-mono font-bold mb-3 uppercase tracking-wider" style={{ color: COLORS.GREEN }}>Step 03</div>
+                            <h3 className="text-2xl md:text-3xl font-bold mb-4 tracking-tight">
+                                対話形式でデータ分析
+                            </h3>
+                            <p className="text-gray-600 leading-relaxed mb-6">
+                                「成長率の高い企業トップ10は？」「先月追加されたリードで商談確度の高いものは？」
+                                など、自然言語で質問するだけ。複雑なSQLクエリは不要です。
+                                AIが瞬時に分析し、ビジネスインサイトを提供します。
+                            </p>
+                            <div className="border-l-2 pl-4" style={{ borderColor: COLORS.GREEN }}>
+                                <p className="text-sm font-mono text-gray-500">
+                                    データアナリストがいなくても、高度な分析が可能
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* --- Advanced Features (4-Column) --- */}
+            <section className="py-24 bg-white border-t border-gray-200">
                 <div className="max-w-[1400px] mx-auto px-6 md:px-12">
                     <div className="mb-16 text-center">
                         <h2 className="text-3xl md:text-4xl font-bold tracking-tighter mb-4">
-                            CRMの常識を変える
+                            エンタープライズ対応の機能
                         </h2>
-                        <p className="text-gray-400 text-sm font-mono">
-                            <span style={{ color: COLORS.PINK }}>OLD:</span> STATIC DATABASE  vs  <span style={{ color: COLORS.GREEN }}>NEW:</span> LIVING INTELLIGENCE
-                        </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 border-2 border-gray-800">
-                        {/* Traditional */}
-                        <div className="p-10 md:p-16 border-b-2 lg:border-b-0 lg:border-r-2 border-gray-800 bg-[#0F1012]">
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="h-8 w-1 bg-gray-600"></div>
-                                <h3 className="text-gray-400 font-mono text-sm font-bold uppercase tracking-wider">従来のCRM</h3>
-                            </div>
-                            <ul className="space-y-6 text-gray-300">
-                                <li className="flex items-start gap-4">
-                                    <div className="p-1.5 bg-gray-800 border border-gray-700 text-red-500 mt-0.5 flex-shrink-0"><IconX className="w-4 h-4" /></div>
-                                    <div>
-                                        <strong className="block text-white mb-1.5 font-bold">煩雑な手作業</strong>
-                                        <span className="text-sm leading-relaxed text-gray-400">顧客情報を一件ずつ手入力。または高額な外部サービスからのデータ移行が必須です。</span>
-                                    </div>
-                                </li>
-                                <li className="flex items-start gap-4">
-                                    <div className="p-1.5 bg-gray-800 border border-gray-700 text-red-500 mt-0.5 flex-shrink-0"><IconX className="w-4 h-4" /></div>
-                                    <div>
-                                        <strong className="block text-white mb-1.5 font-bold">古くなるデータ</strong>
-                                        <span className="text-sm leading-relaxed text-gray-400">入力直後から情報は古くなり、常に更新作業に追われてしまいます。</span>
-                                    </div>
-                                </li>
-                                <li className="flex items-start gap-4">
-                                    <div className="p-1.5 bg-gray-800 border border-gray-700 text-red-500 mt-0.5 flex-shrink-0"><IconX className="w-4 h-4" /></div>
-                                    <div>
-                                        <strong className="block text-white mb-1.5 font-bold">専門知識が必須</strong>
-                                        <span className="text-sm leading-relaxed text-gray-400">高度な分析を行うには、SQLなどの専門的な知識が欠かせません。</span>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
-
-                        {/* BaseCRM */}
-                        <div className="p-10 md:p-16 bg-[#0A0B0D] relative">
-                            {/* Blue accent bar */}
-                            <div className="absolute top-0 left-0 w-full h-1" style={{ backgroundColor: COLORS.BLUE }}></div>
-
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="h-8 w-1" style={{ backgroundColor: COLORS.BLUE }}></div>
-                                <h3 className="text-white font-mono text-sm font-bold uppercase tracking-wider">BaseCRM</h3>
-                            </div>
-                            <ul className="space-y-6 text-white">
-                                <li className="flex items-start gap-4">
-                                    <div className="p-1.5 border-2 border-green-600 bg-green-950/30 text-green-400 mt-0.5 flex-shrink-0"><IconCheck className="w-4 h-4" /></div>
-                                    <div>
-                                        <strong className="block mb-1.5 font-bold">AI自動生成</strong>
-                                        <span className="text-sm leading-relaxed text-gray-400">「東京のSaaS企業」と伝えるだけ。AIが必要なリストを自動で作成します。</span>
-                                    </div>
-                                </li>
-                                <li className="flex items-start gap-4">
-                                    <div className="p-1.5 border-2 border-green-600 bg-green-950/30 text-green-400 mt-0.5 flex-shrink-0"><IconCheck className="w-4 h-4" /></div>
-                                    <div>
-                                        <strong className="block mb-1.5 font-bold">リアルタイム情報取得</strong>
-                                        <span className="text-sm leading-relaxed text-gray-400">Web検索と連携し、最新の企業情報、ニュース、財務データを自動で取得・更新します。</span>
-                                    </div>
-                                </li>
-                                <li className="flex items-start gap-4">
-                                    <div className="p-1.5 border-2 border-green-600 bg-green-950/30 text-green-400 mt-0.5 flex-shrink-0"><IconCheck className="w-4 h-4" /></div>
-                                    <div>
-                                        <strong className="block mb-1.5 font-bold">会話形式で操作</strong>
-                                        <span className="text-sm leading-relaxed text-gray-400">「売上10億円以上の企業は？」と聞くだけ。複雑なクエリも瞬時に実行されます。</span>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* --- Workflow Section (Swiss Style Grid) --- */}
-            <section className="py-32 bg-white border-t border-gray-200">
-                <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-                    <div className="mb-20 flex flex-col md:flex-row md:items-end justify-between gap-6">
-                        <h2 className="text-3xl md:text-4xl font-bold tracking-tighter leading-[0.9]">
-                            ワークフロー
-                        </h2>
-                        <div className="font-mono text-xs text-gray-400 text-right">
-                            <div className="mb-1">ARCHITECTURE: PIPELINE</div>
-                            <div className="flex items-center justify-end gap-2">
-                                STATUS: <span className="text-green-500">READY</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 border-t-2 border-l-2 border-gray-200">
-                        {/* Step 1 */}
-                        <div className="group border-r-2 border-b-2 border-gray-200 p-10 relative hover:bg-gray-50 transition-colors min-h-[400px] flex flex-col justify-between">
-                            <div>
-                                <div className="text-6xl font-bold text-gray-100 mb-8 font-mono group-hover:text-blue-600 transition-colors">01</div>
-                                <h3 className="text-xl font-bold mb-3 uppercase tracking-tight">スキーマ定義</h3>
-                                <p className="text-sm text-gray-500 leading-relaxed max-w-xs">
-                                    データ構造、カラム型、ルールを定義。インテリジェンス層の設計図となります。
-                                </p>
-                            </div>
-                            <div className="w-full h-px bg-gray-200 mt-auto relative overflow-hidden">
-                                <div className="absolute top-0 left-0 h-full w-0 bg-blue-600 group-hover:w-full transition-all duration-700 ease-out"></div>
-                            </div>
-                        </div>
-
-                        {/* Step 2 */}
-                        <div className="group border-r-2 border-b-2 border-gray-200 p-10 relative hover:bg-gray-50 transition-colors min-h-[400px] flex flex-col justify-between">
-                            <div>
-                                <div className="text-6xl font-bold text-gray-100 mb-8 font-mono group-hover:text-pink-500 transition-colors">02</div>
-                                <h3 className="text-xl font-bold mb-3 uppercase tracking-tight">自動生成とエンリッチメント</h3>
-                                <p className="text-sm text-gray-500 leading-relaxed max-w-xs">
-                                    エージェントがリアルタイムでWebをクロール。行を入力し、事実を検証し、即座にギャップを埋めます。
-                                </p>
-                            </div>
-                            {/* Pixel Visual */}
-                            <div className="flex gap-1.5">
-                                <div className="w-3 h-3 bg-gray-100 group-hover:bg-pink-500 transition-colors duration-300"></div>
-                                <div className="w-3 h-3 bg-gray-100 group-hover:bg-pink-500 transition-colors duration-300 delay-75"></div>
-                                <div className="w-3 h-3 bg-gray-100 group-hover:bg-pink-500 transition-colors duration-300 delay-150"></div>
-                            </div>
-                        </div>
-
-                        {/* Step 3 */}
-                        <div className="group border-r-2 border-b-2 border-gray-200 p-10 relative hover:bg-gray-50 transition-colors min-h-[400px] flex flex-col justify-between">
-                            <div>
-                                <div className="text-6xl font-bold text-gray-100 mb-8 font-mono group-hover:text-green-600 transition-colors">03</div>
-                                <h3 className="text-xl font-bold mb-3 uppercase tracking-tight">対話型クエリ</h3>
-                                <p className="text-sm text-gray-500 leading-relaxed max-w-xs">
-                                    SQLは不要。自然言語でデータをフィルタ、ソート、分析。データベースと対話しましょう。
-                                </p>
-                            </div>
-                            <div className="font-mono text-xs text-gray-200 group-hover:text-green-600 transition-colors bg-black/0 group-hover:bg-black/5 inline-block px-2 py-1">
-                                {`> SELECT * FROM FUTURE_`}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* --- Ecosystem Cards --- */}
-            <section id="features" className="py-24 bg-gray-50 border-t border-gray-200">
-                <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-                    <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-8">
-                        <h2 className="text-3xl md:text-4xl font-bold tracking-tighter max-w-xl">
-                            主な機能
-                        </h2>
-                        <p className="text-gray-500 max-w-md leading-relaxed font-mono text-xs md:text-sm bg-white p-4 border-2 border-gray-200 shadow-sm">
-                            {'> STATUS: OPTIMIZED'}<br />
-                            {'> MODULES: '}<span style={{ color: COLORS.PINK }}>ACTIVE</span>
-                        </p>
+                        <p className="text-gray-500 text-sm font-mono">ENTERPRISE READY</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {[
-                            { title: "無限生成", en: "Infinite Generation", icon: <BarChartGraphic color={COLORS.PINK} />, desc: "見込み顧客リスト作成、市場調査、アイデア出し。AIが無限のリソースを提供します。" },
-                            { title: "Web検索連動", en: "Live Web Access", icon: <div className="h-32 flex items-center justify-center"><div className="grid grid-cols-4 grid-rows-4 gap-1">{Array.from({ length: 16 }).map((_, i) => <div key={i} className="w-3 h-3 bg-gray-200 hover:bg-green-500 transition-colors" style={{ animationDelay: `${i * 50}ms` }}></div>)}</div></div>, desc: "Google検索を通じて、常に最新の情報をデータベースに反映させます。" },
-                            { title: "スケーラビリティ", en: "High Scalability", icon: <div className="h-32 flex items-center justify-center"><DotMatrix /></div>, desc: "数万行のデータも遅延なく処理。ブラウザ上で動作する軽量設計。" },
-                            { title: "対話型分析", en: "Conversational Analytics", icon: <div className="h-32 flex items-center justify-center font-mono text-2xl font-bold text-gray-300">_QUERY</div>, desc: "「先月のトップパフォーマーは？」と聞くだけで、複雑なフィルタリングを実行。" }
-                        ].map((card, i) => (
-                            <div key={i} className="group bg-white p-8 border-2 border-gray-200 hover:border-gray-800 transition-all duration-300 cursor-pointer hover:-translate-y-1 shadow-sm hover:shadow-lg relative overflow-hidden">
-                                <div className="absolute top-0 left-0 w-full h-1 bg-transparent group-hover:bg-blue-600 transition-colors"></div>
-                                <div className="h-32 mb-6 border-b border-gray-50 pb-4 overflow-hidden">
-                                    {card.icon}
-                                </div>
-                                <div className="mb-2">
-                                    <h3 className="text-lg font-bold group-hover:text-blue-600 transition-colors">{card.title}</h3>
-                                    <p className="text-[10px] font-mono text-gray-400 uppercase tracking-wider">{card.en}</p>
-                                </div>
-                                <p className="text-sm text-gray-500 leading-relaxed font-medium mt-4">
-                                    {card.desc}
-                                </p>
+                        {/* Feature 1: Scalability - Green */}
+                        <div className="bg-white border-2 p-6 hover:shadow-xl transition-all relative overflow-hidden group" style={{ borderColor: COLORS.GREEN }}>
+                            <div className="absolute top-0 right-0 w-16 h-16 opacity-10" style={{ backgroundColor: COLORS.GREEN }}></div>
+                            <div className="mb-4 relative z-10">
+                                <PhoneGraphic />
+                                <h3 className="text-lg font-bold mb-2 mt-4">大規模データ処理</h3>
+                                <p className="text-xs font-mono uppercase tracking-wider" style={{ color: COLORS.GREEN }}>High Performance</p>
                             </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* --- Intelligence Loop --- */}
-            <section className="py-32 bg-white relative overflow-hidden border-t border-gray-200">
-                <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-                        <div className="max-w-2xl">
-                            <h2 className="text-3xl md:text-4xl font-bold tracking-tighter mb-10 leading-tight">
-                                AIが考える<br />データベース
-                            </h2>
-
-                            <div className="space-y-8">
-                                {/* Step 1 */}
-                                <div>
-                                    <div className="text-xs font-mono font-bold mb-2 uppercase tracking-wider" style={{ color: COLORS.PINK }}>01 / データ生成</div>
-                                    <h3 className="text-lg font-bold mb-2">「Fintech企業50社」と指示</h3>
-                                    <p className="text-gray-500 leading-relaxed">AIが条件を理解し、該当する企業リストを自動で作成。手作業ゼロで必要なデータが揃います。</p>
-                                </div>
-
-                                {/* Step 2 */}
-                                <div>
-                                    <div className="text-xs font-mono font-bold mb-2 uppercase tracking-wider" style={{ color: COLORS.GREEN }}>02 / 情報収集</div>
-                                    <h3 className="text-lg font-bold mb-2">Web検索で最新情報を取得</h3>
-                                    <p className="text-gray-500 leading-relaxed">資金調達ラウンド、経営陣の異動、最新ニュースなど、常に最新の情報を自動で補完します。</p>
-                                </div>
-
-                                {/* Step 3 */}
-                                <div>
-                                    <div className="text-xs font-mono font-bold mb-2 uppercase tracking-wider" style={{ color: COLORS.BLUE }}>03 / データ分析</div>
-                                    <h3 className="text-lg font-bold mb-2">「成長性の高い企業は？」と質問</h3>
-                                    <p className="text-gray-500 leading-relaxed">複数の条件を組み合わせた高度なフィルタリングも、自然な会話で瞬時に実行されます。</p>
-                                </div>
-                            </div>
+                            <p className="text-sm text-gray-600 leading-relaxed">
+                                数万件のリードデータも高速処理。
+                                ストレスフリーな操作性を実現します。
+                            </p>
                         </div>
 
-                        {/* Right side: Data Block Visual */}
-                        <div className="relative h-[500px] bg-gray-50 border-2 border-gray-200 p-10 flex items-center justify-center overflow-hidden">
-                            <div className="absolute inset-0 opacity-20" style={{ backgroundImage: `radial-gradient(${COLORS.BLUE} 1px, transparent 1px)`, backgroundSize: '20px 20px' }}></div>
-                            <BlockStatusGrid />
+                        {/* Feature 2: Export - Pink */}
+                        <div className="bg-white border-2 p-6 hover:shadow-xl transition-all relative overflow-hidden group" style={{ borderColor: COLORS.PINK }}>
+                            <div className="absolute top-0 right-0 w-16 h-16 opacity-10" style={{ backgroundColor: COLORS.PINK }}></div>
+                            <div className="mb-4 relative z-10">
+                                <DiamondGraphic />
+                                <h3 className="text-lg font-bold mb-2 mt-4">柔軟なデータ連携</h3>
+                                <p className="text-xs font-mono uppercase tracking-wider" style={{ color: COLORS.PINK }}>Data Export</p>
+                            </div>
+                            <p className="text-sm text-gray-600 leading-relaxed">
+                                CSV、JSON、Excel形式でのエクスポートに対応。
+                                既存システムとのシームレスな連携が可能です。
+                            </p>
+                        </div>
+
+                        {/* Feature 3: API - Tan */}
+                        <div className="bg-white border-2 p-6 hover:shadow-xl transition-all relative overflow-hidden group" style={{ borderColor: COLORS.TAN }}>
+                            <div className="absolute top-0 right-0 w-16 h-16 opacity-10" style={{ backgroundColor: COLORS.TAN }}></div>
+                            <div className="mb-4 relative z-10">
+                                <HexagonGraphic />
+                                <h3 className="text-lg font-bold mb-2 mt-4">RESTful API</h3>
+                                <p className="text-xs font-mono uppercase tracking-wider" style={{ color: COLORS.TAN }}>Developer Friendly</p>
+                            </div>
+                            <p className="text-sm text-gray-600 leading-relaxed">
+                                充実したAPI機能で、既存の業務システムや
+                                マーケティングツールと統合可能です。
+                            </p>
+                        </div>
+
+                        {/* Feature 4: Security - Blue */}
+                        <div className="bg-white border-2 p-6 hover:shadow-xl transition-all relative overflow-hidden group" style={{ borderColor: COLORS.BLUE }}>
+                            <div className="absolute top-0 right-0 w-16 h-16 opacity-10" style={{ backgroundColor: COLORS.BLUE }}></div>
+                            <div className="mb-4 relative z-10">
+                                <WalletGraphic />
+                                <h3 className="text-lg font-bold mb-2 mt-4">エンタープライズセキュリティ</h3>
+                                <p className="text-xs font-mono uppercase tracking-wider" style={{ color: COLORS.BLUE }}>Secure</p>
+                            </div>
+                            <p className="text-sm text-gray-600 leading-relaxed">
+                                SOC 2準拠のセキュリティ基準。
+                                重要な顧客データを安全に管理します。
+                            </p>
                         </div>
                     </div>
                 </div>
             </section>
+
 
             {/* --- Pricing Section --- */}
             <section id="pricing" className="py-32 border-t border-gray-200 bg-[#0A0B0D] text-white">
@@ -397,6 +436,85 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
                 </div>
             </section>
 
+            {/* --- Q&A Section --- */}
+            <section className="py-24 bg-white border-t border-gray-200">
+                <div className="max-w-[1000px] mx-auto px-6 md:px-12">
+                    <div className="mb-16 text-center">
+                        <h2 className="text-3xl md:text-4xl font-bold tracking-tighter mb-4">
+                            よくある質問
+                        </h2>
+                        <p className="text-gray-500 text-sm font-mono">FAQ</p>
+                    </div>
+
+                    <div className="space-y-4">
+                        {/* Q1 */}
+                        <div className="border-2 border-gray-200 hover:border-gray-800 transition-all">
+                            <div className="p-6">
+                                <h3 className="font-bold mb-3 flex items-center gap-3">
+                                    <span className="font-mono text-xs" style={{ color: COLORS.BLUE }}>Q1</span>
+                                    <span>従来のCRMとの違いは何ですか？</span>
+                                </h3>
+                                <p className="text-sm text-gray-600 leading-relaxed pl-8">
+                                    従来のCRMは手動でデータを入力・管理するツールですが、flowlyはAIが自動的にリード情報を生成・収集します。営業チームはデータ入力ではなく、戦略立案と商談に専念できます。
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Q2 */}
+                        <div className="border-2 border-gray-200 hover:border-gray-800 transition-all">
+                            <div className="p-6">
+                                <h3 className="font-bold mb-3 flex items-center gap-3">
+                                    <span className="font-mono text-xs" style={{ color: COLORS.BLUE }}>Q2</span>
+                                    <span>どのような企業情報を自動生成できますか？</span>
+                                </h3>
+                                <p className="text-sm text-gray-600 leading-relaxed pl-8">
+                                    会社名、業種、従業員数、所在地、URL、代表者名、資金調達情報など、定義したスキーマに基づいて様々な情報を自動生成できます。Web検索を通じて最新のニュースや財務情報も取得可能です。
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Q3 */}
+                        <div className="border-2 border-gray-200 hover:border-gray-800 transition-all">
+                            <div className="p-6">
+                                <h3 className="font-bold mb-3 flex items-center gap-3">
+                                    <span className="font-mono text-xs" style={{ color: COLORS.BLUE }}>Q3</span>
+                                    <span>データの精度はどのくらいですか？</span>
+                                </h3>
+                                <p className="text-sm text-gray-600 leading-relaxed pl-8">
+                                    AIは最新のLLMを使用し、Web検索により公開情報をリアルタイムで取得します。ただし、生成されたデータは必ず確認いただくことを推奨します。重要な商談前には人手での検証をお願いします。
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Q4 */}
+                        <div className="border-2 border-gray-200 hover:border-gray-800 transition-all">
+                            <div className="p-6">
+                                <h3 className="font-bold mb-3 flex items-center gap-3">
+                                    <span className="font-mono text-xs" style={{ color: COLORS.BLUE }}>Q4</span>
+                                    <span>既存のCRMからデータを移行できますか？</span>
+                                </h3>
+                                <p className="text-sm text-gray-600 leading-relaxed pl-8">
+                                    CSV、Excel等の形式でデータをインポート可能です。また、主要なCRMツールとのAPI連携もサポートしています。詳細は営業チームにお問い合わせください。
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Q5 */}
+                        <div className="border-2 border-gray-200 hover:border-gray-800 transition-all">
+                            <div className="p-6">
+                                <h3 className="font-bold mb-3 flex items-center gap-3">
+                                    <span className="font-mono text-xs" style={{ color: COLORS.BLUE }}>Q5</span>
+                                    <span>無料プランでできることは？</span>
+                                </h3>
+                                <p className="text-sm text-gray-600 leading-relaxed pl-8">
+                                    無料プランでは1,000レコードまで保存可能で、基本的なAI生成機能（1日10回まで）をお試しいただけます。機能を制限なく使用したい場合は、プロプラン以上をご検討ください。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             {/* --- CTA Section (New) --- */}
             <section className="py-24 bg-white border-t border-gray-200">
                 <div className="max-w-[1400px] mx-auto px-6 md:px-12">
@@ -425,14 +543,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
                 <div className="max-w-[1400px] mx-auto px-6 md:px-12">
                     <div className="flex justify-between items-end">
                         <div>
-                            <h3 className="text-2xl font-bold tracking-tight mb-2 font-mono">BaseCRM</h3>
+                            <h3 className="text-2xl font-bold tracking-tight mb-2 font-mono">flowly</h3>
                             <p className="text-xs font-mono text-gray-500 uppercase">System Status: <span style={{ color: COLORS.GREEN }}>Operational</span></p>
                         </div>
                         <div className="flex gap-6 text-xs font-mono text-gray-400">
                             <a href="#" className="hover:text-black">Twitter</a>
                             <a href="#" className="hover:text-black">GitHub</a>
                             <a href="#" className="hover:text-black">Discord</a>
-                            <span>© 2024 BaseCRM Labs</span>
+                            <span>© 2024 flowly Labs</span>
                         </div>
                     </div>
                 </div>

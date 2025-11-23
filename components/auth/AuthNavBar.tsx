@@ -42,7 +42,7 @@ export const AuthNavBar: React.FC = () => {
                     fontFamily: 'Inter, sans-serif',
                     letterSpacing: '-0.01em',
                 }}>
-                    BaseCRM
+                    Flowly
                 </span>
             </Link>
         </nav>

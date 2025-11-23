@@ -3,9 +3,9 @@ import { TableData } from './types';
 // Base Brand Palette
 export const COLORS = {
     BLUE: '#0000FF',
-    BLACK: '#000000', 
+    BLACK: '#000000',
     WHITE: '#FFFFFF',
-    
+
     // Grayscale
     GRAY_0: '#FFFFFF',
     GRAY_10: '#EEF0F3',
@@ -22,7 +22,8 @@ export const COLORS = {
     GREEN: '#66C800',
     LIME_GREEN: '#B6F569',
     RED: '#FC401F',
-    PINK: '#FEA8CD'
+    PINK: '#FEA8CD',
+    TAN: '#B8A581'
 };
 
 export const BASE_BLUE = COLORS.BLUE;

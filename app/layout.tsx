@@ -21,7 +21,7 @@ const notoSansJP = Noto_Sans_JP({
 });
 
 export const metadata: Metadata = {
-  title: "BaseCRM - 次世代AI顧客管理システム",
+  title: "Flowly - 次世代AI顧客管理システム",
   description: "AI-powered CRM system for modern businesses",
 };
 
