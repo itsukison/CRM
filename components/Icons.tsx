@@ -185,3 +185,9 @@ export const IconTextVisible: React.FC<IconProps> = ({ className = "w-4 h-4" }) 
     <path d="M21 14h2M21 18h2" />
   </svg>
 );
+
+export const IconArrowUp: React.FC<IconProps> = ({ className = "w-4 h-4" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m18 15-6-6-6 6" />
+  </svg>
+);
