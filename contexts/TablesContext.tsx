@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext } from 'react';
-import { TableData } from '../types';
+import { TableData } from '@/types';
 
 interface TablesContextType {
     tables: TableData[];

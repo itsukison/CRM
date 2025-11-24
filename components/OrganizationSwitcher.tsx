@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { COLORS } from '../constants';
+import { COLORS } from '@/config/constants';
 import { IconChevronRight } from './Icons';
 
 export const OrganizationSwitcher: React.FC = () => {

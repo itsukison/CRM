@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Fuse from 'fuse.js';
 import * as XLSX from 'xlsx';
-import { TableData, Row, Column, ColumnDefinition, ColumnType, SortState, Filter, TextOverflowMode, definitionToColumn, columnToDefinition } from '../types';
+import { TableData, Row, Column, ColumnDefinition, ColumnType, SortState, Filter, TextOverflowMode, definitionToColumn, columnToDefinition } from '@/types';
 import { identifyCompanies, scrapeCompanyDetails } from '../services/companyService';
 import type { EnrichmentProgress, GenerationProgress } from '../services/enrichmentService';
 import {
@@ -24,8 +24,8 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
-} from "./ui/alert-dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+} from "@/ui/primitives/alert-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/ui/primitives/select';
 
 // --- Formula Evaluation Logic ---
 const evaluateFormula = (expression: string, row: Row, columns: Column[]) => {
@@ -80,7 +80,7 @@ const CustomSelect = ({
 }) => {
     return (
         <Select value={value} onValueChange={onChange}>
-            <SelectTrigger className={`w-full h-9 bg-white ${className}`}>
+            <SelectTrigger className={`w - full h - 9 bg - white ${className} `}>
                 <SelectValue placeholder={options.find(o => o.value === value)?.label} />
             </SelectTrigger>
             <SelectContent>
@@ -520,7 +520,7 @@ export const TableView: React.FC<TableViewProps> = ({
 
     // --- Column Management Logic ---
     const handleAddColumn = () => {
-        const newColId = `col_${Date.now()}`;
+        const newColId = `col_${Date.now()} `;
         const newCol: Column = {
             id: newColId,
             title: `新規カラム`,
@@ -583,7 +583,7 @@ export const TableView: React.FC<TableViewProps> = ({
     };
 
     const handleAddEmptyRow = () => {
-        const newRow: Row = { id: `row_${Date.now()}` };
+        const newRow: Row = { id: `row_${Date.now()} ` };
         table.columns.forEach(c => newRow[c.id] = '');
         onUpdateTable({ ...table, rows: [...table.rows, newRow] });
         setShowAddMenu(false);
@@ -640,7 +640,7 @@ export const TableView: React.FC<TableViewProps> = ({
                 const headerRow = sheetData[0] || [];
                 const headers = headerRow.map((cell, idx) => {
                     const raw = cell == null ? '' : String(cell).trim();
-                    return raw || `列${idx + 1}`;
+                    return raw || `列${idx + 1} `;
                 });
 
                 const bodyRows = sheetData.slice(1).filter(row =>
@@ -718,7 +718,7 @@ export const TableView: React.FC<TableViewProps> = ({
                     const name = (mapping.newColumnName || mapping.sourceHeader || '').trim();
                     if (!name) return;
                     const type = mapping.newColumnType || 'text';
-                    const newId = `import_col_${Date.now()}_${index}`;
+                    const newId = `import_col_${Date.now()}_${index} `;
                     const order = updatedColumns.length + newColumns.length;
                     const newColDef: ColumnDefinition = {
                         id: newId,
@@ -774,7 +774,7 @@ export const TableView: React.FC<TableViewProps> = ({
                     targetRow = { ...updatedRows[targetIndex] };
                 } else {
                     targetIndex = updatedRows.length;
-                    targetRow = { id: `empty_import_${Date.now()}_${rowIndex}` };
+                    targetRow = { id: `empty_import_${Date.now()}_${rowIndex} ` };
                     updatedColumns.forEach(col => {
                         (targetRow as any)[col.id] = '';
                     });
@@ -860,7 +860,7 @@ export const TableView: React.FC<TableViewProps> = ({
             const newColDefs: ColumnDefinition[] = [];
             newColNames.forEach((name, idx) => {
                 const newCol: Column = {
-                    id: `gen_col_${Date.now()}_${idx}`,
+                    id: `gen_col_${Date.now()}_${idx} `,
                     title: name,
                     type: 'text',
                     description: name
@@ -949,7 +949,7 @@ export const TableView: React.FC<TableViewProps> = ({
                         row = { ...rowsCopy[targetIndex] };
                     } else {
                         // Not enough existing rows – append a new one
-                        row = { id: `gen_${Date.now()}_${idx}` };
+                        row = { id: `gen_${Date.now()}_${idx} ` };
                         currentColumns.forEach(col => {
                             row[col.id] = '';
                         });
@@ -1088,7 +1088,7 @@ export const TableView: React.FC<TableViewProps> = ({
                 setEnrichmentProgress(prev => {
                     const next = new Map(prev);
                     targetCols.forEach(col => {
-                        const cellKey = `${row.id}-${col.id}`;
+                        const cellKey = `${row.id} -${col.id} `;
                         next.set(cellKey, {
                             rowId: row.id,
                             columnId: col.id,
@@ -1105,7 +1105,7 @@ export const TableView: React.FC<TableViewProps> = ({
             setEnrichmentProgress(prev => {
                 const next = new Map(prev);
                 targetCols.forEach(col => {
-                    const cellKey = `${row.id}-${col.id}`;
+                    const cellKey = `${row.id} -${col.id} `;
                     next.set(cellKey, {
                         rowId: row.id,
                         columnId: col.id,
@@ -1139,7 +1139,7 @@ export const TableView: React.FC<TableViewProps> = ({
                 setEnrichmentProgress(prev => {
                     const next = new Map(prev);
                     targetCols.forEach(col => {
-                        const cellKey = `${row.id}-${col.id}`;
+                        const cellKey = `${row.id} -${col.id} `;
                         const value = data[col.title];
                         next.set(cellKey, {
                             rowId: row.id,
@@ -1155,11 +1155,11 @@ export const TableView: React.FC<TableViewProps> = ({
                     return next;
                 });
             } catch (e) {
-                console.error(`Failed to enrich row ${row.id}`, e);
+                console.error(`Failed to enrich row ${row.id} `, e);
                 setEnrichmentProgress(prev => {
                     const next = new Map(prev);
                     targetCols.forEach(col => {
-                        const cellKey = `${row.id}-${col.id}`;
+                        const cellKey = `${row.id} -${col.id} `;
                         next.set(cellKey, {
                             rowId: row.id,
                             columnId: col.id,
@@ -1204,27 +1204,27 @@ export const TableView: React.FC<TableViewProps> = ({
                     <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-md border border-gray-100">
                         <button
                             onClick={() => handleSetTextOverflow('wrap')}
-                            className={`p-1 rounded hover:bg-white hover:shadow-sm transition-all
+                            className={`p - 1 rounded hover: bg - white hover: shadow - sm transition - all
                                 ${getModeIsActive('wrap') ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-500 hover:text-black'}
-                            `}
+`}
                             title="テキストを折り返す"
                         >
                             <IconTextWrap className="w-3.5 h-3.5" />
                         </button>
                         <button
                             onClick={() => handleSetTextOverflow('clip')}
-                            className={`p-1 rounded hover:bg-white hover:shadow-sm transition-all
+                            className={`p - 1 rounded hover: bg - white hover: shadow - sm transition - all
                                 ${getModeIsActive('clip') ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-500 hover:text-black'}
-                            `}
+`}
                             title="はみ出しを隠す"
                         >
                             <IconTextClip className="w-3.5 h-3.5" />
                         </button>
                         <button
                             onClick={() => handleSetTextOverflow('visible')}
-                            className={`p-1 rounded hover:bg-white hover:shadow-sm transition-all
+                            className={`p - 1 rounded hover: bg - white hover: shadow - sm transition - all
                                 ${getModeIsActive('visible') ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-500 hover:text-black'}
-                            `}
+`}
                             title="はみ出しを表示"
                         >
                             <IconTextVisible className="w-3.5 h-3.5" />
@@ -1237,7 +1237,7 @@ export const TableView: React.FC<TableViewProps> = ({
                     <div className="relative" ref={filterMenuRef}>
                         <button
                             onClick={() => setShowFilterMenu(!showFilterMenu)}
-                            className={`p-1.5 rounded transition-colors flex items-center gap-2 ${activeFilters.length > 0 ? 'text-blue-600 bg-blue-50' : 'text-gray-500 hover:text-[#323232] hover:bg-gray-100'}`}
+                            className={`p - 1.5 rounded transition - colors flex items - center gap - 2 ${activeFilters.length > 0 ? 'text-blue-600 bg-blue-50' : 'text-gray-500 hover:text-[#323232] hover:bg-gray-100'} `}
                             title="フィルタ"
                         >
                             <IconFilter className="w-4 h-4" />
@@ -1318,7 +1318,7 @@ export const TableView: React.FC<TableViewProps> = ({
                     <div className="relative" ref={sortMenuRef}>
                         <button
                             onClick={() => setShowSortMenu(!showSortMenu)}
-                            className={`p-1.5 rounded transition-colors flex items-center gap-2 ${activeSorts.length > 0 ? 'text-blue-600 bg-blue-50' : 'text-gray-500 hover:text-[#323232] hover:bg-gray-100'}`}
+                            className={`p - 1.5 rounded transition - colors flex items - center gap - 2 ${activeSorts.length > 0 ? 'text-blue-600 bg-blue-50' : 'text-gray-500 hover:text-[#323232] hover:bg-gray-100'} `}
                             title="並べ替え"
                         >
                             <IconSort className="w-4 h-4" />
@@ -1392,11 +1392,11 @@ export const TableView: React.FC<TableViewProps> = ({
                                 setShowGenPanel(false);
                             }}
                             disabled={selectedRowIds.size === 0}
-                            className={`flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider border rounded-md transition-all
+                            className={`flex items - center gap - 2 px - 3 py - 1.5 text - xs font - bold uppercase tracking - wider border rounded - md transition - all
                                 ${selectedRowIds.size > 0
                                     ? 'border-purple-200 text-purple-700 bg-purple-50 hover:bg-purple-100'
                                     : 'border-gray-100 text-gray-300 cursor-not-allowed'
-                                }`}
+                                } `}
                         >
                             <IconSparkles className="w-3.5 h-3.5" />
                             AI補完
@@ -1634,7 +1634,7 @@ export const TableView: React.FC<TableViewProps> = ({
                                             詳細情報をエンリッチ中... ({generationProgress.currentRow || 0}/{generationProgress.totalRows})
                                         </div>
                                         <div className="text-xs text-purple-700">
-                                            {generationProgress.currentColumn && `${generationProgress.currentColumn}を取得中`}
+                                            {generationProgress.currentColumn && `${generationProgress.currentColumn} を取得中`}
                                         </div>
                                     </div>
                                     {/* Progress bar */}
@@ -1642,7 +1642,7 @@ export const TableView: React.FC<TableViewProps> = ({
                                         <div
                                             className="h-full bg-purple-600 transition-all duration-300"
                                             style={{
-                                                width: `${((generationProgress.currentRow || 0) / generationProgress.totalRows) * 100}%`
+                                                width: `${((generationProgress.currentRow || 0) / generationProgress.totalRows) * 100}% `
                                             }}
                                         ></div>
                                     </div>
@@ -1701,7 +1701,8 @@ export const TableView: React.FC<TableViewProps> = ({
                                                 ${col.type === 'number' ? 'bg-purple-50 text-purple-600' :
                                                     col.type === 'url' ? 'bg-blue-50 text-blue-600' :
                                                         col.type === 'tag' ? 'bg-green-50 text-green-600' :
-                                                            'bg-gray-100 text-gray-600'}`}>
+                                                            'bg-gray-100 text-gray-600'
+                                                } `}>
                                                 {col.type === 'text' ? 'TXT' : col.type === 'number' ? 'NUM' : col.type === 'url' ? 'URL' : col.type === 'tag' ? 'TAG' : 'DAT'}
                                             </span>
                                             <span className="font-semibold text-xs tracking-wide text-[#323232] truncate flex-1">{col.name}</span>
@@ -1915,11 +1916,12 @@ export const TableView: React.FC<TableViewProps> = ({
                                                     <div className={`px-3 py-2.5 w-full h-full text-[#323232] text-sm overflow-hidden
                                                         ${col.textOverflow === 'wrap' ? 'whitespace-normal break-words leading-snug' :
                                                             col.textOverflow === 'visible' ? 'whitespace-nowrap' :
-                                                                'whitespace-nowrap'}
+                                                                'whitespace-nowrap'
+                                                        }
                                                     `}
-                                                    style={{
-                                                        textOverflow: col.textOverflow === 'clip' ? 'clip' : col.textOverflow === 'visible' ? 'visible' : 'ellipsis'
-                                                    }}>
+                                                        style={{
+                                                            textOverflow: col.textOverflow === 'clip' ? 'clip' : col.textOverflow === 'visible' ? 'visible' : 'ellipsis'
+                                                        }}>
                                                         {renderCell(displayValue, col.type)}
                                                     </div>
                                                 )}

@@ -25,6 +25,30 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@/src/*": [
+        "./src/*"
+      ],
+      "@/core/*": [
+        "./src/core/*"
+      ],
+      "@/services/*": [
+        "./services/*"
+      ],
+      "@/adapters/*": [
+        "./src/adapters/*"
+      ],
+      "@/features/*": [
+        "./src/features/*"
+      ],
+      "@/ui/*": [
+        "./src/ui/*"
+      ],
+      "@/types": [
+        "./src/core/models"
+      ],
+      "@/config/*": [
+        "./config/*"
       ]
     }
   },

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { COLORS } from '../constants';
+import { COLORS } from '@/config/constants';
 import { IconDatabase, IconPlus, IconSettings, IconChevronRight } from './Icons';
 
 

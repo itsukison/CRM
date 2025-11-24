@@ -1,6 +1,6 @@
-import { TableData, Row, ColumnDefinition } from '../types';
+import { TableData, Row, ColumnDefinition } from '@/types';
 import { identifyCompanies, scrapeCompanyDetails } from '../services/companyService';
-import { definitionToColumn } from '../types';
+import { definitionToColumn } from '@/types';
 
 export interface EnrichToolOptions {
     table: TableData;

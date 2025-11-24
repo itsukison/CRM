@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { AnalyzeChatResult, ChatMessage, TableData, Filter, SortState } from '../types';
+import { AnalyzeChatResult, ChatMessage, TableData, Filter, SortState } from '@/types';
 import { analyzeChatIntent } from '../services/geminiService';
 import { IconMessageCircle, IconX, IconChevronRight, IconSparkles } from './Icons';
 import { enrichRowsWithCompanyDetails, generateCompaniesAndEnrich } from './tableAiTools';
@@ -172,10 +172,10 @@ interface ChatWidgetProps {
     selectedCellIds: Set<string>;
 }
 
-export const ChatWidget: React.FC<ChatWidgetProps> = ({ 
-    table, 
-    onApplyFilter, 
-    onApplySort, 
+export const ChatWidget: React.FC<ChatWidgetProps> = ({
+    table,
+    onApplyFilter,
+    onApplySort,
     onUpdateTable,
     selectedRowIds,
     selectedCellIds
@@ -358,16 +358,16 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
                     );
                     if (value === null) {
                         aiResponseText = `${aiResponseText}\n\n指定されたカラムから数値を取得できませんでした。`;
-                 } else {
+                    } else {
                         const label =
                             result.aggregateParams.operation === 'max'
                                 ? '最大値'
                                 : result.aggregateParams.operation === 'min'
-                                ? '最小値'
-                                : '平均値';
+                                    ? '最小値'
+                                    : '平均値';
                         aiResponseText = `${aiResponseText}\n\n${label}: ${value}`;
                     }
-                 }
+                }
             } else {
                 // --- Agent Mode: can apply tools that affect view/data ---
                 const lower = userMsg.content.toLowerCase();
@@ -397,8 +397,8 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
                             result.aggregateParams.operation === 'max'
                                 ? '最大値'
                                 : result.aggregateParams.operation === 'min'
-                                ? '最小値'
-                                : '平均値';
+                                    ? '最小値'
+                                    : '平均値';
                         aiResponseText = `${aiResponseText}\n\n[${label}] ${value}`;
                     }
                 } else if (result.tool === 'enrich' && result.enrichParams) {
@@ -466,13 +466,13 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
                             <span className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-2">AI Chat</span>
                         </div>
                         <div className="flex items-center gap-1">
-                            <button 
+                            <button
                                 onClick={handleClear}
                                 className="px-2 py-1 text-[10px] font-bold text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors uppercase tracking-wider"
                             >
                                 Clear
                             </button>
-                            <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-black p-1 hover:bg-gray-200 rounded"><IconX className="w-4 h-4"/></button>
+                            <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-black p-1 hover:bg-gray-200 rounded"><IconX className="w-4 h-4" /></button>
                         </div>
                     </div>
 
@@ -487,7 +487,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
                                 ) : (
                                     <div className="w-full text-[#323232] text-sm leading-relaxed pr-4 flex gap-3">
                                         <div className="shrink-0 mt-0.5">
-                                            <IconSparkles className={`w-4 h-4 ${mode === 'agent' ? 'text-blue-500' : 'text-gray-400'}`}/>
+                                            <IconSparkles className={`w-4 h-4 ${mode === 'agent' ? 'text-blue-500' : 'text-gray-400'}`} />
                                         </div>
                                         <div>
                                             {msg.content}
@@ -497,14 +497,14 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
                             </div>
                         ))}
                         {isThinking && (
-                             <div className="w-full flex gap-3 pr-4">
+                            <div className="w-full flex gap-3 pr-4">
                                 <div className="shrink-0 mt-0.5">
-                                    <IconSparkles className="w-4 h-4 text-gray-400"/>
+                                    <IconSparkles className="w-4 h-4 text-gray-400" />
                                 </div>
                                 <div className="text-sm text-gray-400 animate-pulse mt-0.5">
                                     考え中...
                                 </div>
-                             </div>
+                            </div>
                         )}
                         <div ref={messagesEndRef} />
                     </div>
@@ -513,13 +513,13 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
                     <div className="p-3 border-t border-gray-100 bg-white">
                         <div className="flex items-center gap-2 mb-2 pl-1">
                             <div className="flex bg-gray-100 rounded p-0.5">
-                                <button 
+                                <button
                                     onClick={() => setMode('chat')}
                                     className={`px-3 py-0.5 text-[10px] font-bold rounded uppercase transition-all ${mode === 'chat' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}
                                 >
                                     Ask
                                 </button>
-                                <button 
+                                <button
                                     onClick={() => setMode('agent')}
                                     className={`px-3 py-0.5 text-[10px] font-bold rounded uppercase transition-all ${mode === 'agent' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
                                 >
@@ -534,8 +534,8 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
                         </div>
 
                         <div className="relative">
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}
                                 onCompositionStart={() => {
@@ -553,11 +553,11 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
                                 placeholder={mode === 'agent' ? "AIに操作を依頼..." : "データについて質問..."}
                                 className="w-full pr-8 pl-3 py-2.5 bg-[#f2f2f2] border border-transparent focus:bg-white focus:border-blue-500 rounded-md outline-none text-sm transition-all placeholder-gray-400 text-[#323232]"
                             />
-                            <button 
+                            <button
                                 onClick={handleSend}
                                 className="absolute right-2 top-2 text-blue-600 hover:bg-blue-50 rounded p-0.5"
                             >
-                                <IconChevronRight className="w-4 h-4"/>
+                                <IconChevronRight className="w-4 h-4" />
                             </button>
                         </div>
                     </div>
@@ -566,7 +566,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
 
             {/* Floating Button - Only shown when CLOSED */}
             {!isOpen && (
-                <button 
+                <button
                     onClick={() => setIsOpen(true)}
                     className="w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-50 bg-[#323232] hover:bg-black text-white"
                 >

@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { getCurrentUser, onAuthStateChange, signIn, signOut, signUp } from '../services/authService';
 import { getUserOrganizations } from '../services/organizationService';
-import type { User, Organization } from '../types';
+import type { User, Organization } from '@/types';
 
 interface AuthContextType {
     user: User | null;

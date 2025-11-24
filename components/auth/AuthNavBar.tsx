@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { COLORS } from '../../constants';
+import { COLORS } from '@/config/constants';
 
 export const AuthNavBar: React.FC = () => {
     return (

@@ -5,14 +5,14 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../contexts/AuthContext';
 import { createOrganization } from '../../services/organizationService';
 import { acceptInvitation } from '../../services/invitationService';
-import { COLORS } from '../../constants';
+import { COLORS } from '@/config/constants';
 
 type SetupMode = 'create' | 'join';
 
 export const OrganizationSetupPage: React.FC = () => {
     const router = useRouter();
     const { user, loading, refreshOrganizations } = useAuth();
-    
+
     // Redirect to signin if not authenticated
     useEffect(() => {
         if (!loading && !user) {

@@ -1,10 +1,8 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
+import React from 'react';
+import CreateTablePage from '@/src/features/dashboard/components/CreateTablePage';
 
-import CreateTablePage from '@/components-pages/CreateTablePage';
-
-export default function CreateTable() {
+export default function Page() {
     return <CreateTablePage />;
 }
-

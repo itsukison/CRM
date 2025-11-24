@@ -9,7 +9,7 @@ import { AsciiBackground } from '@/components/AsciiBackground';
 import { getTables } from '@/services/tableService';
 import { TableData } from '@/types';
 import { TablesProvider } from '@/contexts/TablesContext';
-import { Toaster } from '@/components/ui/sonner';
+import { Toaster } from '@/ui/primitives/sonner';
 
 export default function DashboardLayout({
     children,

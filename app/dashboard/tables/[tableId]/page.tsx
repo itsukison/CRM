@@ -1,12 +1,9 @@
 'use client';
 
-import TablePage from '@/components-pages/TablePage';
-import { useParams } from 'next/navigation';
+import { use } from 'react';
+import TablePage from '@/src/features/table/TablePage';
 
-export default function Table() {
-    const params = useParams();
-    const tableId = params?.tableId as string;
-
+export default function Page({ params }: { params: Promise<{ tableId: string }> }) {
+    const { tableId } = use(params);
     return <TablePage tableId={tableId} />;
 }
-

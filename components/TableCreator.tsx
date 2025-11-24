@@ -1,11 +1,11 @@
 // TableCreator component - simplified version without AI data generation
 import React, { useState } from 'react';
-import { Column, TableData, columnToDefinition, Row, COMPANY_COLUMN_ID } from '../types';
+import { Column, TableData, columnToDefinition, Row, COMPANY_COLUMN_ID } from '@/types';
 import { IconPlus, IconTrash } from './Icons';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Button } from '@/ui/primitives/button';
+import { Input } from '@/ui/primitives/input';
+import { Label } from '@/ui/primitives/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/ui/primitives/select';
 import { toast } from 'sonner';
 
 interface TableCreatorProps {
