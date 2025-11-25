@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { TableData, SortState, Filter, TextOverflowMode, definitionToColumn } from '@/types';
 import { CustomSelect } from './CustomSelect';
+import { Checkbox } from '@/src/ui/primitives/checkbox';
 import {
     IconSparkles, IconPlus, IconTrash, IconCheck, IconBolt, IconX, IconDatabase, IconSettings,
     IconFilter, IconSort, IconChevronRight, IconFileText, IconAlertTriangle, IconInfo, IconSearch,
@@ -356,16 +357,15 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                             <div className="max-h-48 overflow-y-auto mb-4 space-y-1 border border-[#DEE1E7] p-2">
                                 {legacyColumns.map(col => (
                                     <label key={col.id} className="flex items-center gap-2 p-1.5 hover:bg-[#EEF0F3] cursor-pointer">
-                                        <input
-                                            type="checkbox"
+                                        <Checkbox
                                             checked={enrichTargetCols.has(col.id)}
-                                            onChange={() => setEnrichTargetCols(prev => {
+                                            onCheckedChange={() => setEnrichTargetCols(prev => {
                                                 const next = new Set(prev);
                                                 if (next.has(col.id)) next.delete(col.id);
                                                 else next.add(col.id);
                                                 return next;
                                             })}
-                                            className="border-[#B1B7C3] text-[#0A0B0D] focus:ring-[#0A0B0D]"
+                                            className="border-gray-300 data-[state=checked]:bg-black data-[state=checked]:border-black"
                                         />
                                         <span className="text-xs text-[#0A0B0D]">{col.title}</span>
                                     </label>
@@ -445,16 +445,15 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                                 <div className="max-h-32 overflow-y-auto border border-[#DEE1E7] p-2 space-y-1">
                                     {legacyColumns.map(col => (
                                         <label key={col.id} className="flex items-center gap-2 p-1 hover:bg-[#EEF0F3] cursor-pointer">
-                                            <input
-                                                type="checkbox"
+                                            <Checkbox
                                                 checked={genSelectedColIds.has(col.id)}
-                                                onChange={() => setGenSelectedColIds(prev => {
+                                                onCheckedChange={() => setGenSelectedColIds(prev => {
                                                     const next = new Set(prev);
                                                     if (next.has(col.id)) next.delete(col.id);
                                                     else next.add(col.id);
                                                     return next;
                                                 })}
-                                                className="border-[#B1B7C3] text-[#0000FF] focus:ring-[#0000FF]"
+                                                className="border-gray-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
                                             />
                                             <span className="text-xs text-[#0A0B0D] font-mono">{col.title}</span>
                                         </label>
