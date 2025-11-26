@@ -22,15 +22,13 @@ export const StatusColumn = React.memo<StatusColumnProps>(({ column, onCardClick
 
     return (
         <div
-            className="flex-shrink-0 bg-gray-50"
+            className="flex-shrink-0"
             style={{
                 width: '320px',
-                borderRadius: '2px',
-                padding: '16px',
                 marginRight: '16px',
-                border: isOver ? '2px solid #0000FF' : '1px solid #DEE1E7',
-                backgroundColor: isOver ? '#EEF0F3' : '#F9FAFB',
-                transition: 'border-color 0.15s, background-color 0.15s',
+                padding: "16px",
+                backgroundColor: isOver ? '#EEF0F3' : 'transparent',
+                transition: 'background-color 0.15s',
             }}
         >
             {/* Column Header */}

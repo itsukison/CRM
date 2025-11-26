@@ -14,6 +14,10 @@ export const useTableColumns = ({ table, onUpdateTable, setConfirmDialog }: UseT
     const resizingRef = useRef<{ colId: string; startX: number; startWidth: number } | null>(null);
 
     const handleAddColumn = () => {
+        handleAddColumnAt(table.columns.length);
+    };
+
+    const handleAddColumnAt = (index: number) => {
         const newColId = `col_${Date.now()}`;
         const newCol: Column = {
             id: newColId,
@@ -23,10 +27,17 @@ export const useTableColumns = ({ table, onUpdateTable, setConfirmDialog }: UseT
             textOverflow: 'clip'
         };
         onUpdateTable(prev => {
-            const newColDef = columnToDefinition(newCol, prev.columns.length);
+            // Insert new column definition at the specified index
+            const newColDef = columnToDefinition(newCol, index);
+            const newColumns = [...prev.columns];
+            newColumns.splice(index, 0, newColDef);
+
+            // Re-index orders
+            const reorderedColumns = newColumns.map((c, i) => ({ ...c, order: i }));
+
             return {
                 ...prev,
-                columns: [...prev.columns, newColDef],
+                columns: reorderedColumns,
             };
         });
         setEditingCol(newCol);
@@ -98,6 +109,7 @@ export const useTableColumns = ({ table, onUpdateTable, setConfirmDialog }: UseT
         activeColMenu,
         setActiveColMenu,
         handleAddColumn,
+        handleAddColumnAt,
         handleUpdateColumn,
         handleDeleteColumn,
         columnWidths,

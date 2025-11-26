@@ -1,13 +1,15 @@
 import React from 'react';
-import { Row, Column, definitionToColumn } from '@/types';
+import { Row, Column } from '@/types';
 import { TableCell } from './TableCell';
 import { EnrichmentProgress } from '@/services/enrichmentService';
+import { IconSparkles } from '@/components/Icons';
 
 interface TableRowProps {
     row: Row;
     index: number;
     columns: Column[]; // Legacy columns
     allColumns: Column[]; // For formula evaluation
+    allRows: Row[]; // For aggregate formulas
     selectedRowIds: Set<string>;
     toggleRowSelection: (id: string) => void;
     generatingRowIds: Set<string>;
@@ -27,6 +29,7 @@ export const TableRow: React.FC<TableRowProps> = ({
     index,
     columns,
     allColumns,
+    allRows,
     selectedRowIds,
     toggleRowSelection,
     generatingRowIds,
@@ -44,26 +47,26 @@ export const TableRow: React.FC<TableRowProps> = ({
     const isRowSelected = selectedRowIds.has(row.id);
 
     return (
-        <tr
-            className={`group transition-colors h-10
-                ${isRowSelected ? 'bg-blue-50/30' : 'bg-white hover:bg-gray-50'}
-                ${isGenerating ? 'animate-pulse bg-gray-50' : ''}
-            `}
-        >
-            <td className="border-b border-r border-gray-100 p-0 text-center sticky left-0 z-20 bg-white group-hover:bg-gray-50">
-                <div className="w-full h-10 flex items-center justify-center relative">
-                    <span className={`text-[10px] font-mono text-gray-400 ${isRowSelected ? 'hidden' : 'group-hover:hidden'}`}>
-                        {index + 1}
-                    </span>
-                    <input
-                        type="checkbox"
-                        checked={isRowSelected}
-                        onChange={() => toggleRowSelection(row.id)}
-                        className={`accent-blue-600 w-3.5 h-3.5 cursor-pointer border-gray-300 rounded absolute ${isRowSelected ? 'block' : 'hidden group-hover:block'}`}
-                    />
+        <tr className={`group ${isGenerating ? 'opacity-50' : ''} ${isRowSelected ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
+            <td className="w-10 p-0 border-b border-r border-gray-100 bg-white sticky left-0 z-20 text-center">
+                <div className="flex items-center justify-center h-full">
+                    {isGenerating ? (
+                        <IconSparkles className="w-3 h-3 text-blue-600 animate-pulse" />
+                    ) : (
+                        <>
+                            <span className={`text-[10px] font-mono text-gray-400 ${isRowSelected ? 'hidden' : 'block group-hover:hidden'}`}>
+                                {index + 1}
+                            </span>
+                            <input
+                                type="checkbox"
+                                className={`accent-blue-600 w-3.5 h-3.5 cursor-pointer border-gray-300 rounded ${isRowSelected ? 'block' : 'hidden group-hover:block'}`}
+                                checked={isRowSelected}
+                                onChange={() => toggleRowSelection(row.id)}
+                            />
+                        </>
+                    )}
                 </div>
             </td>
-
             {columns.map(col => {
                 const cellKey = `${row.id}-${col.id}`;
                 const isLoading = loadingCells.has(cellKey);
@@ -78,6 +81,7 @@ export const TableRow: React.FC<TableRowProps> = ({
                         row={row}
                         column={col}
                         allColumns={allColumns}
+                        allRows={allRows}
                         isSelected={isSelected}
                         isEditing={isEditing}
                         isLoading={isLoading}

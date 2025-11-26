@@ -95,10 +95,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ tables, currentTableId, onSele
                     <button
                         onClick={() => router.push('/dashboard/status-tracking')}
                         className={`w-full text-left px-3 py-2 rounded-sm text-sm font-medium transition-colors flex items-center ${isStatusTracking ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-50'} ${isCollapsed ? 'justify-center' : 'gap-3'}`}
-                        title="ステータストラッキング"
+                        title="ステータス"
                     >
                         <IconKanban className={`w-4 h-4 shrink-0 ${isStatusTracking ? 'text-blue-500' : 'text-gray-400'}`} />
-                        {!isCollapsed && <span>ステータストラッキング</span>}
+                        {!isCollapsed && <span>ステータス</span>}
                     </button>
                 </div>
 

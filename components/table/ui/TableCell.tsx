@@ -8,6 +8,7 @@ interface TableCellProps {
     row: Row;
     column: Column;
     allColumns: Column[];
+    allRows: Row[]; // For aggregate formula functions
     isSelected: boolean;
     isEditing: boolean;
     isLoading: boolean;
@@ -23,6 +24,7 @@ export const TableCell: React.FC<TableCellProps> = ({
     row,
     column,
     allColumns,
+    allRows,
     isSelected,
     isEditing,
     isLoading,
@@ -37,7 +39,7 @@ export const TableCell: React.FC<TableCellProps> = ({
 
     let displayValue = rawValue;
     if (typeof rawValue === 'string' && rawValue.startsWith('=')) {
-        displayValue = evaluateFormula(rawValue, row, allColumns);
+        displayValue = evaluateFormula(rawValue, row, allColumns, allRows);
     }
 
     // Determine phase display

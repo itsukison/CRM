@@ -1,10 +1,11 @@
 import React from 'react';
 import { Column, SortState, ColumnType } from '@/types';
-import { IconSettings, IconSort, IconArrowUp, IconTrash, IconCheck } from '@/components/Icons';
+import { IconSettings, IconSort, IconArrowUp, IconTrash, IconCheck, IconPlus } from '@/components/Icons';
 import { CustomSelect } from './CustomSelect';
 
 interface TableColumnHeaderProps {
     column: Column;
+    index: number;
     width: number;
     activeSorts: SortState[];
     activeColMenu: string | null;
@@ -14,11 +15,13 @@ interface TableColumnHeaderProps {
     handleUpdateColumn: (col: Column) => void;
     handleDeleteColumn: (id: string) => void;
     handleColResizeStart: (e: React.MouseEvent, colId: string) => void;
+    handleAddColumnAt: (index: number) => void;
     colMenuRef: React.RefObject<HTMLDivElement>;
 }
 
 export const TableColumnHeader: React.FC<TableColumnHeaderProps> = ({
     column,
+    index,
     width,
     activeSorts,
     activeColMenu,
@@ -28,21 +31,22 @@ export const TableColumnHeader: React.FC<TableColumnHeaderProps> = ({
     handleUpdateColumn,
     handleDeleteColumn,
     handleColResizeStart,
+    handleAddColumnAt,
     colMenuRef
 }) => {
     const sortState = activeSorts.find(s => s.columnId === column.id);
 
     return (
         <th
-            className="border-b border-r border-gray-200 bg-gray-50/90 backdrop-blur-sm relative group select-none"
+            className="border-b border-r border-gray-200 bg-white relative group select-none"
             style={{ width, minWidth: width, maxWidth: width }}
         >
             <div className="flex items-center justify-between px-3 py-2 h-full">
                 <div className="flex items-center gap-2 overflow-hidden">
-                    <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider">
+                    <span className="text-[10px] font-mono text-[#5B616E] uppercase tracking-wider bg-gray-100 px-1 rounded border border-gray-200">
                         {column.type}
                     </span>
-                    <span className="text-xs font-bold text-gray-700 truncate" title={column.title}>
+                    <span className="text-xs font-bold text-[#0A0B0D] truncate" title={column.title}>
                         {column.title}
                     </span>
                 </div>
@@ -57,7 +61,7 @@ export const TableColumnHeader: React.FC<TableColumnHeaderProps> = ({
                             setEditingCol(column);
                             setActiveColMenu(activeColMenu === column.id ? null : column.id);
                         }}
-                        className={`p-1 hover:bg-gray-200 rounded ${activeColMenu === column.id ? 'bg-gray-200 text-black' : 'text-gray-400'}`}
+                        className={`p-1 hover:bg-[#EEF0F3] rounded ${activeColMenu === column.id ? 'bg-[#EEF0F3] text-[#0A0B0D]' : 'text-[#5B616E]'}`}
                     >
                         <IconSettings className="w-3.5 h-3.5" />
                     </button>
@@ -74,21 +78,22 @@ export const TableColumnHeader: React.FC<TableColumnHeaderProps> = ({
             {activeColMenu === column.id && editingCol && (
                 <div
                     ref={colMenuRef}
-                    className="absolute top-full right-0 mt-1 w-64 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-50 text-left font-normal animate-in fade-in zoom-in-95 duration-100"
+                    onClick={(e) => e.stopPropagation()}
+                    className="absolute top-full right-0 mt-2 w-64 bg-white border border-[#0A0B0D] shadow-lg p-4 z-50 text-left font-normal animate-in fade-in zoom-in-95 duration-100"
                 >
-                    <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">カラム編集</h3>
+                    <h3 className="text-xs font-bold text-[#5B616E] uppercase tracking-wider mb-3 font-mono">カラム編集</h3>
                     <div className="space-y-3">
                         <div>
-                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">名前</label>
+                            <label className="block text-[10px] font-bold text-[#5B616E] uppercase mb-1">名前</label>
                             <input
-                                className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-blue-500 outline-none"
+                                className="w-full px-2 py-1.5 text-xs border border-[#DEE1E7] rounded focus:ring-1 focus:ring-blue-500 outline-none text-[#0A0B0D]"
                                 value={editingCol.title}
                                 onChange={(e) => setEditingCol({ ...editingCol, title: e.target.value })}
                                 autoFocus
                             />
                         </div>
                         <div>
-                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">タイプ</label>
+                            <label className="block text-[10px] font-bold text-[#5B616E] uppercase mb-1">タイプ</label>
                             <CustomSelect
                                 value={editingCol.type}
                                 onChange={(val) => setEditingCol({ ...editingCol, type: val as ColumnType })}
@@ -103,15 +108,34 @@ export const TableColumnHeader: React.FC<TableColumnHeaderProps> = ({
                             />
                         </div>
                         <div>
-                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">説明</label>
+                            <label className="block text-[10px] font-bold text-[#5B616E] uppercase mb-1">説明</label>
                             <input
-                                className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-blue-500 outline-none"
+                                className="w-full px-2 py-1.5 text-xs border border-[#DEE1E7] rounded focus:ring-1 focus:ring-blue-500 outline-none text-[#0A0B0D]"
                                 value={editingCol.description || ''}
                                 onChange={(e) => setEditingCol({ ...editingCol, description: e.target.value })}
                                 placeholder="任意の説明"
                             />
                         </div>
-                        <div className="pt-2 flex items-center justify-between gap-2">
+
+                        {/* Insert Columns */}
+                        <div className="pt-2 border-t border-gray-100 flex gap-2">
+                            <button
+                                onClick={() => handleAddColumnAt(index)}
+                                className="flex-1 py-1.5 px-2 text-[10px] font-medium bg-gray-50 hover:bg-gray-100 text-gray-700 rounded border border-gray-200 flex items-center justify-center gap-1"
+                            >
+                                <IconPlus className="w-3 h-3" />
+                                左に挿入
+                            </button>
+                            <button
+                                onClick={() => handleAddColumnAt(index + 1)}
+                                className="flex-1 py-1.5 px-2 text-[10px] font-medium bg-gray-50 hover:bg-gray-100 text-gray-700 rounded border border-gray-200 flex items-center justify-center gap-1"
+                            >
+                                <IconPlus className="w-3 h-3" />
+                                右に挿入
+                            </button>
+                        </div>
+
+                        <div className="pt-2 flex items-center justify-between gap-2 border-t border-gray-100 mt-2">
                             <button
                                 onClick={() => handleDeleteColumn(column.id)}
                                 className="p-1.5 text-red-500 hover:bg-red-50 rounded"

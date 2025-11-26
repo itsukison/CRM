@@ -68,8 +68,15 @@ const TablePage: React.FC<TablePageProps> = ({ tableId }) => {
 
         if (oldColsJson !== newColsJson) {
             console.log('Syncing column changes...');
+            console.log('Old Columns:', oldTable.columns);
+            console.log('New Columns:', newTable.columns);
             try {
-                await updateTable(newTable.id, { columns: newTable.columns });
+                const { error } = await updateTable(newTable.id, { columns: newTable.columns });
+                if (error) {
+                    console.error('Supabase updateTable error:', error);
+                    throw error;
+                }
+                console.log('Column sync successful');
                 // Update ref
                 if (prevTableRef.current) {
                     prevTableRef.current.columns = newTable.columns;
@@ -78,6 +85,8 @@ const TablePage: React.FC<TablePageProps> = ({ tableId }) => {
                 console.error('Failed to sync columns:', e);
                 // TODO: Revert UI?
             }
+        } else {
+            console.log('No column changes detected');
         }
 
         // 2. Check for Row Changes

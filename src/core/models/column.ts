@@ -13,6 +13,7 @@ export interface ColumnDefinition {
     required?: boolean;
     order: number;
     textOverflow?: TextOverflowMode;
+    isPlaceholder?: boolean; // True for placeholder columns that shouldn't be synced to database
 }
 
 // Legacy Column interface (for backward compatibility with existing components)

@@ -185,34 +185,53 @@ export function ConfigPanel({ orgId, config, onConfigChange, currentTable }: Con
                                 表示項目
                             </h3>
                             <div className="space-y-2">
-                                <label className="flex items-center gap-2 p-1.5 hover:bg-[#EEF0F3] cursor-pointer">
-                                    <Checkbox
-                                        checked={config.cardConfig.showName}
-                                        onCheckedChange={() => handleCardFieldToggle('showName')}
-                                        className="border-gray-400 data-[state=checked]:bg-[#0A0B0D] data-[state=checked]:border-[#0A0B0D]"
-                                    />
-                                    <span className="text-xs text-[#0A0B0D]">名前</span>
-                                </label>
+                                {/* Name Field */}
+                                {config.cardConfig.nameFieldId && (() => {
+                                    const column = currentTable?.columns.find(c => c.id === config.cardConfig.nameFieldId);
+                                    return column ? (
+                                        <label key="name" className="flex items-center gap-2 p-1.5 hover:bg-[#EEF0F3] cursor-pointer">
+                                            <Checkbox
+                                                checked={config.cardConfig.showName}
+                                                onCheckedChange={() => handleCardFieldToggle('showName')}
+                                                className="border-gray-400 data-[state=checked]:bg-[#0A0B0D] data-[state=checked]:border-[#0A0B0D]"
+                                            />
+                                            <span className="text-xs text-[#0A0B0D]">{column.name}</span>
+                                        </label>
+                                    ) : null;
+                                })()}
 
-                                <label className="flex items-center gap-2 p-1.5 hover:bg-[#EEF0F3] cursor-pointer">
-                                    <Checkbox
-                                        checked={config.cardConfig.showAssigned}
-                                        onCheckedChange={() => handleCardFieldToggle('showAssigned')}
-                                        className="border-gray-400 data-[state=checked]:bg-[#0A0B0D] data-[state=checked]:border-[#0A0B0D]"
-                                    />
-                                    <span className="text-xs text-[#0A0B0D]">担当者</span>
-                                </label>
+                                {/* Assigned Field */}
+                                {config.cardConfig.assignedFieldId && (() => {
+                                    const column = currentTable?.columns.find(c => c.id === config.cardConfig.assignedFieldId);
+                                    return column ? (
+                                        <label key="assigned" className="flex items-center gap-2 p-1.5 hover:bg-[#EEF0F3] cursor-pointer">
+                                            <Checkbox
+                                                checked={config.cardConfig.showAssigned}
+                                                onCheckedChange={() => handleCardFieldToggle('showAssigned')}
+                                                className="border-gray-400 data-[state=checked]:bg-[#0A0B0D] data-[state=checked]:border-[#0A0B0D]"
+                                            />
+                                            <span className="text-xs text-[#0A0B0D]">{column.name}</span>
+                                        </label>
+                                    ) : null;
+                                })()}
 
-                                <label className="flex items-center gap-2 p-1.5 hover:bg-[#EEF0F3] cursor-pointer">
-                                    <Checkbox
-                                        checked={config.cardConfig.showValue}
-                                        onCheckedChange={() => handleCardFieldToggle('showValue')}
-                                        className="border-gray-400 data-[state=checked]:bg-[#0A0B0D] data-[state=checked]:border-[#0A0B0D]"
-                                    />
-                                    <span className="text-xs text-[#0A0B0D]">金額</span>
-                                </label>
+                                {/* Value Field */}
+                                {config.cardConfig.valueFieldId && (() => {
+                                    const column = currentTable?.columns.find(c => c.id === config.cardConfig.valueFieldId);
+                                    return column ? (
+                                        <label key="value" className="flex items-center gap-2 p-1.5 hover:bg-[#EEF0F3] cursor-pointer">
+                                            <Checkbox
+                                                checked={config.cardConfig.showValue}
+                                                onCheckedChange={() => handleCardFieldToggle('showValue')}
+                                                className="border-gray-400 data-[state=checked]:bg-[#0A0B0D] data-[state=checked]:border-[#0A0B0D]"
+                                            />
+                                            <span className="text-xs text-[#0A0B0D]">{column.name}</span>
+                                        </label>
+                                    ) : null;
+                                })()}
 
-                                <label className="flex items-center gap-2 p-1.5 hover:bg-[#EEF0F3] cursor-pointer">
+                                {/* Timestamp Field - Always show as it's metadata */}
+                                <label key="timestamp" className="flex items-center gap-2 p-1.5 hover:bg-[#EEF0F3] cursor-pointer">
                                     <Checkbox
                                         checked={config.cardConfig.showTimestamp}
                                         onCheckedChange={() => handleCardFieldToggle('showTimestamp')}

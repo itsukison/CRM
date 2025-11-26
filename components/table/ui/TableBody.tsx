@@ -48,6 +48,7 @@ export const TableBody: React.FC<TableBodyProps> = ({
                     index={index}
                     columns={legacyColumns}
                     allColumns={legacyColumns}
+                    allRows={table.rows}
                     selectedRowIds={selectedRowIds}
                     toggleRowSelection={toggleRowSelection}
                     generatingRowIds={generatingRowIds}

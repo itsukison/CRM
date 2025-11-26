@@ -55,6 +55,7 @@ export const TableView: React.FC<TableViewProps> = ({
     const [loadingCells, setLoadingCells] = useState<Set<string>>(new Set());
     const [editingCell, setEditingCell] = useState<{ rowId: string; colId: string } | null>(null);
     const [showAddMenu, setShowAddMenu] = useState(false);
+    const [displayTable, setDisplayTable] = useState<TableData>(table);
     const [confirmDialog, setConfirmDialog] = useState<{
         isOpen: boolean;
         title: string;
@@ -69,6 +70,69 @@ export const TableView: React.FC<TableViewProps> = ({
 
     // Refs
     const colMenuRef = useRef<HTMLDivElement>(null);
+
+    // Ensure minimum 10 columns and 50 rows (add placeholders if needed)
+    useEffect(() => {
+        let columns = table.columns;
+        let rows = table.rows;
+
+        // Add placeholder columns if fewer than 10
+        if (table.columns.length < 10) {
+            const placeholderColumns = [];
+            const startIndex = table.columns.length;
+
+            for (let i = startIndex; i < 10; i++) {
+                const letter = getColumnLetter(i);
+                placeholderColumns.push({
+                    id: `placeholder_col_${letter}`,
+                    name: `Column ${letter}`,
+                    type: 'text' as const,
+                    order: i,
+                    textOverflow: 'clip' as const,
+                    isPlaceholder: true
+                });
+            }
+            columns = [...table.columns, ...placeholderColumns];
+        }
+
+        // Add placeholder rows if fewer than 50
+        if (table.rows.length < 50) {
+            const placeholderRows = [];
+            const startIndex = table.rows.length;
+
+            for (let i = startIndex; i < 50; i++) {
+                const placeholderRow: any = {
+                    id: `placeholder_row_${i + 1}`,
+                    isPlaceholder: true
+                };
+                // Initialize all column values to empty
+                columns.forEach(col => {
+                    placeholderRow[col.id] = '';
+                });
+                placeholderRows.push(placeholderRow);
+            }
+            rows = [...table.rows, ...placeholderRows];
+        }
+
+        setDisplayTable({
+            ...table,
+            columns,
+            rows
+        });
+    }, [table]);
+
+    // Helper function to convert column index to spreadsheet letter (same as in TableHeader)
+    const getColumnLetter = (index: number): string => {
+        let letter = '';
+        let num = index;
+
+        while (num >= 0) {
+            letter = String.fromCharCode(65 + (num % 26)) + letter;
+            num = Math.floor(num / 26) - 1;
+        }
+
+        return letter;
+    };
 
     // Hooks
     const selection = useTableSelection({
@@ -122,7 +186,13 @@ export const TableView: React.FC<TableViewProps> = ({
     // Handle click outside to close menus
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (colMenuRef.current && !colMenuRef.current.contains(event.target as Node)) {
+            const target = event.target as HTMLElement;
+            // Check if click is inside the menu OR inside a Radix portal (dropdown content)
+            // Radix Select content has role="listbox", and is rendered in a portal
+            const isInsideMenu = colMenuRef.current && colMenuRef.current.contains(target);
+            const isInsidePortal = target.closest('[role="listbox"]') || target.closest('[data-radix-focus-guard]');
+
+            if (!isInsideMenu && !isInsidePortal) {
                 columns.setActiveColMenu(null);
             }
         };
@@ -131,13 +201,40 @@ export const TableView: React.FC<TableViewProps> = ({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [columns]);
 
-    // Keyboard shortcuts for copy/paste/delete
+    // Keyboard shortcuts for copy/paste/delete/typing
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             // Check if we're in an input/textarea
             const target = e.target as HTMLElement;
             if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
                 return;
+            }
+
+            // Single-click to type: If a cell is selected but not editing, and user types a printable character
+            if (selectedCellIds.size > 0 && !editingCell && !e.metaKey && !e.ctrlKey && !e.altKey) {
+                // Check if it's a printable character (not a special key)
+                const isPrintable = e.key.length === 1 || e.key === 'Enter';
+                const isNavigationKey = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab', 'Escape'].includes(e.key);
+                const isDeleteKey = e.key === 'Delete' || e.key === 'Backspace';
+
+                if (isPrintable && !isNavigationKey && !isDeleteKey) {
+                    e.preventDefault();
+                    const cellId = Array.from(selectedCellIds)[0];
+                    const [rowId, colId] = cellId.split(':');
+
+                    // Enter edit mode with the typed character
+                    setEditingCell({ rowId, colId });
+
+                    // Update the cell value with the typed character
+                    if (e.key !== 'Enter') {
+                        onUpdateTable(prev => ({
+                            ...prev,
+                            rows: prev.rows.map(r =>
+                                r.id === rowId ? { ...r, [colId]: e.key } : r
+                            )
+                        }));
+                    }
+                }
             }
 
             // Copy (Cmd/Ctrl + C)
@@ -213,12 +310,12 @@ export const TableView: React.FC<TableViewProps> = ({
 
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [selectedCellIds, table, onUpdateTable, editingCell, data]);
+    }, [selectedCellIds, table, onUpdateTable, editingCell, data, setEditingCell]);
 
     return (
         <div className="flex flex-col h-full bg-white">
             <TableToolbar
-                table={table}
+                table={displayTable}
                 onUpdateTable={onUpdateTable}
                 selectedRowIds={selectedRowIds}
                 selectedCellIds={selectedCellIds}
@@ -278,7 +375,7 @@ export const TableView: React.FC<TableViewProps> = ({
             <div className="flex-1 overflow-auto relative">
                 <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
                     <TableHeader
-                        table={table}
+                        table={displayTable}
                         columnWidths={columns.columnWidths}
                         activeSorts={activeSorts}
                         activeColMenu={columns.activeColMenu}
@@ -289,12 +386,13 @@ export const TableView: React.FC<TableViewProps> = ({
                         handleDeleteColumn={columns.handleDeleteColumn}
                         handleColResizeStart={columns.handleColResizeStart}
                         handleAddColumn={columns.handleAddColumn}
+                        handleAddColumnAt={columns.handleAddColumnAt}
                         toggleAllRows={selection.toggleAllRows}
-                        isAllSelected={selectedRowIds.size === table.rows.length && table.rows.length > 0}
+                        isAllSelected={selectedRowIds.size === displayTable.rows.filter(r => !r.isPlaceholder).length && displayTable.rows.filter(r => !r.isPlaceholder).length > 0}
                         colMenuRef={colMenuRef as React.RefObject<HTMLDivElement>}
                     />
                     <TableBody
-                        table={table}
+                        table={displayTable}
                         selectedRowIds={selectedRowIds}
                         toggleRowSelection={selection.toggleRowSelection}
                         generatingRowIds={ai.generatingRowIds}
@@ -320,7 +418,7 @@ export const TableView: React.FC<TableViewProps> = ({
                 onClose={() => importLogic.setShowImportModal(false)}
                 headers={importLogic.importHeaders}
                 previewRows={importLogic.importPreviewRows}
-                columns={table.columns}
+                columns={displayTable.columns.filter(c => !c.isPlaceholder)}
                 fileName={importLogic.importFileName}
                 onConfirm={importLogic.handleImportConfirm}
             />

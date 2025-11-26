@@ -127,45 +127,81 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
             </div>
 
             <div className="flex items-center gap-1.5">
-                {/* Text Overflow Controls - Always visible */}
+                {/* Text Overflow Controls - Apply to selected column */}
                 <div className="flex items-center bg-[#EEF0F3] p-0.5">
-                    <button
-                        onClick={() => {
-                            // Apply to all columns
-                            onUpdateTable(prev => ({
-                                ...prev,
-                                columns: prev.columns.map(c => ({ ...c, textOverflow: 'clip' }))
-                            }));
-                        }}
-                        className="p-1.5 transition-all text-[#5B616E] hover:text-[#0A0B0D] hover:bg-white"
-                        title="クリップ"
-                    >
-                        <IconTextClip className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                        onClick={() => {
-                            onUpdateTable(prev => ({
-                                ...prev,
-                                columns: prev.columns.map(c => ({ ...c, textOverflow: 'ellipsis' }))
-                            }));
-                        }}
-                        className="p-1.5 transition-all text-[#5B616E] hover:text-[#0A0B0D] hover:bg-white"
-                        title="省略記号"
-                    >
-                        <IconTextVisible className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                        onClick={() => {
-                            onUpdateTable(prev => ({
-                                ...prev,
-                                columns: prev.columns.map(c => ({ ...c, textOverflow: 'wrap' }))
-                            }));
-                        }}
-                        className="p-1.5 transition-all text-[#5B616E] hover:text-[#0A0B0D] hover:bg-white"
-                        title="折り返し"
-                    >
-                        <IconTextWrap className="w-3.5 h-3.5" />
-                    </button>
+                    {(() => {
+                        // Get the selected column from the first selected cell
+                        const selectedColId = selectedCellIds.size > 0
+                            ? Array.from(selectedCellIds)[0].split(':')[1]
+                            : null;
+                        const selectedColumn = selectedColId
+                            ? table.columns.find(c => c.id === selectedColId)
+                            : null;
+                        const currentOverflow = selectedColumn?.textOverflow || 'clip';
+                        const isDisabled = !selectedColId;
+
+                        return (
+                            <>
+                                <button
+                                    onClick={() => {
+                                        if (!selectedColId) return;
+                                        onUpdateTable(prev => ({
+                                            ...prev,
+                                            columns: prev.columns.map(c =>
+                                                c.id === selectedColId ? { ...c, textOverflow: 'clip' } : c
+                                            )
+                                        }));
+                                    }}
+                                    disabled={isDisabled}
+                                    className={`p-1.5 transition-all ${currentOverflow === 'clip' && !isDisabled
+                                            ? 'bg-white text-[#0A0B0D]'
+                                            : 'text-[#5B616E] hover:text-[#0A0B0D] hover:bg-white'
+                                        } ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
+                                    title="クリップ"
+                                >
+                                    <IconTextClip className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        if (!selectedColId) return;
+                                        onUpdateTable(prev => ({
+                                            ...prev,
+                                            columns: prev.columns.map(c =>
+                                                c.id === selectedColId ? { ...c, textOverflow: 'ellipsis' } : c
+                                            )
+                                        }));
+                                    }}
+                                    disabled={isDisabled}
+                                    className={`p-1.5 transition-all ${currentOverflow === 'ellipsis' && !isDisabled
+                                            ? 'bg-white text-[#0A0B0D]'
+                                            : 'text-[#5B616E] hover:text-[#0A0B0D] hover:bg-white'
+                                        } ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
+                                    title="省略記号"
+                                >
+                                    <IconTextVisible className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        if (!selectedColId) return;
+                                        onUpdateTable(prev => ({
+                                            ...prev,
+                                            columns: prev.columns.map(c =>
+                                                c.id === selectedColId ? { ...c, textOverflow: 'wrap' } : c
+                                            )
+                                        }));
+                                    }}
+                                    disabled={isDisabled}
+                                    className={`p-1.5 transition-all ${currentOverflow === 'wrap' && !isDisabled
+                                            ? 'bg-white text-[#0A0B0D]'
+                                            : 'text-[#5B616E] hover:text-[#0A0B0D] hover:bg-white'
+                                        } ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
+                                    title="折り返し"
+                                >
+                                    <IconTextWrap className="w-3.5 h-3.5" />
+                                </button>
+                            </>
+                        );
+                    })()}
                 </div>
 
                 {/* Filter Menu */}

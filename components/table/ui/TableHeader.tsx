@@ -15,10 +15,24 @@ interface TableHeaderProps {
     handleDeleteColumn: (id: string) => void;
     handleColResizeStart: (e: React.MouseEvent, colId: string) => void;
     handleAddColumn: () => void;
+    handleAddColumnAt: (index: number) => void;
     toggleAllRows: () => void;
     isAllSelected: boolean;
     colMenuRef: React.RefObject<HTMLDivElement>;
 }
+
+// Helper function to convert column index to spreadsheet letter (A-Z, AA-ZZ, etc.)
+const getColumnLetter = (index: number): string => {
+    let letter = '';
+    let num = index;
+
+    while (num >= 0) {
+        letter = String.fromCharCode(65 + (num % 26)) + letter;
+        num = Math.floor(num / 26) - 1;
+    }
+
+    return letter;
+};
 
 export const TableHeader: React.FC<TableHeaderProps> = ({
     table,
@@ -32,12 +46,33 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
     handleDeleteColumn,
     handleColResizeStart,
     handleAddColumn,
+    handleAddColumnAt,
     toggleAllRows,
     isAllSelected,
     colMenuRef
 }) => {
     return (
         <thead className="sticky top-0 z-20 shadow-sm">
+            {/* Spreadsheet Column Letters Row */}
+            <tr className="h-6">
+                <th className="w-10 p-0 border-b border-r border-gray-200 bg-gray-100 sticky left-0 z-30">
+                </th>
+                {table.columns.map((colDef, index) => (
+                    <th
+                        key={`letter-${colDef.id}`}
+                        className="border-b border-r border-gray-100 bg-gray-100 text-center align-middle"
+                        style={{ width: columnWidths[colDef.id] || 200, minWidth: columnWidths[colDef.id] || 200, maxWidth: columnWidths[colDef.id] || 200 }}
+                    >
+                        <span className="text-[10px] font-mono font-bold text-gray-400">
+                            {getColumnLetter(index)}
+                        </span>
+                    </th>
+                ))}
+                <th className="w-24 p-0 border-b border-gray-100 bg-gray-100"></th>
+                <th className="border-b border-gray-100 bg-gray-100"></th>
+            </tr>
+
+            {/* Column Headers Row */}
             <tr>
                 <th className="w-10 p-0 border-b border-r border-gray-200 bg-gray-50/90 backdrop-blur-sm sticky left-0 z-30">
                     <div className="w-full h-full flex items-center justify-center">
@@ -49,12 +84,13 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
                         />
                     </div>
                 </th>
-                {table.columns.map(colDef => {
+                {table.columns.map((colDef, index) => {
                     const col = definitionToColumn(colDef);
                     return (
                         <TableColumnHeader
                             key={col.id}
                             column={col}
+                            index={index}
                             width={columnWidths[col.id] || 200}
                             activeSorts={activeSorts}
                             activeColMenu={activeColMenu}
@@ -64,6 +100,7 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
                             handleUpdateColumn={handleUpdateColumn}
                             handleDeleteColumn={handleDeleteColumn}
                             handleColResizeStart={handleColResizeStart}
+                            handleAddColumnAt={handleAddColumnAt}
                             colMenuRef={colMenuRef}
                         />
                     );
