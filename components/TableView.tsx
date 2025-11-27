@@ -469,6 +469,9 @@ export const TableView: React.FC<TableViewProps> = ({
                         handleCellUpdate={data.handleCellUpdate}
                         setEditingCell={setEditingCell}
                         handleAddEmptyRow={data.handleAddEmptyRow}
+                        handleAddRowAbove={data.handleAddRowAbove}
+                        handleAddRowBelow={data.handleAddRowBelow}
+                        handleDeleteRow={data.handleUnifiedDelete}
                         onCellContextMenu={handleCellContextMenu}
                     />
                 </table>

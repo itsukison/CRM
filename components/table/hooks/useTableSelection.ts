@@ -21,11 +21,35 @@ export const useTableSelection = ({
     setEditingCell
 }: UseTableSelectionProps) => {
     const [anchorCell, setAnchorCell] = useState<{ rowId: string; colId: string } | null>(null);
+    const [lastSelectedRowId, setLastSelectedRowId] = useState<string | null>(null);
 
-    const toggleRowSelection = (id: string) => {
+    const toggleRowSelection = (id: string, shiftKey: boolean = false) => {
         const newSet = new Set(selectedRowIds);
-        if (newSet.has(id)) newSet.delete(id);
-        else newSet.add(id);
+
+        if (shiftKey && lastSelectedRowId) {
+            const startIdx = table.rows.findIndex(r => r.id === lastSelectedRowId);
+            const endIdx = table.rows.findIndex(r => r.id === id);
+
+            if (startIdx !== -1 && endIdx !== -1) {
+                const minIdx = Math.min(startIdx, endIdx);
+                const maxIdx = Math.max(startIdx, endIdx);
+
+                for (let i = minIdx; i <= maxIdx; i++) {
+                    newSet.add(table.rows[i].id);
+                }
+            }
+        } else {
+            if (newSet.has(id)) {
+                newSet.delete(id);
+                // If we deselect the anchor, maybe clear it? 
+                // But keeping it allows re-selecting from that point. 
+                // Let's update it to the current one regardless.
+                setLastSelectedRowId(id);
+            } else {
+                newSet.add(id);
+                setLastSelectedRowId(id);
+            }
+        }
         onSelectRowIds(newSet);
     };
 

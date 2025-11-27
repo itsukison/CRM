@@ -37,7 +37,28 @@ export const useTableData = ({
         setShowAddMenu(false);
     };
 
-    const handleUnifiedDelete = () => {
+    const handleUnifiedDelete = (targetRowId?: string) => {
+        if (targetRowId) {
+            setConfirmDialog({
+                isOpen: true,
+                title: '行の削除',
+                description: 'この行を削除しますか？',
+                onConfirm: () => {
+                    onUpdateTable(prev => ({
+                        ...prev,
+                        rows: prev.rows.filter(r => r.id !== targetRowId)
+                    }));
+                    // If the deleted row was selected, remove it from selection
+                    if (selectedRowIds.has(targetRowId)) {
+                        const newSelected = new Set(selectedRowIds);
+                        newSelected.delete(targetRowId);
+                        onSelectRowIds(newSelected);
+                    }
+                }
+            });
+            return;
+        }
+
         if (selectedRowIds.size > 0) {
             setConfirmDialog({
                 isOpen: true,
@@ -67,9 +88,35 @@ export const useTableData = ({
         }
     };
 
+    const handleAddRowAbove = (rowId: string) => {
+        const newRow: Row = { id: `row_${Date.now()}` };
+        table.columns.forEach(c => newRow[c.id] = '');
+
+        const rowIndex = table.rows.findIndex(r => r.id === rowId);
+        if (rowIndex !== -1) {
+            const newRows = [...table.rows];
+            newRows.splice(rowIndex, 0, newRow);
+            onUpdateTable({ ...table, rows: newRows });
+        }
+    };
+
+    const handleAddRowBelow = (rowId: string) => {
+        const newRow: Row = { id: `row_${Date.now()}` };
+        table.columns.forEach(c => newRow[c.id] = '');
+
+        const rowIndex = table.rows.findIndex(r => r.id === rowId);
+        if (rowIndex !== -1) {
+            const newRows = [...table.rows];
+            newRows.splice(rowIndex + 1, 0, newRow);
+            onUpdateTable({ ...table, rows: newRows });
+        }
+    };
+
     return {
         handleCellUpdate,
         handleAddEmptyRow,
-        handleUnifiedDelete
+        handleUnifiedDelete,
+        handleAddRowAbove,
+        handleAddRowBelow
     };
 };

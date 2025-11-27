@@ -7,7 +7,7 @@ import { EnrichmentProgress } from '@/services/enrichmentService';
 interface TableBodyProps {
     table: TableData;
     selectedRowIds: Set<string>;
-    toggleRowSelection: (id: string) => void;
+    toggleRowSelection: (id: string, shiftKey?: boolean) => void;
     generatingRowIds: Set<string>;
     loadingCells: Set<string>;
     selectedCellIds: Set<string>;
@@ -19,6 +19,9 @@ interface TableBodyProps {
     handleCellUpdate: (rowId: string, colId: string, value: any) => void;
     setEditingCell: (cell: { rowId: string; colId: string } | null) => void;
     handleAddEmptyRow: () => void;
+    handleAddRowAbove: (rowId: string) => void;
+    handleAddRowBelow: (rowId: string) => void;
+    handleDeleteRow: () => void;
     onCellContextMenu?: (e: React.MouseEvent, rowId: string, colId: string, value: any) => void;
 }
 
@@ -37,6 +40,9 @@ export const TableBody: React.FC<TableBodyProps> = ({
     handleCellUpdate,
     setEditingCell,
     handleAddEmptyRow,
+    handleAddRowAbove,
+    handleAddRowBelow,
+    handleDeleteRow,
     onCellContextMenu
 }) => {
     const legacyColumns = table.columns.map(definitionToColumn);
@@ -63,6 +69,9 @@ export const TableBody: React.FC<TableBodyProps> = ({
                     handleCellDoubleClick={handleCellDoubleClick}
                     handleCellUpdate={handleCellUpdate}
                     setEditingCell={setEditingCell}
+                    handleAddRowAbove={handleAddRowAbove}
+                    handleAddRowBelow={handleAddRowBelow}
+                    handleDeleteRow={handleDeleteRow}
                     onCellContextMenu={onCellContextMenu}
                 />
             ))}

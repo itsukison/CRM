@@ -72,7 +72,7 @@ export const AIGenerationPanel: React.FC<AIGenerationPanelProps> = ({
                     <textarea
                         value={prompt}
                         onChange={(e) => onPromptChange(e.target.value)}
-                        className="w-full border border-gray-200 bg-white p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md resize-none text-[#323232]"
+                        className="w-full border border-gray-200 bg-white p-2 text-sm focus:outline-none rounded-md resize-none text-[#323232]"
                         rows={2}
                         placeholder="例: 東京のトップSaaS企業..."
                     />
@@ -88,7 +88,7 @@ export const AIGenerationPanel: React.FC<AIGenerationPanelProps> = ({
                         max="50"
                         value={count}
                         onChange={(e) => onCountChange(Math.min(50, Math.max(1, parseInt(e.target.value) || 1)))}
-                        className="w-full border border-gray-200 bg-white p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md text-[#323232]"
+                        className="w-full border border-gray-200 bg-white p-2 text-sm focus:outline-none rounded-md text-[#323232]"
                         placeholder="1-50"
                     />
                 </div>

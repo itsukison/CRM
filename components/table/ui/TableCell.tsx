@@ -19,6 +19,12 @@ interface TableCellProps {
     handleCellUpdate: (rowId: string, colId: string, value: any) => void;
     setEditingCell: (cell: { rowId: string; colId: string } | null) => void;
     onContextMenu?: (e: React.MouseEvent, rowId: string, colId: string, value: any) => void;
+    selectionBorders?: {
+        top: boolean;
+        bottom: boolean;
+        left: boolean;
+        right: boolean;
+    };
 }
 
 export const TableCell: React.FC<TableCellProps> = ({
@@ -35,7 +41,8 @@ export const TableCell: React.FC<TableCellProps> = ({
     handleCellDoubleClick,
     handleCellUpdate,
     setEditingCell,
-    onContextMenu
+    onContextMenu,
+    selectionBorders
 }) => {
     const rawValue = row[column.id];
 
@@ -82,10 +89,24 @@ export const TableCell: React.FC<TableCellProps> = ({
         }
     };
 
+    const getBorderClasses = () => {
+        if (!isSelected || isEditing || !selectionBorders) return '';
+
+        const classes = ['z-10']; // Ensure selected cells are above others
+
+        if (selectionBorders.top) classes.push('border-t-2 border-t-[#0052FF]');
+        if (selectionBorders.bottom) classes.push('border-b-2 border-b-[#0052FF]');
+        if (selectionBorders.left) classes.push('border-l-2 border-l-[#0052FF]');
+        if (selectionBorders.right) classes.push('border-r-2 border-r-[#0052FF]');
+
+        return classes.join(' ');
+    };
+
     return (
         <td
             className={`border-b border-r border-[#E6E8EB] relative h-10 p-0 box-border overflow-hidden select-none
-                ${isSelected && !isEditing ? 'ring-2 ring-inset ring-[#0052FF] bg-[#F5F5F7]' : ''}
+                ${isSelected && !isEditing ? 'bg-[#E6F2FF]' : ''}
+                ${getBorderClasses()}
             `}
             onClick={(e) => handleCellClick(e, row.id, column.id)}
             onDoubleClick={() => handleCellDoubleClick(row.id, column.id)}

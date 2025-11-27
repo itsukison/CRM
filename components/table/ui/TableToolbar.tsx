@@ -214,12 +214,12 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                 <div className="relative" ref={filterMenuRef}>
                     <button
                         onClick={() => setShowFilterMenu(!showFilterMenu)}
-                        className={`flex items-center gap-2 px-3 py-2 text-xs font-medium border rounded-xl transition-colors
+                        className={`flex items-center gap-1 px-2 py-2 text-xs font-medium border rounded-xl transition-colors
                             ${activeFilters.length > 0 ? 'bg-[#F5F5F7] border-[#E6E8EB] text-[#0A0B0D]' : 'bg-white border-[#E6E8EB] text-[#5B616E] hover:bg-[#F5F5F7]'}
                         `}
                     >
                         <IconFilter className="w-3.5 h-3.5" />
-                        フィルター
+
                         {activeFilters.length > 0 && (
                             <span className="bg-[#0A0B0D] text-white text-[10px] px-1.5 min-w-[16px] h-4 flex items-center justify-center font-mono">
                                 {activeFilters.length}
@@ -301,12 +301,11 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                 <div className="relative" ref={sortMenuRef}>
                     <button
                         onClick={() => setShowSortMenu(!showSortMenu)}
-                        className={`flex items-center gap-2 px-3 py-2 text-xs font-medium border rounded-xl transition-colors
+                        className={`flex items-center gap-1 px-2 py-2 text-xs font-medium border rounded-xl transition-colors
                             ${activeSorts.length > 0 ? 'bg-[#F5F5F7] border-[#E6E8EB] text-[#0A0B0D]' : 'bg-white border-[#E6E8EB] text-[#5B616E] hover:bg-[#F5F5F7]'}
                         `}
                     >
                         <IconSort className="w-3.5 h-3.5" />
-                        並び替え
                         {activeSorts.length > 0 && (
                             <span className="bg-[#0A0B0D] text-white text-[10px] px-1.5 min-w-[16px] h-4 flex items-center justify-center font-mono">
                                 {activeSorts.length}
@@ -381,6 +380,18 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                     )}
                 </div>
 
+                {/* Send Email Button - visible when rows/cells selected and email column exists */}
+                {(selectedRowIds.size > 0 || selectedCellIds.size > 0) && hasEmailColumn && onSendEmailClick && (
+                    <button
+                        onClick={onSendEmailClick}
+                        className="flex items-center gap-2 px-4 py-2 bg-[#0052FF] text-white text-xs font-medium rounded-xl hover:bg-[#0040D0] transition-colors"
+                        title="メール送信"
+                    >
+                        <IconMail className="w-3.5 h-3.5" />
+                        メール
+                    </button>
+                )}
+
                 {/* Enrichment Panel */}
                 <div className="relative">
                     <button
@@ -407,7 +418,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                             </p>
 
                             <div className="max-h-48 overflow-y-auto mb-4 space-y-1 border border-[#E6E8EB] rounded-lg p-2">
-                                {legacyColumns.map(col => (
+                                {legacyColumns.filter(col => col.title && col.title.trim() !== '').map(col => (
                                     <label key={col.id} className="flex items-center gap-2 p-1.5 hover:bg-[#F5F5F7] rounded-md cursor-pointer">
                                         <Checkbox
                                             checked={enrichTargetCols.has(col.id)}
@@ -495,7 +506,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                                     既存列から選択
                                 </label>
                                 <div className="max-h-32 overflow-y-auto border border-[#E6E8EB] rounded-lg p-2 space-y-1">
-                                    {legacyColumns.map(col => (
+                                    {legacyColumns.filter(col => col.title && col.title.trim() !== '').map(col => (
                                         <label key={col.id} className="flex items-center gap-2 p-1 hover:bg-[#F5F5F7] rounded-md cursor-pointer">
                                             <Checkbox
                                                 checked={genSelectedColIds.has(col.id)}
@@ -588,28 +599,6 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                     accept=".xlsx,.csv"
                     onChange={handleFileSelected}
                 />
-
-                {/* Send Email Button - visible when rows/cells selected and email column exists */}
-                {(selectedRowIds.size > 0 || selectedCellIds.size > 0) && hasEmailColumn && onSendEmailClick && (
-                    <button
-                        onClick={onSendEmailClick}
-                        className="flex items-center gap-2 px-4 py-2 bg-[#0052FF] text-white text-xs font-medium rounded-xl hover:bg-[#0040D0] transition-colors"
-                        title="メール送信"
-                    >
-                        <IconMail className="w-3.5 h-3.5" />
-                        メール送信
-                    </button>
-                )}
-
-                {(selectedRowIds.size > 0 || selectedCellIds.size > 0) && (
-                    <button
-                        onClick={handleUnifiedDelete}
-                        className="p-2 text-[#FC401F] hover:bg-[#F5F5F7] rounded-xl transition-colors"
-                        title="選択を削除"
-                    >
-                        <IconTrash className="w-4 h-4" />
-                    </button>
-                )}
             </div>
 
         </div>
