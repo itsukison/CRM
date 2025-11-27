@@ -21,7 +21,7 @@ export const LandingWorkflow: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 mb-20 items-center">
                     {/* Left: Visual */}
                     <div className="order-2 lg:order-1">
-                        <div className="border-2 bg-white p-12 min-h-[350px] flex items-center justify-center relative" style={{ borderColor: COLORS.BLUE }}>
+                        <div className="border-2 bg-white p-12 min-h-[350px] flex items-center justify-center relative rounded-2xl" style={{ borderColor: COLORS.BLUE }}>
                             <div className="absolute top-4 left-4 text-[120px] font-bold font-mono leading-none opacity-5" style={{ color: COLORS.BLUE }}>01</div>
                             <div className="relative z-10">
                                 <SchemaGraphic />
@@ -67,7 +67,7 @@ export const LandingWorkflow: React.FC = () => {
                     </div>
                     {/* Right: Visual */}
                     <div>
-                        <div className="border-2 bg-white p-12 min-h-[350px] flex items-center justify-center relative" style={{ borderColor: COLORS.PINK }}>
+                        <div className="border-2 bg-white p-12 min-h-[350px] flex items-center justify-center relative rounded-2xl" style={{ borderColor: COLORS.PINK }}>
                             <div className="absolute top-4 right-4 text-[120px] font-bold font-mono leading-none opacity-5" style={{ color: COLORS.PINK }}>02</div>
                             <div className="relative z-10">
                                 <GenerationGraphic />
@@ -80,7 +80,7 @@ export const LandingWorkflow: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
                     {/* Left: Visual */}
                     <div className="order-2 lg:order-1">
-                        <div className="border-2 border-gray-200 bg-gray-50 p-12 min-h-[300px] flex items-center justify-center relative">
+                        <div className="border-2 border-gray-200 bg-gray-50 p-12 min-h-[300px] flex items-center justify-center relative rounded-2xl">
                             <div className="absolute top-4 left-4 text-[120px] font-bold text-gray-100 font-mono leading-none">03</div>
                             <div className="relative z-10 font-mono text-sm text-gray-400">
                                 <div className="mb-2">{`> SELECT * FROM companies`}</div>

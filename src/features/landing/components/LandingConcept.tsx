@@ -26,12 +26,8 @@ export const LandingConcept: React.FC = () => {
                     {/* Three Columns */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {/* Card 1: AI Generation */}
-                        <div className="bg-white border-2 border-gray-800 p-10 hover:bg-gray-50 transition-all group relative">
-                            {/* Terminal-style corner brackets */}
-                            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-gray-800"></div>
-                            <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-gray-800"></div>
-                            <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-gray-800"></div>
-                            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-gray-800"></div>
+                        <div className="bg-white border-2 border-gray-800 p-10 hover:bg-gray-50 transition-all group relative rounded-2xl">
+
 
                             <div className="font-mono text-xs text-gray-400 mb-4">[01]</div>
                             <div className="mb-6">
@@ -46,12 +42,8 @@ export const LandingConcept: React.FC = () => {
                         </div>
 
                         {/* Card 2: Web Search */}
-                        <div className="bg-white border-2 border-gray-800 p-10 hover:bg-gray-50 transition-all group relative">
-                            {/* Terminal-style corner brackets */}
-                            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-gray-800"></div>
-                            <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-gray-800"></div>
-                            <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-gray-800"></div>
-                            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-gray-800"></div>
+                        <div className="bg-white border-2 border-gray-800 p-10 hover:bg-gray-50 transition-all group relative rounded-2xl">
+
 
                             <div className="font-mono text-xs mb-4" style={{ color: COLORS.BLUE }}>[02]</div>
                             <div className="mb-6">
@@ -66,12 +58,8 @@ export const LandingConcept: React.FC = () => {
                         </div>
 
                         {/* Card 3: Conversational */}
-                        <div className="bg-white border-2 border-gray-800 p-10 hover:bg-gray-50 transition-all group relative">
-                            {/* Terminal-style corner brackets */}
-                            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-gray-800"></div>
-                            <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-gray-800"></div>
-                            <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-gray-800"></div>
-                            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-gray-800"></div>
+                        <div className="bg-white border-2 border-gray-800 p-10 hover:bg-gray-50 transition-all group relative rounded-2xl">
+
 
                             <div className="font-mono text-xs text-gray-400 mb-4">[03]</div>
                             <div className="mb-6">

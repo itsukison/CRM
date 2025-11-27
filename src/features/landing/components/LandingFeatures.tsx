@@ -19,7 +19,7 @@ export const LandingFeatures: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {/* Feature 1: Scalability - Green */}
-                    <div className="bg-white border-2 p-6 hover:shadow-xl transition-all relative overflow-hidden group" style={{ borderColor: COLORS.GREEN }}>
+                    <div className="bg-white border-2 p-6 hover:shadow-xl transition-all relative overflow-hidden group rounded-2xl" style={{ borderColor: COLORS.GREEN }}>
                         <div className="absolute top-0 right-0 w-16 h-16 opacity-10" style={{ backgroundColor: COLORS.GREEN }}></div>
                         <div className="mb-4 relative z-10">
                             <PhoneGraphic />
@@ -33,7 +33,7 @@ export const LandingFeatures: React.FC = () => {
                     </div>
 
                     {/* Feature 2: Export - Pink */}
-                    <div className="bg-white border-2 p-6 hover:shadow-xl transition-all relative overflow-hidden group" style={{ borderColor: COLORS.PINK }}>
+                    <div className="bg-white border-2 p-6 hover:shadow-xl transition-all relative overflow-hidden group rounded-2xl" style={{ borderColor: COLORS.PINK }}>
                         <div className="absolute top-0 right-0 w-16 h-16 opacity-10" style={{ backgroundColor: COLORS.PINK }}></div>
                         <div className="mb-4 relative z-10">
                             <DiamondGraphic />
@@ -47,7 +47,7 @@ export const LandingFeatures: React.FC = () => {
                     </div>
 
                     {/* Feature 3: API - Tan */}
-                    <div className="bg-white border-2 p-6 hover:shadow-xl transition-all relative overflow-hidden group" style={{ borderColor: COLORS.TAN }}>
+                    <div className="bg-white border-2 p-6 hover:shadow-xl transition-all relative overflow-hidden group rounded-2xl" style={{ borderColor: COLORS.TAN }}>
                         <div className="absolute top-0 right-0 w-16 h-16 opacity-10" style={{ backgroundColor: COLORS.TAN }}></div>
                         <div className="mb-4 relative z-10">
                             <HexagonGraphic />
@@ -61,7 +61,7 @@ export const LandingFeatures: React.FC = () => {
                     </div>
 
                     {/* Feature 4: Security - Blue */}
-                    <div className="bg-white border-2 p-6 hover:shadow-xl transition-all relative overflow-hidden group" style={{ borderColor: COLORS.BLUE }}>
+                    <div className="bg-white border-2 p-6 hover:shadow-xl transition-all relative overflow-hidden group rounded-2xl" style={{ borderColor: COLORS.BLUE }}>
                         <div className="absolute top-0 right-0 w-16 h-16 opacity-10" style={{ backgroundColor: COLORS.BLUE }}></div>
                         <div className="mb-4 relative z-10">
                             <WalletGraphic />

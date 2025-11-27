@@ -17,8 +17,8 @@ export const LandingHero: React.FC<LandingHeroProps> = ({ onEnter }) => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                 {/* Left Content */}
                 <div className="relative z-10">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-gray-50 text-[10px] font-mono font-bold tracking-widest mb-8 border border-gray-200">
-                        <span className="w-2 h-2 bg-green-500 animate-pulse"></span>
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-gray-50 text-[10px] font-mono font-bold tracking-widest mb-8 border border-gray-200 rounded-full">
+                        <span className="w-2 h-2 bg-green-500 animate-pulse rounded-full"></span>
                         AI_NATIVE_OS v2.1
                     </div>
 
@@ -36,14 +36,14 @@ export const LandingHero: React.FC<LandingHeroProps> = ({ onEnter }) => {
                     <div className="flex flex-col sm:flex-row gap-4">
                         <button
                             onClick={onEnter}
-                            className="px-8 py-4 text-white text-sm font-bold uppercase tracking-wider hover:translate-y-[-2px] transition-all flex items-center justify-center gap-3 group shadow-xl border-2 border-blue-600"
+                            className="px-8 py-4 text-white text-sm font-bold uppercase tracking-wider hover:translate-y-[-2px] transition-all flex items-center justify-center gap-3 group shadow-xl border-2 border-blue-600 rounded-full"
                             style={{ backgroundColor: COLORS.BLUE }}
                         >
                             無料で始める
                             <IconChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </button>
                         <button
-                            className="px-8 py-4 text-black text-sm font-bold uppercase tracking-wider border-2 border-gray-800 hover:bg-gray-50 transition-colors font-mono bg-white"
+                            className="px-8 py-4 text-black text-sm font-bold uppercase tracking-wider border-2 border-gray-800 hover:bg-gray-50 transition-colors font-mono bg-white rounded-full"
                         >
                             ドキュメント
                         </button>
@@ -52,18 +52,18 @@ export const LandingHero: React.FC<LandingHeroProps> = ({ onEnter }) => {
 
                 {/* Right Visual: The Data Map */}
                 <div className="relative h-[500px] w-full hidden lg:block">
-                    <div className="absolute inset-0 border-2 border-gray-200 bg-white/50 backdrop-blur-sm shadow-sm">
+                    <div className="absolute inset-0 border-2 border-gray-200 bg-white/50 backdrop-blur-sm shadow-sm rounded-2xl">
                         <DataMap />
                         {/* Floating Info Cards overlaying map */}
-                        <div className="absolute top-10 right-10 bg-white p-4 border-2 border-gray-200 shadow-xl max-w-[180px] group hover:border-gray-800 transition-colors">
+                        <div className="absolute top-10 right-10 bg-white p-4 border-2 border-gray-200 shadow-xl max-w-[180px] group hover:border-gray-800 transition-colors rounded-xl">
                             <div className="text-[9px] font-mono text-gray-400 uppercase mb-1">Active Leads</div>
                             <div className="text-3xl font-bold text-[#0A0B0D] tracking-tighter">14,203</div>
-                            <div className="h-1.5 w-full bg-gray-100 mt-3"><div className="h-full w-3/4" style={{ backgroundColor: COLORS.PINK }}></div></div>
+                            <div className="h-1.5 w-full bg-gray-100 mt-3 rounded-full"><div className="h-full w-3/4 rounded-full" style={{ backgroundColor: COLORS.PINK }}></div></div>
                         </div>
-                        <div className="absolute bottom-20 left-10 bg-white p-4 border-2 border-gray-200 shadow-xl max-w-[180px] group hover:border-gray-800 transition-colors">
+                        <div className="absolute bottom-20 left-10 bg-white p-4 border-2 border-gray-200 shadow-xl max-w-[180px] group hover:border-gray-800 transition-colors rounded-xl">
                             <div className="text-[9px] font-mono text-gray-400 uppercase mb-1">Enriched Data</div>
                             <div className="text-3xl font-bold text-[#0A0B0D] tracking-tighter">98.4%</div>
-                            <div className="h-1.5 w-full bg-gray-100 mt-3"><div className="h-full w-[98%]" style={{ backgroundColor: COLORS.GREEN }}></div></div>
+                            <div className="h-1.5 w-full bg-gray-100 mt-3 rounded-full"><div className="h-full w-[98%] rounded-full" style={{ backgroundColor: COLORS.GREEN }}></div></div>
                         </div>
                     </div>
                 </div>

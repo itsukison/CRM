@@ -47,13 +47,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
                     <div className="flex items-center gap-3">
                         <button
                             onClick={onEnter}
-                            className="px-4 py-2 text-gray-700 text-xs font-bold uppercase tracking-wider hover:bg-gray-50 transition-colors border-2 border-gray-200"
+                            className="px-4 py-2 text-gray-700 text-xs font-bold uppercase tracking-wider hover:bg-gray-50 transition-colors border-2 border-gray-200 rounded-full"
                         >
                             ログイン
                         </button>
                         <button
                             onClick={onEnter}
-                            className="px-4 py-2 text-white text-xs font-bold uppercase tracking-wider hover:bg-blue-700 transition-all shadow-lg"
+                            className="px-4 py-2 text-white text-xs font-bold uppercase tracking-wider hover:bg-blue-700 transition-all shadow-lg rounded-full"
                             style={{ backgroundColor: COLORS.BLUE }}
                         >
                             無料で始める
@@ -80,7 +80,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
                     </div>
 
                     <div className="space-y-4">
-                        <div className="border-2 border-gray-200 hover:border-gray-800 transition-all">
+                        <div className="border border-[#E6E8EB] hover:border-gray-800 transition-all rounded-2xl">
                             <div className="p-6">
                                 <h3 className="font-bold mb-3 flex items-center gap-3">
                                     <span className="font-mono text-xs" style={{ color: COLORS.BLUE }}>Q1</span>
@@ -92,7 +92,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
                             </div>
                         </div>
 
-                        <div className="border-2 border-gray-200 hover:border-gray-800 transition-all">
+                        <div className="border border-[#E6E8EB] hover:border-gray-800 transition-all rounded-2xl">
                             <div className="p-6">
                                 <h3 className="font-bold mb-3 flex items-center gap-3">
                                     <span className="font-mono text-xs" style={{ color: COLORS.BLUE }}>Q2</span>
@@ -104,7 +104,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
                             </div>
                         </div>
 
-                        <div className="border-2 border-gray-200 hover:border-gray-800 transition-all">
+                        <div className="border border-[#E6E8EB] hover:border-gray-800 transition-all rounded-2xl">
                             <div className="p-6">
                                 <h3 className="font-bold mb-3 flex items-center gap-3">
                                     <span className="font-mono text-xs" style={{ color: COLORS.BLUE }}>Q3</span>
@@ -116,7 +116,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
                             </div>
                         </div>
 
-                        <div className="border-2 border-gray-200 hover:border-gray-800 transition-all">
+                        <div className="border border-[#E6E8EB] hover:border-gray-800 transition-all rounded-2xl">
                             <div className="p-6">
                                 <h3 className="font-bold mb-3 flex items-center gap-3">
                                     <span className="font-mono text-xs" style={{ color: COLORS.BLUE }}>Q4</span>
@@ -128,7 +128,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
                             </div>
                         </div>
 
-                        <div className="border-2 border-gray-200 hover:border-gray-800 transition-all">
+                        <div className="border border-[#E6E8EB] hover:border-gray-800 transition-all rounded-2xl">
                             <div className="p-6">
                                 <h3 className="font-bold mb-3 flex items-center gap-3">
                                     <span className="font-mono text-xs" style={{ color: COLORS.BLUE }}>Q5</span>
@@ -146,7 +146,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
             {/* --- CTA Section --- */}
             <section className="py-24 bg-white border-t border-gray-200">
                 <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-                    <div className="bg-[#0000FF] text-white p-12 md:p-20 relative overflow-hidden border-2 border-blue-600">
+                    <div className="bg-[#0000FF] text-white p-12 md:p-20 relative overflow-hidden border-2 border-blue-600 rounded-3xl">
                         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
                             <div className="max-w-2xl">
                                 <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-6">
@@ -157,7 +157,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
                                 </p>
                             </div>
                             <div className="flex flex-col sm:flex-row gap-4 shrink-0">
-                                <button onClick={onEnter} className="px-8 py-4 bg-white text-blue-600 font-bold uppercase tracking-wider hover:bg-gray-100 transition-colors shadow-lg border-2 border-white">
+                                <button onClick={onEnter} className="px-8 py-4 bg-white text-blue-600 font-bold uppercase tracking-wider hover:bg-gray-100 transition-colors shadow-lg border-2 border-white rounded-full">
                                     始める
                                 </button>
                             </div>

@@ -145,7 +145,7 @@ export const TableColumnHeader: React.FC<TableColumnHeaderProps> = ({
                             </button>
                             <button
                                 onClick={() => handleUpdateColumn(editingCol)}
-                                className="flex-1 py-1.5 bg-blue-600 text-white text-xs font-bold rounded hover:bg-blue-700 flex items-center justify-center gap-1"
+                                className="flex-1 py-1.5 bg-[#0A0B0D]/50 text-white text-xs font-bold rounded hover:bg-[#0A0B0D] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
                             >
                                 <IconCheck className="w-3.5 h-3.5" />
                                 保存

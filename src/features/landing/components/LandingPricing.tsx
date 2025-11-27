@@ -24,7 +24,7 @@ export const LandingPricing: React.FC<LandingPricingProps> = ({ onEnter }) => {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {/* Plan 1 */}
-                    <div className="bg-white/5 border-2 border-white/10 p-8 hover:bg-white/10 transition-all">
+                    <div className="bg-white/5 border-2 border-white/10 p-8 hover:bg-white/10 transition-all rounded-3xl">
                         <div className="text-gray-400 font-mono text-xs font-bold uppercase mb-4">スターター</div>
                         <div className="text-4xl font-bold mb-2">無料</div>
                         <p className="text-gray-400 text-sm mb-8">個人利用、PoC向け。</p>
@@ -33,12 +33,12 @@ export const LandingPricing: React.FC<LandingPricingProps> = ({ onEnter }) => {
                             <li>[x] 基本AI生成 (10回/日)</li>
                             <li>[ ] Webエンリッチ</li>
                         </ul>
-                        <button onClick={onEnter} className="w-full py-3 border-2 border-white/20 hover:bg-white hover:text-black transition-colors text-xs font-bold uppercase">始める</button>
+                        <button onClick={onEnter} className="w-full py-3 border-2 border-white/20 hover:bg-white hover:text-black transition-colors text-xs font-bold uppercase rounded-full">始める</button>
                     </div>
 
                     {/* Plan 2 */}
-                    <div className="border-2 p-8 transform md:-translate-y-4 shadow-2xl relative" style={{ backgroundColor: COLORS.BLUE, borderColor: COLORS.CERULEAN }}>
-                        <div className="absolute top-0 right-0 text-black text-[9px] font-bold uppercase px-2 py-1" style={{ backgroundColor: COLORS.GREEN }}>推奨</div>
+                    <div className="border-2 p-8 transform md:-translate-y-4 shadow-2xl relative rounded-3xl" style={{ backgroundColor: COLORS.BLUE, borderColor: COLORS.CERULEAN }}>
+                        <div className="absolute top-0 right-0 text-black text-[9px] font-bold uppercase px-2 py-1 rounded-bl-xl rounded-tr-2xl" style={{ backgroundColor: COLORS.GREEN }}>推奨</div>
                         <div className="text-white/90 font-mono text-xs font-bold uppercase mb-4">プロ</div>
                         <div className="text-4xl font-bold mb-2">¥2,900<span className="text-lg font-normal opacity-50">/月</span></div>
                         <p className="text-blue-100 text-sm mb-8">成長中のスタートアップ向け。</p>
@@ -48,11 +48,11 @@ export const LandingPricing: React.FC<LandingPricingProps> = ({ onEnter }) => {
                             <li>[x] 高度なチャット分析</li>
                             <li>[x] データエクスポート</li>
                         </ul>
-                        <button onClick={onEnter} className="w-full py-3 bg-white hover:bg-gray-100 transition-colors text-xs font-bold uppercase" style={{ color: COLORS.BLUE }}>トライアル開始</button>
+                        <button onClick={onEnter} className="w-full py-3 bg-white hover:bg-gray-100 transition-colors text-xs font-bold uppercase rounded-full" style={{ color: COLORS.BLUE }}>トライアル開始</button>
                     </div>
 
                     {/* Plan 3 */}
-                    <div className="bg-white/5 border-2 border-white/10 p-8 hover:bg-white/10 transition-all">
+                    <div className="bg-white/5 border-2 border-white/10 p-8 hover:bg-white/10 transition-all rounded-3xl">
                         <div className="text-pink-400 font-mono text-xs font-bold uppercase mb-4">エンタープライズ</div>
                         <div className="text-4xl font-bold mb-2">要相談</div>
                         <p className="text-gray-400 text-sm mb-8">大規模組織、セキュリティ重視。</p>
@@ -61,7 +61,7 @@ export const LandingPricing: React.FC<LandingPricingProps> = ({ onEnter }) => {
                             <li>[x] SSO & 監査ログ</li>
                             <li>[x] カスタムAIモデル</li>
                         </ul>
-                        <button onClick={onEnter} className="w-full py-3 border-2 border-white/20 hover:bg-white hover:text-black transition-colors text-xs font-bold uppercase">お問い合わせ</button>
+                        <button onClick={onEnter} className="w-full py-3 border-2 border-white/20 hover:bg-white hover:text-black transition-colors text-xs font-bold uppercase rounded-full">お問い合わせ</button>
                     </div>
                 </div>
             </div>

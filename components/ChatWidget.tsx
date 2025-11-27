@@ -463,14 +463,14 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
                     {/* Header */}
                     <div className="p-3 bg-[#f2f2f2] border-b border-gray-100 flex justify-between items-center">
                         <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-2">AI Chat</span>
+                            <span className="text-xs font-bold text-gray-500 tracking-wider ml-2">Flowly AI</span>
                         </div>
                         <div className="flex items-center gap-1">
                             <button
                                 onClick={handleClear}
                                 className="px-2 py-1 text-[10px] font-bold text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors uppercase tracking-wider"
                             >
-                                Clear
+                                クリア
                             </button>
                             <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-black p-1 hover:bg-gray-200 rounded"><IconX className="w-4 h-4" /></button>
                         </div>
