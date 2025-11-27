@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { COLORS } from '@/config/constants';
 
@@ -13,11 +15,14 @@ export const LandingPricing: React.FC<LandingPricingProps> = ({ onEnter }) => {
     return (
         <section id="pricing" className="py-20 md:py-32 border-t border-gray-200 bg-[#0A0B0D] text-white">
             <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-                <div className="mb-10 md:mb-20">
+                {/* Added text-center to the container and mx-auto to the paragraph 
+                    to ensure both title and max-width subtitle are perfectly centered.
+                */}
+                <div className="mb-10 md:mb-20 text-center">
                     <h2 className="text-3xl md:text-4xl font-bold tracking-tighter mb-6">
                         料金プラン
                     </h2>
-                    <p className="text-base md:text-lg text-gray-400 max-w-2xl font-light">
+                    <p className="text-base md:text-lg text-gray-400 max-w-2xl mx-auto font-light">
                         チームの規模に合わせて拡張。隠れたコストはありません。
                     </p>
                 </div>

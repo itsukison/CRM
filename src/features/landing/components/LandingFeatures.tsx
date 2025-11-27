@@ -2,10 +2,6 @@ import React from 'react';
 import { PhoneGraphic, DiamondGraphic, HexagonGraphic, WalletGraphic } from '@/ui/graphics';
 import { COLORS } from '@/config/constants';
 
-/**
- * Enterprise features grid - 4 columns
- * Scalability, Export, API, Security
- */
 export const LandingFeatures: React.FC = () => {
     return (
         <section className="py-16 md:py-24 bg-white border-t border-gray-200">
@@ -23,7 +19,11 @@ export const LandingFeatures: React.FC = () => {
                         <div className="absolute top-0 right-0 w-16 h-16 opacity-10" style={{ backgroundColor: COLORS.GREEN }}></div>
                         <div className="mb-2 md:mb-4 relative z-10">
                             <PhoneGraphic />
-                            <h3 className="text-lg font-bold mb-2 mt-2 md:mt-4">大規模データ処理</h3>
+                            {/* Toggle Title */}
+                            <h3 className="text-lg font-bold mb-2 mt-2 md:mt-4">
+                                <span className="md:hidden">大規模データ</span>
+                                <span className="hidden md:block">大規模データ処理</span>
+                            </h3>
                             <p className="text-xs font-mono uppercase tracking-wider" style={{ color: COLORS.GREEN }}>High Performance</p>
                         </div>
                         <p className="text-sm text-gray-600 leading-relaxed hidden md:block">
@@ -37,7 +37,11 @@ export const LandingFeatures: React.FC = () => {
                         <div className="absolute top-0 right-0 w-16 h-16 opacity-10" style={{ backgroundColor: COLORS.PINK }}></div>
                         <div className="mb-2 md:mb-4 relative z-10">
                             <DiamondGraphic />
-                            <h3 className="text-lg font-bold mb-2 mt-2 md:mt-4">柔軟なデータ連携</h3>
+                            {/* Toggle Title */}
+                            <h3 className="text-lg font-bold mb-2 mt-2 md:mt-4">
+                                <span className="md:hidden">データ連携</span>
+                                <span className="hidden md:block">柔軟なデータ連携</span>
+                            </h3>
                             <p className="text-xs font-mono uppercase tracking-wider" style={{ color: COLORS.PINK }}>Data Export</p>
                         </div>
                         <p className="text-sm text-gray-600 leading-relaxed hidden md:block">
@@ -51,6 +55,7 @@ export const LandingFeatures: React.FC = () => {
                         <div className="absolute top-0 right-0 w-16 h-16 opacity-10" style={{ backgroundColor: COLORS.TAN }}></div>
                         <div className="mb-2 md:mb-4 relative z-10">
                             <HexagonGraphic />
+                            {/* Title is same for both, but we can wrap it if needed for consistency */}
                             <h3 className="text-lg font-bold mb-2 mt-2 md:mt-4">RESTful API</h3>
                             <p className="text-xs font-mono uppercase tracking-wider" style={{ color: COLORS.TAN }}>Developer Friendly</p>
                         </div>
@@ -65,7 +70,11 @@ export const LandingFeatures: React.FC = () => {
                         <div className="absolute top-0 right-0 w-16 h-16 opacity-10" style={{ backgroundColor: COLORS.BLUE }}></div>
                         <div className="mb-2 md:mb-4 relative z-10">
                             <WalletGraphic />
-                            <h3 className="text-lg font-bold mb-2 mt-2 md:mt-4">エンタープライズセキュリティ</h3>
+                            {/* Toggle Title */}
+                            <h3 className="text-lg font-bold mb-2 mt-2 md:mt-4">
+                                <span className="md:hidden">セキュリティ</span>
+                                <span className="hidden md:block">エンタープライズセキュリティ</span>
+                            </h3>
                             <p className="text-xs font-mono uppercase tracking-wider" style={{ color: COLORS.BLUE }}>Secure</p>
                         </div>
                         <p className="text-sm text-gray-600 leading-relaxed hidden md:block">
