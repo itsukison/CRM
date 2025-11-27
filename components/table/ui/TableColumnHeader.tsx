@@ -38,7 +38,7 @@ export const TableColumnHeader: React.FC<TableColumnHeaderProps> = ({
 
     return (
         <th
-            className="border-b border-r border-gray-200 bg-white relative group select-none"
+            className="border-b border-r border-[#E6E8EB] bg-white relative group select-none sticky top-6 z-40"
             style={{ width, minWidth: width, maxWidth: width }}
         >
             <div className="flex items-center justify-between px-3 py-2 h-full">
@@ -79,7 +79,7 @@ export const TableColumnHeader: React.FC<TableColumnHeaderProps> = ({
                 <div
                     ref={colMenuRef}
                     onClick={(e) => e.stopPropagation()}
-                    className="absolute top-full right-0 mt-2 w-64 bg-white border border-[#0A0B0D] shadow-lg p-4 z-50 text-left font-normal animate-in fade-in zoom-in-95 duration-100"
+                    className="absolute top-full right-0 mt-2 w-64 bg-white border border-[#E6E8EB] shadow-xl p-4 z-50 text-left font-normal animate-in fade-in zoom-in-95 duration-100 rounded-2xl"
                 >
                     <h3 className="text-xs font-bold text-[#5B616E] uppercase tracking-wider mb-3 font-mono">カラム編集</h3>
                     <div className="space-y-3">

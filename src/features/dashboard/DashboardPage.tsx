@@ -69,17 +69,17 @@ const DashboardPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                <div className="p-6 border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all group">
+                <div className="p-6 border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all group rounded-xl">
                     <h3 className="text-gray-500 text-xs font-bold font-mono uppercase tracking-wider mb-2 group-hover:text-blue-600">データベース数</h3>
                     <p className="text-4xl font-bold tracking-tighter text-[#323232]">{localTables.length}</p>
                 </div>
-                <div className="p-6 border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all group">
+                <div className="p-6 border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all group rounded-xl">
                     <h3 className="text-gray-500 text-xs font-bold font-mono uppercase tracking-wider mb-2 group-hover:text-blue-600">総レコード数</h3>
                     <p className="text-4xl font-bold tracking-tighter text-[#323232]">
                         {localTables.reduce((acc, t) => acc + (t.rows?.length || 0), 0)}
                     </p>
                 </div>
-                <div className="p-6 border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all group">
+                <div className="p-6 border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all group rounded-xl">
                     <h3 className="text-gray-500 text-xs font-bold font-mono uppercase tracking-wider mb-2 group-hover:text-green-600">システムステータス</h3>
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>

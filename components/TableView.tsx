@@ -57,7 +57,7 @@ export const TableView: React.FC<TableViewProps> = ({
     onSelectCellIds
 }) => {
     const { user, currentOrganization } = useAuth();
-    
+
     // Local State
     const [loadingCells, setLoadingCells] = useState<Set<string>>(new Set());
     const [editingCell, setEditingCell] = useState<{ rowId: string; colId: string } | null>(null);
@@ -74,7 +74,7 @@ export const TableView: React.FC<TableViewProps> = ({
         description: '',
         onConfirm: () => { },
     });
-    
+
     // Context Menu State
     const [contextMenu, setContextMenu] = useState<{
         x: number;
@@ -83,7 +83,7 @@ export const TableView: React.FC<TableViewProps> = ({
         colId: string;
         value: any;
     } | null>(null);
-    
+
     // Send Email Modal State
     const [showSendEmailModal, setShowSendEmailModal] = useState(false);
 
@@ -205,17 +205,17 @@ export const TableView: React.FC<TableViewProps> = ({
     // Context menu handler
     const handleCellContextMenu = (e: React.MouseEvent, rowId: string, colId: string, value: any) => {
         e.preventDefault();
-        
+
         // Check if this is an email column
         const column = table.columns.find(c => c.id === colId);
         const isEmailColumn = column && (
             column.type === 'email' ||
             /email|mail|メール/i.test(column.name)
         );
-        
+
         // Check if value is a valid email
         const hasValidEmail = isEmailColumn && isValidEmail(String(value || ''));
-        
+
         if (hasValidEmail) {
             setContextMenu({
                 x: e.clientX,
@@ -224,7 +224,7 @@ export const TableView: React.FC<TableViewProps> = ({
                 colId,
                 value,
             });
-            
+
             // Select this cell
             onSelectCellIds(new Set([`${rowId}:${colId}`]));
         }
@@ -426,14 +426,14 @@ export const TableView: React.FC<TableViewProps> = ({
                 // Add Menu
                 showAddMenu={showAddMenu}
                 setShowAddMenu={setShowAddMenu}
-                
+
                 // Email
                 onSendEmailClick={() => setShowSendEmailModal(true)}
                 hasEmailColumn={detectEmailColumns(table.columns).length > 0}
             />
 
             <div className="flex-1 overflow-auto relative">
-                <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
+                <table className="w-full border-collapse border-spacing-0" style={{ tableLayout: 'fixed' }}>
                     <TableHeader
                         table={displayTable}
                         columnWidths={columns.columnWidths}
@@ -509,18 +509,18 @@ export const TableView: React.FC<TableViewProps> = ({
             {/* Context Menu for Email Cells */}
             {contextMenu && (
                 <div
-                    className="fixed z-50 bg-white border border-[#DEE1E7] rounded-sm shadow-lg py-1 min-w-[160px]"
+                    className="fixed z-50 bg-white border border-[#E6E8EB] rounded-xl shadow-2xl py-1 min-w-[160px]"
                     style={{ top: contextMenu.y, left: contextMenu.x }}
                     onClick={(e) => e.stopPropagation()}
                 >
                     <button
-                        className="w-full px-3 py-2 text-left text-sm flex items-center gap-2 hover:bg-[#EEF0F3] text-[#32353D]"
+                        className="w-full px-4 py-2.5 text-left text-sm flex items-center gap-2 hover:bg-[#F5F5F7] text-[#0A0B0D] font-medium transition-colors"
                         onClick={() => {
                             setContextMenu(null);
                             setShowSendEmailModal(true);
                         }}
                     >
-                        <IconMail className="w-4 h-4 text-[#0000FF]" />
+                        <IconMail className="w-4 h-4 text-[#0052FF]" />
                         メール送信
                     </button>
                 </div>

@@ -53,7 +53,7 @@ export default function StatusTrackingPage() {
 
             setLoadingTable(true);
             const { table, error } = await getTableMetadata(config.tableId);
-            
+
             if (error) {
                 console.error('Failed to load table:', error);
                 setCurrentTable(null);
@@ -150,13 +150,16 @@ export default function StatusTrackingPage() {
     return (
         <div className="flex flex-col h-full bg-white">
             {/* Header with Config Panel on the right */}
-            <div className="border-b border-gray-200 bg-white px-6 py-3 flex items-center justify-between">
+            <div className="border-b border-[#DEE1E7] bg-white px-6 py-4 flex items-center justify-between">
                 <div>
-                    <h1 className="text-lg font-bold tracking-tight text-gray-900">
+                    <h1 className="text-2xl font-bold tracking-tight text-[#0A0B0D]">
                         ステータストラッキング
                     </h1>
+                    <p className="text-sm text-[#5B616E] mt-1">
+                        案件の進捗状況をカンバンボードで管理
+                    </p>
                 </div>
-                
+
                 {/* Config Panel - on the right */}
                 {orgId && (
                     <ConfigPanel
@@ -169,7 +172,7 @@ export default function StatusTrackingPage() {
             </div>
 
             {/* Main Content - scrollable area */}
-            <div className="flex-1 overflow-auto bg-gray-50">
+            <div className="flex-1 overflow-auto bg-[#FAFAFA]">
                 {renderContent()}
             </div>
         </div>

@@ -96,7 +96,7 @@ export default function DashboardLayout({
     }
 
     return (
-        <div className="flex h-screen w-screen overflow-hidden text-[#323232] font-sans bg-white">
+        <div className="flex h-screen w-screen overflow-hidden text-[#0A0B0D] font-sans bg-white">
             <AsciiBackground />
 
             <Sidebar
@@ -109,27 +109,15 @@ export default function DashboardLayout({
 
             <main className="flex-1 relative z-0 flex flex-col h-full overflow-hidden">
                 {/* Top Bar with Org Switcher and User */}
-                <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '1rem 1.5rem',
-                    borderBottom: '1px solid #DEE1E7',
-                    background: '#FFFFFF',
-                    zIndex: 10,
-                }}>
+                <div className="flex justify-between items-center px-6 py-4 border-b border-[#E6E8EB] bg-white z-10">
                     <OrganizationSwitcher />
-                    <div style={{
-                        fontSize: '0.875rem',
-                        color: '#717886',
-                        fontFamily: 'JetBrains Mono, monospace',
-                    }}>
+                    <div className="text-sm text-[#5B616E] font-mono">
                         {user?.email}
                     </div>
                 </div>
 
                 <TablesProvider tables={tables}>
-                    <div className="flex-1 overflow-auto">
+                    <div className="flex-1 overflow-auto bg-white">
                         {children}
                     </div>
                 </TablesProvider>

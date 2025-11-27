@@ -65,7 +65,7 @@ interface TableToolbarProps {
     // Add Menu
     showAddMenu: boolean;
     setShowAddMenu: (show: boolean) => void;
-    
+
     // Email
     onSendEmailClick?: () => void;
     hasEmailColumn?: boolean;
@@ -124,17 +124,17 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
     const legacyColumns = table.columns.map(definitionToColumn);
 
     return (
-        <div className="h-14 border-b border-gray-200 bg-white flex items-center justify-between px-4 sticky top-0 z-30 shadow-sm">
-            <div className="flex items-center gap-2">
-                <h1 className="text-lg font-bold text-[#323232]">All Companies</h1>
-                <span className="text-xs text-gray-400 font-mono bg-gray-50 px-2 py-0.5 rounded-full border border-gray-100">
+        <div className="h-16 border-b border-[#E6E8EB] bg-white flex items-center justify-between px-6 sticky top-0 z-50">
+            <div className="flex items-center gap-3">
+                <h1 className="text-xl font-bold text-[#0A0B0D] tracking-tight">All Companies</h1>
+                <span className="text-xs text-[#5B616E] font-mono bg-[#F5F5F7] px-2 py-1 rounded-md">
                     {table.rows.length} 行 • {table.columns.length} 列
                 </span>
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
                 {/* Text Overflow Controls - Apply to selected column */}
-                <div className="flex items-center bg-[#EEF0F3] p-0.5">
+                <div className="flex items-center bg-[#F5F5F7] p-1 rounded-xl">
                     {(() => {
                         // Get the selected column from the first selected cell
                         const selectedColId = selectedCellIds.size > 0
@@ -159,9 +159,9 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                                         }));
                                     }}
                                     disabled={isDisabled}
-                                    className={`p-1.5 transition-all ${currentOverflow === 'clip' && !isDisabled
-                                            ? 'bg-white text-[#0A0B0D]'
-                                            : 'text-[#5B616E] hover:text-[#0A0B0D] hover:bg-white'
+                                    className={`p-1.5 rounded-lg transition-all ${currentOverflow === 'clip' && !isDisabled
+                                        ? 'bg-white text-[#0A0B0D] shadow-sm'
+                                        : 'text-[#5B616E] hover:text-[#0A0B0D] hover:bg-white/50'
                                         } ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
                                     title="クリップ"
                                 >
@@ -178,9 +178,9 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                                         }));
                                     }}
                                     disabled={isDisabled}
-                                    className={`p-1.5 transition-all ${currentOverflow === 'ellipsis' && !isDisabled
-                                            ? 'bg-white text-[#0A0B0D]'
-                                            : 'text-[#5B616E] hover:text-[#0A0B0D] hover:bg-white'
+                                    className={`p-1.5 rounded-lg transition-all ${currentOverflow === 'ellipsis' && !isDisabled
+                                        ? 'bg-white text-[#0A0B0D] shadow-sm'
+                                        : 'text-[#5B616E] hover:text-[#0A0B0D] hover:bg-white/50'
                                         } ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
                                     title="省略記号"
                                 >
@@ -197,9 +197,9 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                                         }));
                                     }}
                                     disabled={isDisabled}
-                                    className={`p-1.5 transition-all ${currentOverflow === 'wrap' && !isDisabled
-                                            ? 'bg-white text-[#0A0B0D]'
-                                            : 'text-[#5B616E] hover:text-[#0A0B0D] hover:bg-white'
+                                    className={`p-1.5 rounded-lg transition-all ${currentOverflow === 'wrap' && !isDisabled
+                                        ? 'bg-white text-[#0A0B0D] shadow-sm'
+                                        : 'text-[#5B616E] hover:text-[#0A0B0D] hover:bg-white/50'
                                         } ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
                                     title="折り返し"
                                 >
@@ -214,8 +214,8 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                 <div className="relative" ref={filterMenuRef}>
                     <button
                         onClick={() => setShowFilterMenu(!showFilterMenu)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border transition-colors
-                            ${activeFilters.length > 0 ? 'bg-[#EEF0F3] border-[#B1B7C3] text-[#0A0B0D]' : 'bg-white border-[#DEE1E7] text-[#5B616E] hover:bg-[#EEF0F3]'}
+                        className={`flex items-center gap-2 px-3 py-2 text-xs font-medium border rounded-xl transition-colors
+                            ${activeFilters.length > 0 ? 'bg-[#F5F5F7] border-[#E6E8EB] text-[#0A0B0D]' : 'bg-white border-[#E6E8EB] text-[#5B616E] hover:bg-[#F5F5F7]'}
                         `}
                     >
                         <IconFilter className="w-3.5 h-3.5" />
@@ -228,33 +228,38 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                     </button>
 
                     {showFilterMenu && (
-                        <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-[#0A0B0D] shadow-lg p-4 z-50">
-                            <h3 className="text-xs font-bold text-[#5B616E] uppercase tracking-wider mb-3 font-mono">アクティブフィルター</h3>
-                            <div className="space-y-2 mb-4">
-                                {activeFilters.map((filter, idx) => (
-                                    <div key={idx} className="flex items-center gap-2 bg-[#EEF0F3] p-2 border border-[#DEE1E7]">
-                                        <span className="text-xs font-medium text-[#0A0B0D]">
-                                            {legacyColumns.find(c => c.id === filter.columnId)?.title}
-                                        </span>
-                                        <span className="text-[10px] text-[#5B616E] bg-white px-1 border border-[#DEE1E7] font-mono">
-                                            {filter.operator === 'contains' ? '含む' : filter.operator === 'equals' ? '等しい' : filter.operator === 'greater' ? '大きい' : '小さい'}
-                                        </span>
-                                        <span className="text-xs text-[#0A0B0D] flex-1 truncate font-mono">{filter.value}</span>
-                                        <button onClick={() => removeFilter(idx)} className="text-[#B1B7C3] hover:text-[#FC401F]">
-                                            <IconX className="w-3 h-3" />
-                                        </button>
-                                    </div>
-                                ))}
-                                {activeFilters.length === 0 && (
-                                    <div className="text-xs text-[#B1B7C3] text-center py-2 font-mono">フィルターなし</div>
-                                )}
-                            </div>
+                        <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-[#E6E8EB] rounded-xl shadow-2xl p-4 z-50">
+                            <h3 className="text-sm font-bold text-[#0A0B0D] mb-4">フィルター設定</h3>
 
-                            <div className="border-t border-[#DEE1E7] pt-3 space-y-2">
+                            {activeFilters.length > 0 && (
+                                <>
+                                    <h4 className="text-xs font-bold text-[#5B616E] uppercase tracking-wider mb-2 font-mono">アクティブ</h4>
+                                    <div className="space-y-2 mb-4">
+                                        {activeFilters.map((filter, idx) => (
+                                            <div key={idx} className="flex items-center gap-2 bg-[#F5F5F7] p-2 rounded-lg border border-[#E6E8EB]">
+                                                <span className="text-xs font-medium text-[#0A0B0D]">
+                                                    {legacyColumns.find(c => c.id === filter.columnId)?.title}
+                                                </span>
+                                                <span className="text-[10px] text-[#5B616E] bg-white px-1 rounded border border-[#E6E8EB] font-mono">
+                                                    {filter.operator === 'contains' ? '含む' : filter.operator === 'equals' ? '等しい' : filter.operator === 'greater' ? '大きい' : '小さい'}
+                                                </span>
+                                                <span className="text-xs text-[#0A0B0D] flex-1 truncate font-mono">{filter.value}</span>
+                                                <button onClick={() => removeFilter(idx)} className="text-[#B1B7C3] hover:text-[#FC401F]">
+                                                    <IconX className="w-3 h-3" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="border-t border-[#E6E8EB] mb-4"></div>
+                                </>
+                            )}
+
+                            <div className="space-y-2">
                                 <CustomSelect
                                     value={newFilter.columnId}
                                     onChange={(val) => setNewFilter({ ...newFilter, columnId: val })}
                                     options={legacyColumns.map(c => ({ value: c.id, label: c.title }))}
+                                    className="bg-[#F5F5F7]"
                                 />
                                 <div className="flex gap-2">
                                     <CustomSelect
@@ -269,7 +274,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                                         ]}
                                     />
                                     <input
-                                        className="flex-1 text-xs bg-[#EEF0F3] border border-[#DEE1E7] px-2 outline-none focus:ring-1 focus:ring-[#0000FF] focus:border-[#0000FF] placeholder:text-[#B1B7C3] font-mono"
+                                        className="flex-1 text-xs bg-[#F5F5F7] border-none rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#0052FF] placeholder:text-[#B1B7C3] font-mono"
                                         placeholder="値..."
                                         value={newFilter.value}
                                         onChange={(e) => setNewFilter({ ...newFilter, value: e.target.value })}
@@ -283,7 +288,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                                         }
                                     }}
                                     disabled={!newFilter.columnId || !newFilter.value}
-                                    className="w-full py-1.5 bg-[#0A0B0D] text-white text-xs font-bold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed font-mono"
+                                    className="w-full py-2 bg-[#0A0B0D] text-white text-xs font-bold rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed font-mono"
                                 >
                                     フィルター追加
                                 </button>
@@ -296,8 +301,8 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                 <div className="relative" ref={sortMenuRef}>
                     <button
                         onClick={() => setShowSortMenu(!showSortMenu)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border transition-colors
-                            ${activeSorts.length > 0 ? 'bg-[#EEF0F3] border-[#B1B7C3] text-[#0A0B0D]' : 'bg-white border-[#DEE1E7] text-[#5B616E] hover:bg-[#EEF0F3]'}
+                        className={`flex items-center gap-2 px-3 py-2 text-xs font-medium border rounded-xl transition-colors
+                            ${activeSorts.length > 0 ? 'bg-[#F5F5F7] border-[#E6E8EB] text-[#0A0B0D]' : 'bg-white border-[#E6E8EB] text-[#5B616E] hover:bg-[#F5F5F7]'}
                         `}
                     >
                         <IconSort className="w-3.5 h-3.5" />
@@ -310,46 +315,51 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                     </button>
 
                     {showSortMenu && (
-                        <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-[#0A0B0D] shadow-lg p-4 z-50">
-                            <h3 className="text-xs font-bold text-[#5B616E] uppercase tracking-wider mb-3 font-mono">並び替え</h3>
-                            <div className="space-y-2 mb-4">
-                                {activeSorts.map((sort, idx) => (
-                                    <div key={idx} className="flex items-center justify-between bg-[#EEF0F3] p-2 border border-[#DEE1E7]">
-                                        <span className="text-xs font-medium text-[#0A0B0D]">
-                                            {legacyColumns.find(c => c.id === sort.columnId)?.title}
-                                        </span>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[10px] text-[#5B616E] uppercase font-mono">{sort.direction === 'asc' ? '昇順' : '降順'}</span>
-                                            <button
-                                                onClick={() => onUpdateSorts(activeSorts.filter((_, i) => i !== idx))}
-                                                className="text-[#B1B7C3] hover:text-[#FC401F]"
-                                            >
-                                                <IconX className="w-3 h-3" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                                {activeSorts.length === 0 && (
-                                    <div className="text-xs text-[#B1B7C3] text-center py-2 font-mono">並び替えなし</div>
-                                )}
-                            </div>
+                        <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-[#E6E8EB] rounded-xl shadow-2xl p-4 z-50">
+                            <h3 className="text-sm font-bold text-[#0A0B0D] mb-4">並び替え設定</h3>
 
-                            <div className="border-t border-[#DEE1E7] pt-3 space-y-2">
+                            {activeSorts.length > 0 && (
+                                <>
+                                    <h4 className="text-xs font-bold text-[#5B616E] uppercase tracking-wider mb-2 font-mono">アクティブ</h4>
+                                    <div className="space-y-2 mb-4">
+                                        {activeSorts.map((sort, idx) => (
+                                            <div key={idx} className="flex items-center justify-between bg-[#F5F5F7] p-2 rounded-lg border border-[#E6E8EB]">
+                                                <span className="text-xs font-medium text-[#0A0B0D]">
+                                                    {legacyColumns.find(c => c.id === sort.columnId)?.title}
+                                                </span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[10px] text-[#5B616E] uppercase font-mono">{sort.direction === 'asc' ? '昇順' : '降順'}</span>
+                                                    <button
+                                                        onClick={() => onUpdateSorts(activeSorts.filter((_, i) => i !== idx))}
+                                                        className="text-[#B1B7C3] hover:text-[#FC401F]"
+                                                    >
+                                                        <IconX className="w-3 h-3" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="border-t border-[#E6E8EB] mb-4"></div>
+                                </>
+                            )}
+
+                            <div className="space-y-2">
                                 <CustomSelect
                                     value={newSort.columnId}
                                     onChange={(val) => setNewSort({ ...newSort, columnId: val })}
                                     options={legacyColumns.map(c => ({ value: c.id, label: c.title }))}
+                                    className="bg-[#F5F5F7]"
                                 />
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => setNewSort({ ...newSort, direction: 'asc' })}
-                                        className={`flex-1 py-1.5 text-xs font-medium border transition-colors font-mono ${newSort.direction === 'asc' ? 'bg-[#0A0B0D] border-[#0A0B0D] text-white' : 'bg-white border-[#DEE1E7] text-[#5B616E] hover:bg-[#EEF0F3]'}`}
+                                        className={`flex-1 py-2 text-xs font-medium border rounded-lg transition-colors font-mono ${newSort.direction === 'asc' ? 'bg-[#0A0B0D]/50 border-[#0A0B0D]/20 text-white' : 'bg-white border-[#E6E8EB] text-[#5B616E] hover:bg-[#F5F5F7]'}`}
                                     >
                                         昇順
                                     </button>
                                     <button
                                         onClick={() => setNewSort({ ...newSort, direction: 'desc' })}
-                                        className={`flex-1 py-1.5 text-xs font-medium border transition-colors font-mono ${newSort.direction === 'desc' ? 'bg-[#0A0B0D] border-[#0A0B0D] text-white' : 'bg-white border-[#DEE1E7] text-[#5B616E] hover:bg-[#EEF0F3]'}`}
+                                        className={`flex-1 py-2 text-xs font-medium border rounded-lg transition-colors font-mono ${newSort.direction === 'desc' ? 'bg-[#0A0B0D]/50 border-[#0A0B0D]/20 text-white' : 'bg-white border-[#E6E8EB] text-[#5B616E] hover:bg-[#F5F5F7]'}`}
                                     >
                                         降順
                                     </button>
@@ -362,7 +372,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                                         }
                                     }}
                                     disabled={!newSort.columnId}
-                                    className="w-full py-1.5 bg-[#0A0B0D] text-white text-xs font-bold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed font-mono"
+                                    className="w-full py-2 bg-[#0A0B0D] text-white text-xs font-bold rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed font-mono"
                                 >
                                     並び替え追加
                                 </button>
@@ -375,8 +385,8 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                 <div className="relative">
                     <button
                         onClick={() => setShowEnrichPanel(!showEnrichPanel)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border transition-colors
-                            ${showEnrichPanel ? 'bg-[#EEF0F3] border-[#B1B7C3] text-[#0A0B0D]' : 'bg-white border-[#DEE1E7] text-[#5B616E] hover:bg-[#EEF0F3]'}
+                        className={`flex items-center gap-2 px-3 py-2 text-xs font-medium border rounded-xl transition-colors
+                            ${showEnrichPanel ? 'bg-[#F5F5F7] border-[#E6E8EB] text-[#0A0B0D]' : 'bg-white border-[#E6E8EB] text-[#5B616E] hover:bg-[#F5F5F7]'}
                         `}
                     >
                         <IconBolt className="w-3.5 h-3.5" />
@@ -384,7 +394,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                     </button>
 
                     {showEnrichPanel && (
-                        <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-[#0A0B0D] shadow-lg p-4 z-50">
+                        <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-[#E6E8EB] rounded-xl shadow-2xl p-4 z-50">
                             <div className="flex items-center justify-between mb-3">
                                 <h3 className="text-xs font-bold text-[#5B616E] uppercase tracking-wider font-mono">データ拡充</h3>
                                 <button onClick={() => setShowEnrichPanel(false)} className="text-[#B1B7C3] hover:text-[#5B616E]">
@@ -396,9 +406,9 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                                 {selectedRowIds.size > 0 ? `選択された ${selectedRowIds.size} 行` : 'すべての行'}に対して拡充する列を選択してください。
                             </p>
 
-                            <div className="max-h-48 overflow-y-auto mb-4 space-y-1 border border-[#DEE1E7] p-2">
+                            <div className="max-h-48 overflow-y-auto mb-4 space-y-1 border border-[#E6E8EB] rounded-lg p-2">
                                 {legacyColumns.map(col => (
-                                    <label key={col.id} className="flex items-center gap-2 p-1.5 hover:bg-[#EEF0F3] cursor-pointer">
+                                    <label key={col.id} className="flex items-center gap-2 p-1.5 hover:bg-[#F5F5F7] rounded-md cursor-pointer">
                                         <Checkbox
                                             checked={enrichTargetCols.has(col.id)}
                                             onCheckedChange={() => setEnrichTargetCols(prev => {
@@ -407,7 +417,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                                                 else next.add(col.id);
                                                 return next;
                                             })}
-                                            className="border-gray-300 data-[state=checked]:bg-black data-[state=checked]:border-black"
+                                            className="border-[#E6E8EB] data-[state=checked]:bg-[#0052FF] data-[state=checked]:border-[#0052FF]"
                                         />
                                         <span className="text-xs text-[#0A0B0D]">{col.title}</span>
                                     </label>
@@ -417,7 +427,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                             <button
                                 onClick={handleEnrichmentStart}
                                 disabled={enrichTargetCols.size === 0 || selectedRowIds.size === 0}
-                                className="w-full py-2 bg-[#0A0B0D] text-white text-xs font-bold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-mono"
+                                className="w-full py-2 bg-[#0A0B0D] text-white text-xs font-bold rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-mono"
                             >
                                 <IconBolt className="w-3.5 h-3.5" />
                                 拡充を開始
@@ -433,7 +443,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
 
                 {/* AI Generation Panel */}
                 {showGenPanel && (
-                    <div className="absolute top-full right-10 mt-2 w-80 bg-white border border-[#0A0B0D] shadow-lg p-4 z-50">
+                    <div className="absolute top-full right-10 mt-2 w-80 bg-white border border-[#E6E8EB] rounded-xl shadow-2xl p-4 z-50">
                         <div className="flex items-center justify-between mb-3">
                             <h3 className="text-xs font-bold text-[#5B616E] uppercase tracking-wider font-mono">AIデータ生成</h3>
                             <button onClick={() => setShowGenPanel(false)} className="text-[#B1B7C3] hover:text-[#5B616E]">
@@ -447,7 +457,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                                     何を生成しますか？
                                 </label>
                                 <textarea
-                                    className="w-full px-2 py-1.5 bg-[#EEF0F3] border border-[#DEE1E7] text-xs focus:ring-1 focus:ring-[#0000FF] focus:border-[#0000FF] outline-none placeholder:text-[#B1B7C3] font-mono resize-none"
+                                    className="w-full px-3 py-2 bg-[#F5F5F7] border-none rounded-lg text-xs focus:ring-2 focus:ring-[#0052FF] outline-none placeholder:text-[#B1B7C3] font-mono resize-none"
                                     placeholder="例: 日本のSaaS企業..."
                                     value={genPrompt}
                                     onChange={(e) => setGenPrompt(e.target.value)}
@@ -465,7 +475,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                                         type="number"
                                         min={1}
                                         max={50}
-                                        className="w-full px-2 py-1.5 bg-[#EEF0F3] border border-[#DEE1E7] text-xs focus:ring-1 focus:ring-[#0000FF] focus:border-[#0000FF] outline-none font-mono"
+                                        className="w-full px-3 py-2 bg-[#F5F5F7] border-none rounded-xl text-xs focus:ring-2 focus:ring-[#0052FF] outline-none font-mono"
                                         value={genCount}
                                         onChange={(e) => setGenCount(Number(e.target.value))}
                                     />
@@ -474,7 +484,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                                     <label className="block text-[10px] font-bold text-[#5B616E] uppercase tracking-wider mb-1.5 font-mono">
                                         既存列選択
                                     </label>
-                                    <div className="text-xs bg-[#EEF0F3] border border-[#DEE1E7] px-2 py-1.5 text-[#5B616E] font-mono">
+                                    <div className="text-xs bg-[#F5F5F7] border border-[#E6E8EB] rounded-lg px-2 py-1.5 text-[#5B616E] font-mono">
                                         {genSelectedColIds.size} 列
                                     </div>
                                 </div>
@@ -484,9 +494,9 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                                 <label className="block text-[10px] font-bold text-[#5B616E] uppercase tracking-wider mb-1.5 font-mono">
                                     既存列から選択
                                 </label>
-                                <div className="max-h-32 overflow-y-auto border border-[#DEE1E7] p-2 space-y-1">
+                                <div className="max-h-32 overflow-y-auto border border-[#E6E8EB] rounded-lg p-2 space-y-1">
                                     {legacyColumns.map(col => (
-                                        <label key={col.id} className="flex items-center gap-2 p-1 hover:bg-[#EEF0F3] cursor-pointer">
+                                        <label key={col.id} className="flex items-center gap-2 p-1 hover:bg-[#F5F5F7] rounded-md cursor-pointer">
                                             <Checkbox
                                                 checked={genSelectedColIds.has(col.id)}
                                                 onCheckedChange={() => setGenSelectedColIds(prev => {
@@ -495,7 +505,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                                                     else next.add(col.id);
                                                     return next;
                                                 })}
-                                                className="border-gray-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                                                className="border-[#E6E8EB] data-[state=checked]:bg-[#0052FF] data-[state=checked]:border-[#0052FF]"
                                             />
                                             <span className="text-xs text-[#0A0B0D] font-mono">{col.title}</span>
                                         </label>
@@ -508,7 +518,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                                     新規列（任意）
                                 </label>
                                 <input
-                                    className="w-full px-2 py-1.5 bg-[#EEF0F3] border border-[#DEE1E7] text-xs focus:ring-1 focus:ring-[#0000FF] focus:border-[#0000FF] outline-none placeholder:text-[#B1B7C3] font-mono"
+                                    className="w-full px-3 py-2 bg-[#F5F5F7] border-none rounded-xl text-xs focus:ring-2 focus:ring-[#0052FF] outline-none placeholder:text-[#B1B7C3] font-mono"
                                     placeholder="例: CEO名,設立年"
                                     value={genNewColsString}
                                     onChange={(e) => setGenNewColsString(e.target.value)}
@@ -518,7 +528,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                             <button
                                 onClick={handleGenerateStart}
                                 disabled={!genPrompt}
-                                className="w-full py-2 bg-[#0000FF] text-white text-xs font-bold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-mono"
+                                className="w-full py-2 bg-[#0A0B0D] text-white text-xs font-bold rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-mono"
                             >
                                 <IconSparkles className="w-3.5 h-3.5" />
                                 生成開始
@@ -531,17 +541,17 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                 <div className="relative" ref={addMenuRef}>
                     <button
                         onClick={() => setShowAddMenu(!showAddMenu)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0A0B0D] text-white text-xs font-bold transition-opacity hover:opacity-90 font-mono"
+                        className="flex items-center gap-2 px-4 py-2 bg-[#0A0B0D] text-white text-xs font-bold rounded-xl transition-opacity hover:opacity-90 font-mono"
                     >
                         <IconPlus className="w-3.5 h-3.5" />
                         追加
                     </button>
 
                     {showAddMenu && (
-                        <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-[#0A0B0D] shadow-lg py-1 z-50">
+                        <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-[#E6E8EB] rounded-xl shadow-2xl py-1 z-50">
                             <button
                                 onClick={handleAddEmptyRow}
-                                className="w-full px-4 py-2.5 text-left text-xs font-medium text-[#0A0B0D] hover:bg-[#EEF0F3] flex items-center gap-2"
+                                className="w-full px-4 py-2.5 text-left text-xs font-medium text-[#0A0B0D] hover:bg-[#F5F5F7] flex items-center gap-2"
                             >
                                 <IconPlus className="w-3.5 h-3.5 text-[#5B616E]" />
                                 空の行
@@ -551,18 +561,18 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                                     setShowAddMenu(false);
                                     fileInputRef.current?.click();
                                 }}
-                                className="w-full px-4 py-2.5 text-left text-xs font-medium text-[#0A0B0D] hover:bg-[#EEF0F3] flex items-center gap-2"
+                                className="w-full px-4 py-2.5 text-left text-xs font-medium text-[#0A0B0D] hover:bg-[#F5F5F7] flex items-center gap-2"
                             >
                                 <IconDownload className="w-3.5 h-3.5 text-[#5B616E]" />
                                 Excel / CSV をインポート
                             </button>
-                            <div className="h-px bg-[#DEE1E7] my-1"></div>
+                            <div className="h-px bg-[#E6E8EB] my-1"></div>
                             <button
                                 onClick={() => {
                                     setShowAddMenu(false);
                                     setShowGenPanel(true);
                                 }}
-                                className="w-full px-4 py-2.5 text-left text-xs font-medium text-[#0A0B0D] hover:bg-[#EEF0F3] flex items-center gap-2"
+                                className="w-full px-4 py-2.5 text-left text-xs font-medium text-[#0A0B0D] hover:bg-[#F5F5F7] flex items-center gap-2"
                             >
                                 <IconSparkles className="w-3.5 h-3.5 text-[#5B616E]" />
                                 AIで生成
@@ -583,7 +593,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                 {(selectedRowIds.size > 0 || selectedCellIds.size > 0) && hasEmailColumn && onSendEmailClick && (
                     <button
                         onClick={onSendEmailClick}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0000FF] text-white text-xs font-medium hover:bg-[#3C8AFF] transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 bg-[#0052FF] text-white text-xs font-medium rounded-xl hover:bg-[#0040D0] transition-colors"
                         title="メール送信"
                     >
                         <IconMail className="w-3.5 h-3.5" />
@@ -594,7 +604,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                 {(selectedRowIds.size > 0 || selectedCellIds.size > 0) && (
                     <button
                         onClick={handleUnifiedDelete}
-                        className="p-1.5 text-[#FC401F] hover:bg-red-50 rounded transition-colors"
+                        className="p-2 text-[#FC401F] hover:bg-[#F5F5F7] rounded-xl transition-colors"
                         title="選択を削除"
                     >
                         <IconTrash className="w-4 h-4" />

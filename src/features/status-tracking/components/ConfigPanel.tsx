@@ -166,21 +166,21 @@ export function ConfigPanel({ orgId, config, onConfigChange, currentTable }: Con
                 <div className="relative" ref={displayMenuRef}>
                     <button
                         onClick={() => setShowDisplayMenu(!showDisplayMenu)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border transition-colors
+                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border transition-colors rounded-full
                             ${showDisplayMenu ? 'bg-[#EEF0F3] border-[#B1B7C3] text-[#0A0B0D]' : 'bg-white border-[#DEE1E7] text-[#5B616E] hover:bg-[#EEF0F3]'}
                         `}
                     >
                         <IconSettings className="w-3.5 h-3.5" />
                         表示
                         {activeFieldCount > 0 && (
-                            <span className="bg-[#0A0B0D] text-white text-[10px] px-1.5 min-w-[16px] h-4 flex items-center justify-center font-mono">
+                            <span className="bg-[#0A0B0D] text-white text-[10px] px-1.5 min-w-[16px] h-4 flex items-center justify-center font-mono rounded-full">
                                 {activeFieldCount}
                             </span>
                         )}
                     </button>
 
                     {showDisplayMenu && (
-                        <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-[#0A0B0D] shadow-lg p-3 z-50">
+                        <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-[#E6E8EB] shadow-xl p-3 z-50 rounded-2xl">
                             <h3 className="text-xs font-bold text-[#5B616E] uppercase tracking-wider mb-3 font-mono">
                                 表示項目
                             </h3>

@@ -34,12 +34,11 @@ export const StatusColumn = React.memo<StatusColumnProps>(({ column, onCardClick
             {/* Column Header */}
             <div className="mb-4 pb-3 border-b border-gray-200">
                 <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide font-mono">
+                    <h3 className="text-sm font-bold text-[#0A0B0D] uppercase tracking-wide font-mono">
                         {column.title}
                     </h3>
                     <span
-                        className="text-xs font-mono font-bold px-2 py-1 bg-gray-200 text-gray-600"
-                        style={{ borderRadius: '2px' }}
+                        className="text-xs font-mono font-bold px-2.5 py-0.5 bg-[#F5F5F7] text-[#5B616E] rounded-full"
                     >
                         {column.count}
                     </span>

@@ -52,33 +52,33 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
     colMenuRef
 }) => {
     return (
-        <thead className="sticky top-0 z-20 shadow-sm">
+        <thead className="shadow-sm bg-white">
             {/* Spreadsheet Column Letters Row */}
             <tr className="h-6">
-                <th className="w-10 p-0 border-b border-r border-gray-200 bg-gray-100 sticky left-0 z-30">
+                <th className="w-10 p-0 border-b border-r border-[#E6E8EB] bg-[#F5F5F7] sticky top-0 left-0 z-50">
                 </th>
                 {table.columns.map((colDef, index) => (
                     <th
                         key={`letter-${colDef.id}`}
-                        className="border-b border-r border-gray-100 bg-gray-100 text-center align-middle"
+                        className="border-b border-r border-[#E6E8EB] bg-[#F5F5F7] text-center align-middle sticky top-0 z-40"
                         style={{ width: columnWidths[colDef.id] || 200, minWidth: columnWidths[colDef.id] || 200, maxWidth: columnWidths[colDef.id] || 200 }}
                     >
-                        <span className="text-[10px] font-mono font-bold text-gray-400">
+                        <span className="text-[10px] font-mono font-bold text-[#5B616E]">
                             {getColumnLetter(index)}
                         </span>
                     </th>
                 ))}
-                <th className="w-24 p-0 border-b border-gray-100 bg-gray-100"></th>
-                <th className="border-b border-gray-100 bg-gray-100"></th>
+                <th className="w-24 p-0 border-b border-[#E6E8EB] bg-[#F5F5F7] sticky top-0 z-40"></th>
+                <th className="border-b border-[#E6E8EB] bg-[#F5F5F7] sticky top-0 z-40"></th>
             </tr>
 
             {/* Column Headers Row */}
             <tr>
-                <th className="w-10 p-0 border-b border-r border-gray-200 bg-gray-50/90 backdrop-blur-sm sticky left-0 z-30">
+                <th className="w-10 p-0 border-b border-r border-[#E6E8EB] bg-white sticky top-6 left-0 z-50">
                     <div className="w-full h-full flex items-center justify-center">
                         <input
                             type="checkbox"
-                            className="accent-blue-600 w-3.5 h-3.5 cursor-pointer border-gray-300 rounded"
+                            className="accent-[#0052FF] w-3.5 h-3.5 cursor-pointer border-[#E6E8EB] rounded"
                             checked={isAllSelected}
                             onChange={toggleAllRows}
                         />
@@ -105,16 +105,16 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
                         />
                     );
                 })}
-                <th className="w-24 p-0 border-b border-gray-200 bg-gray-50/90 backdrop-blur-sm align-middle">
+                <th className="w-24 p-0 border-b border-[#E6E8EB] bg-white align-middle sticky top-6 z-40">
                     <button
                         onClick={handleAddColumn}
-                        className="w-full h-full flex items-center justify-center gap-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                        className="w-full h-full flex items-center justify-center gap-1 text-[#5B616E] hover:text-[#0052FF] hover:bg-[#F5F5F7] transition-colors"
                     >
                         <IconPlus className="w-3.5 h-3.5" />
-                        <span className="text-[10px] font-bold uppercase">New</span>
+                        <span className="text-[10px] font-bold uppercase font-mono">New</span>
                     </button>
                 </th>
-                <th className="border-b border-gray-200 bg-gray-50/90 backdrop-blur-sm"></th>
+                <th className="border-b border-[#E6E8EB] bg-white sticky top-6 z-40"></th>
             </tr>
         </thead>
     );

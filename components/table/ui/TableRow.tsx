@@ -49,19 +49,19 @@ export const TableRow: React.FC<TableRowProps> = ({
     const isRowSelected = selectedRowIds.has(row.id);
 
     return (
-        <tr className={`group ${isGenerating ? 'opacity-50' : ''} ${isRowSelected ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
-            <td className="w-10 p-0 border-b border-r border-gray-100 bg-white sticky left-0 z-20 text-center">
+        <tr className={`group ${isGenerating ? 'opacity-50' : ''} ${isRowSelected ? 'bg-[#F5F5F7]' : 'hover:bg-[#FAFAFA]'}`}>
+            <td className="w-10 p-0 border-b border-r border-[#E6E8EB] bg-white sticky left-0 z-20 text-center">
                 <div className="flex items-center justify-center h-full">
                     {isGenerating ? (
-                        <IconSparkles className="w-3 h-3 text-blue-600 animate-pulse" />
+                        <IconSparkles className="w-3 h-3 text-[#0052FF] animate-pulse" />
                     ) : (
                         <>
-                            <span className={`text-[10px] font-mono text-gray-400 ${isRowSelected ? 'hidden' : 'block group-hover:hidden'}`}>
+                            <span className={`text-[10px] font-mono text-[#5B616E] ${isRowSelected ? 'hidden' : 'block group-hover:hidden'}`}>
                                 {index + 1}
                             </span>
                             <input
                                 type="checkbox"
-                                className={`accent-blue-600 w-3.5 h-3.5 cursor-pointer border-gray-300 rounded ${isRowSelected ? 'block' : 'hidden group-hover:block'}`}
+                                className={`accent-[#0052FF] w-3.5 h-3.5 cursor-pointer border-[#E6E8EB] rounded ${isRowSelected ? 'block' : 'hidden group-hover:block'}`}
                                 checked={isRowSelected}
                                 onChange={() => toggleRowSelection(row.id)}
                             />
@@ -97,8 +97,8 @@ export const TableRow: React.FC<TableRowProps> = ({
                     />
                 );
             })}
-            <td className="border-b border-gray-100 bg-gray-50/10"></td>
-            <td className="border-b border-gray-100 text-center"></td>
+            <td className="border-b border-[#E6E8EB] bg-[#F5F5F7]/30"></td>
+            <td className="border-b border-[#E6E8EB] text-center"></td>
         </tr>
     );
 };

@@ -51,7 +51,7 @@ export const StatusCard = React.memo<StatusCardProps>(({ card, onClick }) => {
             const now = new Date();
             const diffMs = now.getTime() - date.getTime();
             const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-            
+
             if (diffDays === 0) return '今日';
             if (diffDays === 1) return '昨日';
             if (diffDays < 7) return `${diffDays}日前`;
@@ -68,14 +68,14 @@ export const StatusCard = React.memo<StatusCardProps>(({ card, onClick }) => {
             ref={setNodeRef}
             style={{
                 ...style,
-                borderRadius: '2px',
+                borderRadius: '16px',
                 padding: '12px',
                 marginBottom: '8px',
             }}
             {...attributes}
             {...listeners}
             onClick={handleClick}
-            className="bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md transition-all cursor-move group"
+            className="bg-white border border-[#E6E8EB] hover:border-[#0052FF] hover:shadow-md transition-all cursor-move group"
         >
             {/* Card Name/Title */}
             {card.nameValue && (
