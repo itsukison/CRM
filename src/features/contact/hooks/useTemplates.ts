@@ -23,7 +23,9 @@ export function useTemplates(orgId: string) {
             // Parse variables from JSON
             const parsedTemplates: EmailTemplate[] = (data || []).map((t) => ({
                 ...t,
-                variables: Array.isArray(t.variables) ? t.variables : [],
+                variables: Array.isArray(t.variables)
+                    ? t.variables.filter(v => v !== null && v !== undefined).map(v => String(v))
+                    : [],
             }));
 
             setTemplates(parsedTemplates);
@@ -60,7 +62,9 @@ export function useTemplates(orgId: string) {
 
             const newTemplate: EmailTemplate = {
                 ...data,
-                variables: Array.isArray(data.variables) ? data.variables : [],
+                variables: Array.isArray(data.variables)
+                    ? data.variables.filter(v => v !== null && v !== undefined).map(v => String(v))
+                    : [],
             };
 
             setTemplates((prev) => [newTemplate, ...prev]);
@@ -91,7 +95,9 @@ export function useTemplates(orgId: string) {
 
             const updatedTemplate: EmailTemplate = {
                 ...data,
-                variables: Array.isArray(data.variables) ? data.variables : [],
+                variables: Array.isArray(data.variables)
+                    ? data.variables.filter(v => v !== null && v !== undefined).map(v => String(v))
+                    : [],
             };
 
             setTemplates((prev) =>

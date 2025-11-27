@@ -12,6 +12,13 @@ import {
 } from '@/services/email/gmail.service';
 import type { EmailTemplate, VariableMapping } from '../types';
 import type { Column, Row } from '@/types';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/ui/primitives/select';
 
 interface SendEmailModalProps {
     orgId: string;
@@ -25,6 +32,8 @@ interface SendEmailModalProps {
 }
 
 type Step = 'provider' | 'template' | 'mapping' | 'preview' | 'sending' | 'complete';
+
+const getColName = (col: Column) => col.title || (col as any).name || '';
 
 export const SendEmailModal: React.FC<SendEmailModalProps> = ({
     orgId,
@@ -47,18 +56,25 @@ export const SendEmailModal: React.FC<SendEmailModalProps> = ({
     const [result, setResult] = useState<{ successful: number; failed: number; errors: string[] } | null>(null);
 
     // Detect email columns
-    const emailColumns = useMemo(() => detectEmailColumns(columns), [columns]);
+    const emailColumns = useMemo(() => {
+        const mappedColumns = columns.map(c => ({
+            id: c.id,
+            name: getColName(c),
+            type: c.type
+        }));
+        return detectEmailColumns(mappedColumns);
+    }, [columns]);
 
     // Get selected rows
     const selectedRows = useMemo(() => {
         // If rows are selected via checkbox
         if (selectedRowIds.size > 0) {
-            return rows.filter((r) => selectedRowIds.has(r.id) && !r.isPlaceholder);
+            return rows.filter((r) => selectedRowIds.has(r.id) && !(r as any).isPlaceholder);
         }
         // If cells are selected, get unique rows
         if (selectedCellIds.size > 0) {
             const rowIds = new Set(Array.from(selectedCellIds).map((cellId) => cellId.split(':')[0]));
-            return rows.filter((r) => rowIds.has(r.id) && !r.isPlaceholder);
+            return rows.filter((r) => rowIds.has(r.id) && !(r as any).isPlaceholder);
         }
         return [];
     }, [rows, selectedRowIds, selectedCellIds]);
@@ -82,7 +98,7 @@ export const SendEmailModal: React.FC<SendEmailModalProps> = ({
             const initialMappings: VariableMapping[] = selectedTemplate.variables.map((variable) => {
                 // Try to auto-match variable to column
                 const matchingColumn = columns.find(
-                    (col) => col.name.toLowerCase().replace(/[^a-z0-9]/g, '') === variable.toLowerCase().replace(/[^a-z0-9]/g, '')
+                    (col) => getColName(col).toLowerCase().replace(/[^a-z0-9]/g, '') === variable.toLowerCase().replace(/[^a-z0-9]/g, '')
                 );
                 return {
                     variable,
@@ -103,7 +119,7 @@ export const SendEmailModal: React.FC<SendEmailModalProps> = ({
     // Get recipients with valid emails
     const validRecipients = useMemo(() => {
         if (!selectedEmailColumnId) return [];
-        
+
         return selectedRows
             .map((row) => ({
                 email: String(row[selectedEmailColumnId] || ''),
@@ -120,7 +136,7 @@ export const SendEmailModal: React.FC<SendEmailModalProps> = ({
     // Preview for first row
     const previewEmail = useMemo(() => {
         if (!selectedTemplate || !validRecipients[0]) return null;
-        
+
         return {
             to: validRecipients[0].email,
             subject: replaceVariables(selectedTemplate.subject, mappings, validRecipients[0].rowData),
@@ -183,8 +199,8 @@ export const SendEmailModal: React.FC<SendEmailModalProps> = ({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="bg-white w-full max-w-xl max-h-[90vh] overflow-hidden rounded-sm border border-[#DEE1E7] shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="bg-white w-full max-w-xl max-h-[90vh] overflow-hidden rounded-2xl border border-[#E6E8EB] shadow-2xl">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-[#DEE1E7]">
                     <h2 className="text-lg font-bold text-[#0A0B0D]">メール送信</h2>
@@ -215,7 +231,7 @@ export const SendEmailModal: React.FC<SendEmailModalProps> = ({
                                     </div>
                                     <button
                                         onClick={() => setStep('template')}
-                                        className="px-4 py-2 bg-[#0000FF] text-white rounded-sm text-sm font-medium"
+                                        className="px-6 py-2.5 bg-[#0A0B0D] text-white rounded-xl text-sm font-medium hover:bg-[#2C2D30] transition-all shadow-sm"
                                     >
                                         続ける
                                     </button>
@@ -225,7 +241,7 @@ export const SendEmailModal: React.FC<SendEmailModalProps> = ({
                                     <p className="text-[#717886] mb-4">メール送信にはGmailアカウントの連携が必要です</p>
                                     <button
                                         onClick={connect}
-                                        className="flex items-center gap-2 px-4 py-2 bg-[#0000FF] text-white rounded-sm text-sm font-medium mx-auto"
+                                        className="flex items-center gap-2 px-6 py-2.5 bg-[#0A0B0D] text-white rounded-xl text-sm font-medium mx-auto hover:bg-[#2C2D30] transition-all shadow-sm"
                                     >
                                         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
@@ -251,18 +267,21 @@ export const SendEmailModal: React.FC<SendEmailModalProps> = ({
                                         メール列が見つかりません。列タイプが「mail」または名前に「email」を含む列を追加してください。
                                     </p>
                                 ) : (
-                                    <select
+                                    <Select
                                         value={selectedEmailColumnId}
-                                        onChange={(e) => setSelectedEmailColumnId(e.target.value)}
-                                        className="w-full px-3 py-2 text-sm border border-[#DEE1E7] rounded-sm focus:outline-none focus:border-[#0000FF]"
+                                        onValueChange={setSelectedEmailColumnId}
                                     >
-                                        <option value="">列を選択</option>
-                                        {emailColumns.map((col) => (
-                                            <option key={col.id} value={col.id}>
-                                                {col.name}
-                                            </option>
-                                        ))}
-                                    </select>
+                                        <SelectTrigger className="w-full h-11 text-sm bg-[#F5F5F7] border-none rounded-xl text-[#0A0B0D] focus:ring-2 focus:ring-[#0052FF]">
+                                            <SelectValue placeholder="列を選択" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {emailColumns.map((col) => (
+                                                <SelectItem key={col.id} value={col.id}>
+                                                    {col.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 )}
                             </div>
 
@@ -278,23 +297,26 @@ export const SendEmailModal: React.FC<SendEmailModalProps> = ({
                                         テンプレートがありません。<a href="/dashboard/contact" className="text-[#0000FF] hover:underline">先に作成してください</a>。
                                     </p>
                                 ) : (
-                                    <select
+                                    <Select
                                         value={selectedTemplateId}
-                                        onChange={(e) => setSelectedTemplateId(e.target.value)}
-                                        className="w-full px-3 py-2 text-sm border border-[#DEE1E7] rounded-sm focus:outline-none focus:border-[#0000FF]"
+                                        onValueChange={setSelectedTemplateId}
                                     >
-                                        <option value="">テンプレートを選択</option>
-                                        {templates.map((t) => (
-                                            <option key={t.id} value={t.id}>
-                                                {t.name}
-                                            </option>
-                                        ))}
-                                    </select>
+                                        <SelectTrigger className="w-full h-11 text-sm bg-[#F5F5F7] border-none rounded-xl text-[#0A0B0D] focus:ring-2 focus:ring-[#0052FF]">
+                                            <SelectValue placeholder="テンプレートを選択" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {templates.map((t) => (
+                                                <SelectItem key={t.id} value={t.id}>
+                                                    {t.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 )}
                             </div>
 
                             {/* Recipients Count */}
-                            <div className="p-3 bg-[#EEF0F3] rounded-sm mb-6">
+                            <div className="p-3 bg-[#EEF0F3] rounded-xl mb-6">
                                 <div className="text-xs font-mono text-[#5B616E] uppercase tracking-wider mb-1">
                                     送信先
                                 </div>
@@ -311,7 +333,7 @@ export const SendEmailModal: React.FC<SendEmailModalProps> = ({
                             <button
                                 onClick={() => setStep('mapping')}
                                 disabled={!selectedTemplateId || !selectedEmailColumnId || validRecipients.length === 0}
-                                className="w-full px-4 py-2 bg-[#0000FF] text-white rounded-sm text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full px-4 py-3 bg-[#0A0B0D] text-white rounded-xl text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#2C2D30] transition-all shadow-sm"
                             >
                                 次へ: 変数をマッピング
                             </button>
@@ -333,26 +355,29 @@ export const SendEmailModal: React.FC<SendEmailModalProps> = ({
                                 <div className="space-y-3 mb-6">
                                     {mappings.map((mapping, index) => (
                                         <div key={mapping.variable} className="flex items-center gap-3">
-                                            <span className="px-2 py-1 bg-[#EEF0F3] text-[#32353D] text-xs font-mono rounded-sm min-w-[120px]">
+                                            <span className="px-2 py-1 bg-[#EEF0F3] text-[#32353D] text-xs font-mono rounded-lg min-w-[120px]">
                                                 {`{${mapping.variable}}`}
                                             </span>
                                             <span className="text-[#B1B7C3]">→</span>
-                                            <select
+                                            <Select
                                                 value={mapping.columnId}
-                                                onChange={(e) => {
+                                                onValueChange={(value) => {
                                                     const newMappings = [...mappings];
-                                                    newMappings[index].columnId = e.target.value;
+                                                    newMappings[index].columnId = value;
                                                     setMappings(newMappings);
                                                 }}
-                                                className="flex-1 px-3 py-1.5 text-sm border border-[#DEE1E7] rounded-sm focus:outline-none focus:border-[#0000FF]"
                                             >
-                                                <option value="">列を選択</option>
-                                                {columns.filter((c) => !c.isPlaceholder).map((col) => (
-                                                    <option key={col.id} value={col.id}>
-                                                        {col.name}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                                <SelectTrigger className="flex-1 h-10 text-sm bg-[#F5F5F7] border-none rounded-xl text-[#0A0B0D] focus:ring-2 focus:ring-[#0052FF]">
+                                                    <SelectValue placeholder="列を選択" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {columns.filter((c) => !(c as any).isPlaceholder).map((col) => (
+                                                        <SelectItem key={col.id} value={col.id}>
+                                                            {getColName(col)}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
                                         </div>
                                     ))}
                                 </div>
@@ -368,7 +393,7 @@ export const SendEmailModal: React.FC<SendEmailModalProps> = ({
                                 <button
                                     onClick={() => setStep('preview')}
                                     disabled={!allVariablesMapped}
-                                    className="flex-1 px-4 py-2 bg-[#0000FF] text-white rounded-sm text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="flex-1 px-4 py-2.5 bg-[#0A0B0D] text-white rounded-xl text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#2C2D30] transition-all shadow-sm"
                                 >
                                     次へ: プレビュー
                                 </button>
@@ -383,7 +408,7 @@ export const SendEmailModal: React.FC<SendEmailModalProps> = ({
                                 プレビュー（1件目の送信先）
                             </p>
 
-                            <div className="border border-[#DEE1E7] rounded-sm overflow-hidden mb-6">
+                            <div className="border border-[#DEE1E7] rounded-xl overflow-hidden mb-6">
                                 <div className="px-4 py-2 bg-[#FAFAFA] border-b border-[#DEE1E7]">
                                     <div className="text-xs text-[#717886]">宛先:</div>
                                     <div className="font-mono text-sm">{previewEmail.to}</div>
@@ -400,7 +425,7 @@ export const SendEmailModal: React.FC<SendEmailModalProps> = ({
                                 </div>
                             </div>
 
-                            <div className="p-3 bg-[#EEF0F3] rounded-sm mb-6">
+                            <div className="p-3 bg-[#EEF0F3] rounded-xl mb-6">
                                 <div className="text-sm font-medium text-[#0A0B0D]">
                                     {validRecipients.length}件の宛先に送信します
                                 </div>
@@ -415,7 +440,7 @@ export const SendEmailModal: React.FC<SendEmailModalProps> = ({
                                 </button>
                                 <button
                                     onClick={handleSend}
-                                    className="flex-1 px-4 py-2 bg-[#0000FF] text-white rounded-sm text-sm font-medium"
+                                    className="flex-1 px-4 py-2.5 bg-[#0A0B0D] text-white rounded-xl text-sm font-medium hover:bg-[#2C2D30] transition-all shadow-sm"
                                 >
                                     送信する
                                 </button>
@@ -429,10 +454,8 @@ export const SendEmailModal: React.FC<SendEmailModalProps> = ({
                     {/* Step: Complete */}
                     {step === 'complete' && result && (
                         <div className="text-center py-8">
-                            <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ backgroundColor: result.failed === 0 ? '#66C800' : '#FFD12F' }}>
-                                <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <polyline points="20 6 9 17 4 12" />
-                                </svg>
+                            <div className="w-20 h-20 mx-auto mb-6  rounded-sm flex items-center justify-center">
+                                <span className="font-mono text-4xl text-[#4B7C0F] font-bold">[COMPLETED]</span>
                             </div>
                             <h3 className="text-lg font-bold text-[#0A0B0D] mb-2">
                                 送信完了

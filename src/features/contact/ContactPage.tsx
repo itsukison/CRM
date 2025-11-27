@@ -22,9 +22,9 @@ export default function ContactPage() {
     if (!orgId) {
         return (
             <div className="flex items-center justify-center h-full">
-            <div className="text-center font-mono text-[#717886]">
-                <p>組織を選択してください</p>
-            </div>
+                <div className="text-center font-mono text-[#717886]">
+                    <p>組織を選択してください</p>
+                </div>
             </div>
         );
     }
@@ -34,14 +34,30 @@ export default function ContactPage() {
             {/* Header */}
             <div className="border-b border-[#DEE1E7] bg-white px-6 py-4">
                 <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-lg font-bold tracking-tight text-[#0A0B0D]">
-                        メール配信
-                    </h1>
-                    <p className="text-xs font-mono text-[#717886] mt-1">
-                        テンプレート管理と送信履歴
-                    </p>
-                </div>
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight text-[#0A0B0D]">
+                            メール配信
+                        </h1>
+                        <p className="text-sm text-[#5B616E] mt-1">
+                            テンプレート管理と送信履歴
+                        </p>
+                    </div>
+
+                    {/* Tabs */}
+                    <div className="flex gap-1 bg-[#F5F5F7] p-1 rounded-full">
+                        {TABS.map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`px-4 py-1.5 text-sm font-medium rounded-full transition-all ${activeTab === tab.id
+                                        ? 'bg-white text-[#0A0B0D] shadow-sm'
+                                        : 'text-[#5B616E] hover:text-[#0A0B0D]'
+                                    }`}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
 
                     {/* Gmail Connection Status */}
                     <div className="flex items-center gap-3">
@@ -60,7 +76,7 @@ export default function ContactPage() {
                         ) : (
                             <button
                                 onClick={connect}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-[#0000FF] text-white rounded-sm text-xs font-medium hover:bg-[#3C8AFF] transition-colors"
+                                className="flex items-center gap-2 px-4 py-2 bg-[#0A0B0D] text-white rounded-xl text-sm font-medium hover:bg-[#2C2D30] transition-colors"
                             >
                                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
@@ -72,22 +88,7 @@ export default function ContactPage() {
                     </div>
                 </div>
 
-                {/* Tabs */}
-                <div className="flex gap-1 mt-4">
-                    {TABS.map((tab) => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`px-4 py-2 text-sm font-medium rounded-sm transition-colors ${
-                                activeTab === tab.id
-                                    ? 'bg-[#0A0B0D] text-white'
-                                    : 'text-[#5B616E] hover:bg-[#EEF0F3]'
-                            }`}
-                        >
-                            {tab.label}
-                        </button>
-                    ))}
-                </div>
+
             </div>
 
             {/* Content */}

@@ -105,8 +105,8 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
     }, [onClose]);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="bg-white w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-sm border border-[#DEE1E7] shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="bg-white w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl border border-[#E6E8EB] shadow-2xl">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-[#DEE1E7]">
                     <h2 className="text-lg font-bold text-[#0A0B0D]">
@@ -134,7 +134,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             placeholder="例: ウェルカムメール"
-                            className="w-full px-3 py-2 text-sm border border-[#DEE1E7] rounded-sm focus:outline-none focus:border-[#0000FF] text-[#0A0B0D]"
+                            className="w-full px-4 py-3 text-sm bg-[#F5F5F7] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0052FF] text-[#0A0B0D] placeholder-[#B1B7C3]"
                         />
                     </div>
 
@@ -148,7 +148,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                             value={subject}
                             onChange={(e) => setSubject(e.target.value)}
                             placeholder="例: {company_name} へようこそ！"
-                            className="w-full px-3 py-2 text-sm font-mono border border-[#DEE1E7] rounded-sm focus:outline-none focus:border-[#0000FF] text-[#0A0B0D]"
+                            className="w-full px-4 py-3 text-sm font-mono bg-[#F5F5F7] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0052FF] text-[#0A0B0D] placeholder-[#B1B7C3]"
                         />
                         <p className="text-[10px] text-[#B1B7C3] mt-1">
                             {'{変数名}'} の形式で動的な内容を挿入できます
@@ -166,7 +166,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                             onChange={(e) => setBody(e.target.value)}
                             placeholder={`{first_name} 様\n\n{company_name} にご関心をお寄せいただきありがとうございます。\n\n何卒よろしくお願いいたします。\n{sender_name}`}
                             rows={10}
-                            className="w-full px-3 py-2 text-sm font-mono border border-[#DEE1E7] rounded-sm focus:outline-none focus:border-[#0000FF] text-[#0A0B0D] resize-none"
+                            className="w-full px-4 py-3 text-sm font-mono bg-[#F5F5F7] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0052FF] text-[#0A0B0D] resize-none placeholder-[#B1B7C3]"
                         />
                     </div>
 
@@ -175,7 +175,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                         <label className="block text-xs font-mono font-medium text-[#5B616E] uppercase tracking-wider mb-2">
                             変数
                         </label>
-                        
+
                         {/* Variable List */}
                         <div className="flex flex-wrap gap-2 mb-3">
                             {allVariables.length === 0 ? (
@@ -186,7 +186,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                                 allVariables.map((variable) => (
                                     <span
                                         key={variable}
-                                        className="inline-flex items-center gap-1 px-2 py-1 bg-[#EEF0F3] text-[#32353D] text-xs font-mono rounded-sm group"
+                                        className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[#F5F5F7] text-[#32353D] text-xs font-mono rounded-md border border-[#E6E8EB] group hover:border-[#0052FF] transition-colors"
                                     >
                                         <button
                                             onClick={() => handleInsertVariable(variable)}
@@ -222,12 +222,12 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                                     }
                                 }}
                                 placeholder="カスタム変数を追加"
-                                className="flex-1 px-3 py-1.5 text-xs font-mono border border-[#DEE1E7] rounded-sm focus:outline-none focus:border-[#0000FF] text-[#0A0B0D]"
+                                className="flex-1 px-4 py-2 text-xs font-mono bg-[#F5F5F7] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0052FF] text-[#0A0B0D]"
                             />
                             <button
                                 onClick={handleAddVariable}
                                 disabled={!newVariable.trim()}
-                                className="px-3 py-1.5 bg-[#EEF0F3] text-[#5B616E] text-xs font-mono rounded-sm hover:bg-[#DEE1E7] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                className="px-4 py-2 bg-[#F5F5F7] text-[#5B616E] text-xs font-mono rounded-xl hover:bg-[#E6E8EB] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                                 追加
                             </button>
@@ -239,14 +239,14 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                 <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[#DEE1E7] bg-[#FAFAFA]">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 text-sm text-[#5B616E] hover:text-[#0A0B0D] transition-colors"
+                        className="px-5 py-2.5 text-sm text-[#5B616E] hover:text-[#0A0B0D] hover:bg-[#F5F5F7] rounded-xl transition-colors"
                     >
                         キャンセル
                     </button>
                     <button
                         onClick={handleSave}
                         disabled={saving || !name.trim() || !subject.trim() || !body.trim()}
-                        className="px-4 py-2 bg-[#0000FF] text-white text-sm font-medium rounded-sm hover:bg-[#3C8AFF] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="px-5 py-2.5 bg-[#0A0B0D] text-white text-sm font-medium rounded-xl hover:bg-[#2C2D30] disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
                     >
                         {saving ? '保存中...' : template ? '更新する' : '作成する'}
                     </button>

@@ -3,6 +3,13 @@
 import React, { useState } from "react";
 import { useEmailActivity } from "../hooks/useEmailActivity";
 import type { EmailActivity, EmailStatus } from "../types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/ui/primitives/select";
 
 interface ActivityTableProps {
   orgId: string;
@@ -12,9 +19,9 @@ const STATUS_STYLES: Record<
   EmailStatus,
   { bg: string; text: string; label: string }
 > = {
-  success: { bg: "bg-[#66C800]/10", text: "text-[#66C800]", label: "成功" },
-  error: { bg: "bg-[#FC401F]/10", text: "text-[#FC401F]", label: "エラー" },
-  pending: { bg: "bg-[#FFD12F]/10", text: "text-[#B8A581]", label: "送信中" },
+  success: { bg: "bg-[#E6F4D0]", text: "text-[#4B7C0F]", label: "SUCCESS" },
+  error: { bg: "bg-[#FEE2E2]", text: "text-[#DC2626]", label: "ERROR" },
+  pending: { bg: "bg-[#FEF3C7]", text: "text-[#D97706]", label: "SENDING" },
 };
 
 type SortField = "sent_at" | "recipient_email" | "template_name" | "status";
@@ -85,22 +92,26 @@ export const ActivityTable: React.FC<ActivityTableProps> = ({ orgId }) => {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <span className="text-xs font-mono text-[#717886]">絞り込み:</span>
-          <select
+          <Select
             value={filterStatus}
-            onChange={(e) =>
-              setFilterStatus(e.target.value as EmailStatus | "all")
+            onValueChange={(value) =>
+              setFilterStatus(value as EmailStatus | "all")
             }
-            className="text-xs font-mono bg-white border border-[#DEE1E7] rounded-sm px-2 py-1 text-[#32353D] focus:outline-none focus:border-[#0000FF]"
           >
-            <option value="all">すべて</option>
-            <option value="success">成功</option>
-            <option value="error">エラー</option>
-            <option value="pending">送信中</option>
-          </select>
+            <SelectTrigger className="w-[140px] h-9 text-xs font-mono bg-[#F5F5F7] border-none rounded-xl text-[#0A0B0D] focus:ring-2 focus:ring-[#0052FF]">
+              <SelectValue placeholder="ALL STATUS" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">ALL STATUS</SelectItem>
+              <SelectItem value="success">SUCCESS</SelectItem>
+              <SelectItem value="error">ERROR</SelectItem>
+              <SelectItem value="pending">SENDING</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <button
           onClick={refresh}
-          className="flex items-center gap-1 text-xs font-mono text-[#717886] hover:text-[#0000FF] transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#5B616E] hover:text-[#0A0B0D] hover:bg-[#F5F5F7] rounded-lg transition-colors"
         >
           <svg
             className="w-3.5 h-3.5"
@@ -138,12 +149,12 @@ export const ActivityTable: React.FC<ActivityTableProps> = ({ orgId }) => {
           </p>
         </div>
       ) : (
-        <div className="bg-white border border-[#DEE1E7] rounded-sm overflow-hidden">
+        <div className="bg-white border border-[#E6E8EB] rounded-2xl overflow-hidden shadow-sm">
           <table className="w-full">
             <thead>
-              <tr className="bg-[#FAFAFA] border-b border-[#DEE1E7]">
+              <tr className="bg-[#FAFAFA] border-b border-[#E6E8EB]">
                 <th
-                  className="px-4 py-3 text-left text-xs font-mono font-medium text-[#5B616E] uppercase tracking-wider cursor-pointer hover:text-[#0000FF]"
+                  className="px-4 py-3 text-left text-xs font-sans font-medium text-[#5B616E] uppercase tracking-wider cursor-pointer hover:text-[#0000FF]"
                   onClick={() => handleSort("recipient_email")}
                 >
                   <div className="flex items-center gap-1">
@@ -154,7 +165,7 @@ export const ActivityTable: React.FC<ActivityTableProps> = ({ orgId }) => {
                   </div>
                 </th>
                 <th
-                  className="px-4 py-3 text-left text-xs font-mono font-medium text-[#5B616E] uppercase tracking-wider cursor-pointer hover:text-[#0000FF]"
+                  className="px-4 py-3 text-left text-xs font-sans font-medium text-[#5B616E] uppercase tracking-wider cursor-pointer hover:text-[#0000FF]"
                   onClick={() => handleSort("template_name")}
                 >
                   <div className="flex items-center gap-1">
@@ -165,7 +176,7 @@ export const ActivityTable: React.FC<ActivityTableProps> = ({ orgId }) => {
                   </div>
                 </th>
                 <th
-                  className="px-4 py-3 text-left text-xs font-mono font-medium text-[#5B616E] uppercase tracking-wider cursor-pointer hover:text-[#0000FF]"
+                  className="px-4 py-3 text-left text-xs font-sans font-medium text-[#5B616E] uppercase tracking-wider cursor-pointer hover:text-[#0000FF]"
                   onClick={() => handleSort("status")}
                 >
                   <div className="flex items-center gap-1">
@@ -176,7 +187,7 @@ export const ActivityTable: React.FC<ActivityTableProps> = ({ orgId }) => {
                   </div>
                 </th>
                 <th
-                  className="px-4 py-3 text-left text-xs font-mono font-medium text-[#5B616E] uppercase tracking-wider cursor-pointer hover:text-[#0000FF]"
+                  className="px-4 py-3 text-left text-xs font-sans font-medium text-[#5B616E] uppercase tracking-wider cursor-pointer hover:text-[#0000FF]"
                   onClick={() => handleSort("sent_at")}
                 >
                   <div className="flex items-center gap-1">
@@ -202,9 +213,8 @@ export const ActivityTable: React.FC<ActivityTableProps> = ({ orgId }) => {
                   </td>
                   <td className="px-4 py-3">
                     <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-mono ${
-                        STATUS_STYLES[activity.status].bg
-                      } ${STATUS_STYLES[activity.status].text}`}
+                      className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-mono font-bold tracking-wider ${STATUS_STYLES[activity.status].bg
+                        } ${STATUS_STYLES[activity.status].text}`}
                     >
                       {STATUS_STYLES[activity.status].label}
                     </span>

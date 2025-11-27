@@ -73,7 +73,7 @@ export const TemplateList: React.FC<TemplateListProps> = ({ orgId }) => {
       <div className="mb-6">
         <button
           onClick={handleCreate}
-          className="flex items-center gap-2 px-4 py-2 bg-[#0000FF] text-white rounded-sm text-sm font-medium hover:bg-[#3C8AFF] transition-colors"
+          className="flex items-center gap-2 px-4 py-2.5 bg-[#0A0B0D] text-white rounded-xl text-sm font-medium hover:bg-[#2C2D30] transition-all shadow-sm"
         >
           <svg
             className="w-4 h-4"
@@ -113,7 +113,7 @@ export const TemplateList: React.FC<TemplateListProps> = ({ orgId }) => {
           {templates.map((template) => (
             <div
               key={template.id}
-              className="bg-white border border-[#DEE1E7] p-4 rounded-sm hover:border-[#B1B7C3] transition-colors group"
+              className="bg-white p-5 rounded-2xl border border-[#E6E8EB] hover:border-[#0052FF] transition-all group shadow-sm hover:shadow-md"
             >
               <div className="flex items-start justify-between mb-3">
                 <h3 className="font-medium text-[#0A0B0D] text-sm truncate flex-1">
@@ -122,7 +122,7 @@ export const TemplateList: React.FC<TemplateListProps> = ({ orgId }) => {
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => handleEdit(template)}
-                    className="p-1 text-[#717886] hover:text-[#0000FF]"
+                    className="p-1.5 text-[#717886] hover:text-[#0052FF] hover:bg-[#F5F5F7] rounded-lg transition-colors"
                     title="編集"
                   >
                     <svg
@@ -138,7 +138,7 @@ export const TemplateList: React.FC<TemplateListProps> = ({ orgId }) => {
                   </button>
                   <button
                     onClick={() => handleDelete(template.id)}
-                    className="p-1 text-[#717886] hover:text-[#FC401F]"
+                    className="p-1.5 text-[#717886] hover:text-[#FC401F] hover:bg-[#F5F5F7] rounded-lg transition-colors"
                     title="削除"
                   >
                     <svg
@@ -164,7 +164,7 @@ export const TemplateList: React.FC<TemplateListProps> = ({ orgId }) => {
                   {template.variables.slice(0, 3).map((variable) => (
                     <span
                       key={variable}
-                      className="px-1.5 py-0.5 bg-[#EEF0F3] text-[#5B616E] text-[10px] font-mono rounded-sm"
+                      className="px-2 py-1 bg-[#F5F5F7] text-[#5B616E] text-[10px] font-mono rounded-md border border-[#E6E8EB]"
                     >
                       {`{${variable}}`}
                     </span>

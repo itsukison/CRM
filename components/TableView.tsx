@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { TableData, SortState, Filter, TextOverflowMode } from '@/types';
+import { definitionToColumn } from '@/core/models/column';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -208,8 +209,7 @@ export const TableView: React.FC<TableViewProps> = ({
         // Check if this is an email column
         const column = table.columns.find(c => c.id === colId);
         const isEmailColumn = column && (
-            column.type === 'mail' || 
-            column.type === 'email' || 
+            column.type === 'email' ||
             /email|mail|メール/i.test(column.name)
         );
         
@@ -531,7 +531,7 @@ export const TableView: React.FC<TableViewProps> = ({
                 <SendEmailModal
                     orgId={currentOrganization.id}
                     userId={user.id}
-                    columns={table.columns.filter(c => !c.isPlaceholder)}
+                    columns={table.columns.filter(c => !c.isPlaceholder).map(definitionToColumn)}
                     rows={table.rows.filter(r => !r.isPlaceholder)}
                     selectedRowIds={selectedRowIds}
                     selectedCellIds={selectedCellIds}
