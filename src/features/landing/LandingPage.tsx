@@ -70,9 +70,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
             <LandingPricing onEnter={onEnter} />
 
             {/* --- Q&A Section --- */}
-            <section className="py-24 bg-white border-t border-gray-200">
+            <section className="py-16 md:py-24 bg-white border-t border-gray-200">
                 <div className="max-w-[1000px] mx-auto px-6 md:px-12">
-                    <div className="mb-16 text-center">
+                    <div className="mb-8 md:mb-16 text-center">
                         <h2 className="text-3xl md:text-4xl font-bold tracking-tighter mb-4">
                             よくある質問
                         </h2>
@@ -116,7 +116,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
                             </div>
                         </div>
 
-                        <div className="border border-[#E6E8EB] hover:border-gray-800 transition-all rounded-2xl">
+                        <div className="border border-[#E6E8EB] hover:border-gray-800 transition-all rounded-2xl hidden md:block">
                             <div className="p-6">
                                 <h3 className="font-bold mb-3 flex items-center gap-3">
                                     <span className="font-mono text-xs" style={{ color: COLORS.BLUE }}>Q4</span>
@@ -128,7 +128,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
                             </div>
                         </div>
 
-                        <div className="border border-[#E6E8EB] hover:border-gray-800 transition-all rounded-2xl">
+                        <div className="border border-[#E6E8EB] hover:border-gray-800 transition-all rounded-2xl hidden md:block">
                             <div className="p-6">
                                 <h3 className="font-bold mb-3 flex items-center gap-3">
                                     <span className="font-mono text-xs" style={{ color: COLORS.BLUE }}>Q5</span>
@@ -144,12 +144,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
             </section>
 
             {/* --- CTA Section --- */}
-            <section className="py-24 bg-white border-t border-gray-200">
+            <section className="py-16 md:py-24 bg-white border-t border-gray-200">
                 <div className="max-w-[1400px] mx-auto px-6 md:px-12">
                     <div className="bg-[#0000FF] text-white p-12 md:p-20 relative overflow-hidden border-2 border-blue-600 rounded-3xl">
                         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
                             <div className="max-w-2xl">
-                                <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-6">
+                                <h2 className="text-3xl md:text-6xl font-bold tracking-tighter mb-6">
                                     AI駆動型CRMを<br />今すぐ始める
                                 </h2>
                                 <p className="text-blue-200 text-lg font-mono">
@@ -167,7 +167,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
             </section>
 
             {/* --- Footer --- */}
-            <footer className="py-20 bg-white border-t border-gray-100 text-[#0A0B0D]">
+            <footer className="py-12 md:py-20 bg-white border-t border-gray-100 text-[#0A0B0D]">
                 <div className="max-w-[1400px] mx-auto px-6 md:px-12">
                     <div className="flex justify-between items-end">
                         <div>

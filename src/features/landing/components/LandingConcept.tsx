@@ -7,26 +7,27 @@ import { COLORS } from '@/config/constants';
  */
 export const LandingConcept: React.FC = () => {
     return (
-        <section id="concept" className="py-24 md:py-32 bg-gray-50 border-t border-gray-200">
+        <section id="concept" className="py-16 md:py-24 lg:py-32 bg-gray-50 border-t border-gray-200">
             <div className="max-w-[1400px] mx-auto px-6 md:px-12">
                 <div className="max-w-6xl mx-auto">
                     {/* Header */}
-                    <div className="text-center mb-16">
+                    <div className="text-center mb-8 md:mb-16">
                         <div className="text-xs font-mono font-bold text-gray-400 uppercase tracking-wider mb-4">What is flowly?</div>
                         <h2 className="text-3xl md:text-5xl font-bold tracking-tighter mb-8 leading-tight">
                             手入力から自動生成へ、<br />
                             CRMの<span style={{ color: COLORS.BLUE }}>パラダイムシフト</span>
                         </h2>
-                        <p className="text-lg text-gray-600 mb-10 leading-relaxed max-w-2xl mx-auto">
-                            従来のCRMは膨大な手入力作業が必要でした。flowlyはAIがリード情報を自動生成し、
-                            Web検索で最新データを収集。営業チームは戦略立案と商談に専念できます。
+                        <p className="text-base md:text-lg text-gray-600 mb-10 leading-relaxed max-w-2xl mx-auto">
+                            <span className="md:hidden">従来のCRMは手入力が必須でした。flowlyはAIが自動生成し、営業に専念できます。</span>
+                            <span className="hidden md:inline">従来のCRMは膨大な手入力作業が必要でした。flowlyはAIがリード情報を自動生成し、
+                                Web検索で最新データを収集。営業チームは戦略立案と商談に専念できます。</span>
                         </p>
                     </div>
 
                     {/* Three Columns */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {/* Card 1: AI Generation */}
-                        <div className="bg-white border-2 border-gray-800 p-10 hover:bg-gray-50 transition-all group relative rounded-2xl">
+                        <div className="bg-white border-2 border-gray-800 p-6 md:p-10 hover:bg-gray-50 transition-all group relative rounded-2xl">
 
 
                             <div className="font-mono text-xs text-gray-400 mb-4">[01]</div>
@@ -42,7 +43,7 @@ export const LandingConcept: React.FC = () => {
                         </div>
 
                         {/* Card 2: Web Search */}
-                        <div className="bg-white border-2 border-gray-800 p-10 hover:bg-gray-50 transition-all group relative rounded-2xl">
+                        <div className="bg-white border-2 border-gray-800 p-6 md:p-10 hover:bg-gray-50 transition-all group relative rounded-2xl">
 
 
                             <div className="font-mono text-xs mb-4" style={{ color: COLORS.BLUE }}>[02]</div>
@@ -58,7 +59,7 @@ export const LandingConcept: React.FC = () => {
                         </div>
 
                         {/* Card 3: Conversational */}
-                        <div className="bg-white border-2 border-gray-800 p-10 hover:bg-gray-50 transition-all group relative rounded-2xl">
+                        <div className="bg-white border-2 border-gray-800 p-6 md:p-10 hover:bg-gray-50 transition-all group relative rounded-2xl">
 
 
                             <div className="font-mono text-xs text-gray-400 mb-4">[03]</div>

@@ -13,7 +13,7 @@ interface LandingHeroProps {
  */
 export const LandingHero: React.FC<LandingHeroProps> = ({ onEnter }) => {
     return (
-        <section className="relative pt-40 pb-24 px-6 md:px-12 max-w-[1400px] mx-auto">
+        <section className="relative min-h-[100dvh] flex flex-col justify-center md:block md:min-h-0 pt-28 pb-16 md:pt-40 md:pb-24 px-6 md:px-12 max-w-[1400px] mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                 {/* Left Content */}
                 <div className="relative z-10">
@@ -22,15 +22,16 @@ export const LandingHero: React.FC<LandingHeroProps> = ({ onEnter }) => {
                         AI_NATIVE_OS v2.1
                     </div>
 
-                    <h1 className="text-5xl md:text-7xl font-bold tracking-tighter leading-[1.1] mb-8 font-noto">
+                    <h1 className="text-5xl md:text-5xl lg:text-7xl font-bold tracking-tighter leading-[1.1] mb-6 md:mb-8 font-noto">
                         データ入力から解放される、<br />
                         <span style={{ color: COLORS.BLUE }}>AI駆動型CRM。</span>
                     </h1>
 
-                    <p className="text-lg text-gray-500 max-w-lg leading-relaxed mb-10 font-medium">
-                        スキーマを定義するだけで、AIが自動的にリード情報を生成・収集。
-                        Web検索による最新データの取得から、自然言語による高度な分析まで。
-                        営業活動の本質に集中できる、次世代の顧客管理基盤です。
+                    <p className="text-base md:text-lg text-gray-500 max-w-lg leading-relaxed mb-12 md:mb-10 font-medium">
+                        <span className="md:hidden">スキーマ定義だけで、AIがリード情報を自動生成。営業活動の本質に集中できる、次世代の顧客管理基盤です。</span>
+                        <span className="hidden md:inline">スキーマを定義するだけで、AIが自動的にリード情報を生成・収集。
+                            Web検索による最新データの取得から、自然言語による高度な分析まで。
+                            営業活動の本質に集中できる、次世代の顧客管理基盤です。</span>
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4">
