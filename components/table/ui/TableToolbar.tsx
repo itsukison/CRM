@@ -5,7 +5,7 @@ import { Checkbox } from '@/src/ui/primitives/checkbox';
 import {
     IconSparkles, IconPlus, IconTrash, IconCheck, IconBolt, IconX, IconDatabase, IconSettings,
     IconFilter, IconSort, IconChevronRight, IconFileText, IconAlertTriangle, IconInfo, IconSearch,
-    IconTextClip, IconTextWrap, IconTextVisible, IconDownload
+    IconTextClip, IconTextWrap, IconTextVisible, IconDownload, IconMail
 } from '@/components/Icons';
 import { EnrichmentProgress, GenerationProgress } from '@/services/enrichmentService';
 
@@ -65,6 +65,10 @@ interface TableToolbarProps {
     // Add Menu
     showAddMenu: boolean;
     setShowAddMenu: (show: boolean) => void;
+    
+    // Email
+    onSendEmailClick?: () => void;
+    hasEmailColumn?: boolean;
 }
 
 export const TableToolbar: React.FC<TableToolbarProps> = ({
@@ -108,7 +112,9 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
     handleAddEmptyRow,
     handleUnifiedDelete,
     showAddMenu,
-    setShowAddMenu
+    setShowAddMenu,
+    onSendEmailClick,
+    hasEmailColumn
 }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const addMenuRef = useRef<HTMLDivElement>(null);
@@ -572,6 +578,18 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                     accept=".xlsx,.csv"
                     onChange={handleFileSelected}
                 />
+
+                {/* Send Email Button - visible when rows/cells selected and email column exists */}
+                {(selectedRowIds.size > 0 || selectedCellIds.size > 0) && hasEmailColumn && onSendEmailClick && (
+                    <button
+                        onClick={onSendEmailClick}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0000FF] text-white text-xs font-medium hover:bg-[#3C8AFF] transition-colors"
+                        title="メール送信"
+                    >
+                        <IconMail className="w-3.5 h-3.5" />
+                        メール送信
+                    </button>
+                )}
 
                 {(selectedRowIds.size > 0 || selectedCellIds.size > 0) && (
                     <button

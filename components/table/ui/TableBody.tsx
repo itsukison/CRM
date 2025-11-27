@@ -19,6 +19,7 @@ interface TableBodyProps {
     handleCellUpdate: (rowId: string, colId: string, value: any) => void;
     setEditingCell: (cell: { rowId: string; colId: string } | null) => void;
     handleAddEmptyRow: () => void;
+    onCellContextMenu?: (e: React.MouseEvent, rowId: string, colId: string, value: any) => void;
 }
 
 export const TableBody: React.FC<TableBodyProps> = ({
@@ -35,7 +36,8 @@ export const TableBody: React.FC<TableBodyProps> = ({
     handleCellDoubleClick,
     handleCellUpdate,
     setEditingCell,
-    handleAddEmptyRow
+    handleAddEmptyRow,
+    onCellContextMenu
 }) => {
     const legacyColumns = table.columns.map(definitionToColumn);
 
@@ -61,6 +63,7 @@ export const TableBody: React.FC<TableBodyProps> = ({
                     handleCellDoubleClick={handleCellDoubleClick}
                     handleCellUpdate={handleCellUpdate}
                     setEditingCell={setEditingCell}
+                    onCellContextMenu={onCellContextMenu}
                 />
             ))}
 

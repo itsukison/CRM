@@ -9,6 +9,134 @@ export type Json =
 export type Database = {
     public: {
         Tables: {
+            email_templates: {
+                Row: {
+                    id: string
+                    org_id: string
+                    name: string
+                    subject: string
+                    body: string
+                    variables: Json
+                    created_at: string | null
+                    updated_at: string | null
+                }
+                Insert: {
+                    id?: string
+                    org_id: string
+                    name: string
+                    subject: string
+                    body: string
+                    variables?: Json
+                    created_at?: string | null
+                    updated_at?: string | null
+                }
+                Update: {
+                    id?: string
+                    org_id?: string
+                    name?: string
+                    subject?: string
+                    body?: string
+                    variables?: Json
+                    created_at?: string | null
+                    updated_at?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "email_templates_org_id_fkey"
+                        columns: ["org_id"]
+                        isOneToOne: false
+                        referencedRelation: "organizations"
+                        referencedColumns: ["id"]
+                    },
+                ]
+            }
+            email_activity: {
+                Row: {
+                    id: string
+                    org_id: string
+                    user_id: string
+                    template_id: string | null
+                    template_name: string | null
+                    recipient_email: string
+                    subject: string | null
+                    status: 'success' | 'error' | 'pending'
+                    error_message: string | null
+                    sent_at: string | null
+                }
+                Insert: {
+                    id?: string
+                    org_id: string
+                    user_id: string
+                    template_id?: string | null
+                    template_name?: string | null
+                    recipient_email: string
+                    subject?: string | null
+                    status: 'success' | 'error' | 'pending'
+                    error_message?: string | null
+                    sent_at?: string | null
+                }
+                Update: {
+                    id?: string
+                    org_id?: string
+                    user_id?: string
+                    template_id?: string | null
+                    template_name?: string | null
+                    recipient_email?: string
+                    subject?: string | null
+                    status?: 'success' | 'error' | 'pending'
+                    error_message?: string | null
+                    sent_at?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "email_activity_org_id_fkey"
+                        columns: ["org_id"]
+                        isOneToOne: false
+                        referencedRelation: "organizations"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "email_activity_template_id_fkey"
+                        columns: ["template_id"]
+                        isOneToOne: false
+                        referencedRelation: "email_templates"
+                        referencedColumns: ["id"]
+                    },
+                ]
+            }
+            gmail_connections: {
+                Row: {
+                    id: string
+                    user_id: string
+                    email: string
+                    access_token: string
+                    refresh_token: string
+                    expires_at: string
+                    created_at: string | null
+                    updated_at: string | null
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    email: string
+                    access_token: string
+                    refresh_token: string
+                    expires_at: string
+                    created_at?: string | null
+                    updated_at?: string | null
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    email?: string
+                    access_token?: string
+                    refresh_token?: string
+                    expires_at?: string
+                    created_at?: string | null
+                    updated_at?: string | null
+                }
+                Relationships: []
+            }
             org_invitations: {
                 Row: {
                     accepted_at: string | null

@@ -19,12 +19,16 @@ import { useTableSort } from './table/hooks/useTableSort';
 import { useTableFilter } from './table/hooks/useTableFilter';
 import { useTableImport } from './table/hooks/useTableImport';
 import { useTableAI } from './table/hooks/useTableAI';
+import { useAuth } from '@/contexts/AuthContext';
 
 // UI Components
 import { TableToolbar } from './table/ui/TableToolbar';
 import { TableHeader } from './table/ui/TableHeader';
 import { TableBody } from './table/ui/TableBody';
 import { ExcelImportModal } from './table/ui/ExcelImportModal';
+import { SendEmailModal } from '@/features/contact/components/SendEmailModal';
+import { detectEmailColumns, isValidEmail } from '@/services/email/gmail.service';
+import { IconMail } from './Icons';
 
 interface TableViewProps {
     table: TableData;
@@ -51,6 +55,8 @@ export const TableView: React.FC<TableViewProps> = ({
     selectedCellIds,
     onSelectCellIds
 }) => {
+    const { user, currentOrganization } = useAuth();
+    
     // Local State
     const [loadingCells, setLoadingCells] = useState<Set<string>>(new Set());
     const [editingCell, setEditingCell] = useState<{ rowId: string; colId: string } | null>(null);
@@ -67,6 +73,18 @@ export const TableView: React.FC<TableViewProps> = ({
         description: '',
         onConfirm: () => { },
     });
+    
+    // Context Menu State
+    const [contextMenu, setContextMenu] = useState<{
+        x: number;
+        y: number;
+        rowId: string;
+        colId: string;
+        value: any;
+    } | null>(null);
+    
+    // Send Email Modal State
+    const [showSendEmailModal, setShowSendEmailModal] = useState(false);
 
     // Refs
     const colMenuRef = useRef<HTMLDivElement>(null);
@@ -182,6 +200,44 @@ export const TableView: React.FC<TableViewProps> = ({
         onUpdateTable,
         selectedRowIds
     });
+
+    // Context menu handler
+    const handleCellContextMenu = (e: React.MouseEvent, rowId: string, colId: string, value: any) => {
+        e.preventDefault();
+        
+        // Check if this is an email column
+        const column = table.columns.find(c => c.id === colId);
+        const isEmailColumn = column && (
+            column.type === 'mail' || 
+            column.type === 'email' || 
+            /email|mail|メール/i.test(column.name)
+        );
+        
+        // Check if value is a valid email
+        const hasValidEmail = isEmailColumn && isValidEmail(String(value || ''));
+        
+        if (hasValidEmail) {
+            setContextMenu({
+                x: e.clientX,
+                y: e.clientY,
+                rowId,
+                colId,
+                value,
+            });
+            
+            // Select this cell
+            onSelectCellIds(new Set([`${rowId}:${colId}`]));
+        }
+    };
+
+    // Close context menu on click outside
+    useEffect(() => {
+        const handleClick = () => setContextMenu(null);
+        if (contextMenu) {
+            document.addEventListener('click', handleClick);
+            return () => document.removeEventListener('click', handleClick);
+        }
+    }, [contextMenu]);
 
     // Handle click outside to close menus
     useEffect(() => {
@@ -370,6 +426,10 @@ export const TableView: React.FC<TableViewProps> = ({
                 // Add Menu
                 showAddMenu={showAddMenu}
                 setShowAddMenu={setShowAddMenu}
+                
+                // Email
+                onSendEmailClick={() => setShowSendEmailModal(true)}
+                hasEmailColumn={detectEmailColumns(table.columns).length > 0}
             />
 
             <div className="flex-1 overflow-auto relative">
@@ -409,6 +469,7 @@ export const TableView: React.FC<TableViewProps> = ({
                         handleCellUpdate={data.handleCellUpdate}
                         setEditingCell={setEditingCell}
                         handleAddEmptyRow={data.handleAddEmptyRow}
+                        onCellContextMenu={handleCellContextMenu}
                     />
                 </table>
             </div>
@@ -444,6 +505,39 @@ export const TableView: React.FC<TableViewProps> = ({
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            {/* Context Menu for Email Cells */}
+            {contextMenu && (
+                <div
+                    className="fixed z-50 bg-white border border-[#DEE1E7] rounded-sm shadow-lg py-1 min-w-[160px]"
+                    style={{ top: contextMenu.y, left: contextMenu.x }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <button
+                        className="w-full px-3 py-2 text-left text-sm flex items-center gap-2 hover:bg-[#EEF0F3] text-[#32353D]"
+                        onClick={() => {
+                            setContextMenu(null);
+                            setShowSendEmailModal(true);
+                        }}
+                    >
+                        <IconMail className="w-4 h-4 text-[#0000FF]" />
+                        メール送信
+                    </button>
+                </div>
+            )}
+
+            {/* Send Email Modal */}
+            {showSendEmailModal && currentOrganization && user && (
+                <SendEmailModal
+                    orgId={currentOrganization.id}
+                    userId={user.id}
+                    columns={table.columns.filter(c => !c.isPlaceholder)}
+                    rows={table.rows.filter(r => !r.isPlaceholder)}
+                    selectedRowIds={selectedRowIds}
+                    selectedCellIds={selectedCellIds}
+                    onClose={() => setShowSendEmailModal(false)}
+                />
+            )}
         </div>
     );
 };

@@ -18,6 +18,7 @@ interface TableCellProps {
     handleCellDoubleClick: (rowId: string, colId: string) => void;
     handleCellUpdate: (rowId: string, colId: string, value: any) => void;
     setEditingCell: (cell: { rowId: string; colId: string } | null) => void;
+    onContextMenu?: (e: React.MouseEvent, rowId: string, colId: string, value: any) => void;
 }
 
 export const TableCell: React.FC<TableCellProps> = ({
@@ -33,7 +34,8 @@ export const TableCell: React.FC<TableCellProps> = ({
     handleCellClick,
     handleCellDoubleClick,
     handleCellUpdate,
-    setEditingCell
+    setEditingCell,
+    onContextMenu
 }) => {
     const rawValue = row[column.id];
 
@@ -73,6 +75,13 @@ export const TableCell: React.FC<TableCellProps> = ({
         );
     }
 
+    const handleContextMenu = (e: React.MouseEvent) => {
+        if (onContextMenu) {
+            e.preventDefault();
+            onContextMenu(e, row.id, column.id, rawValue);
+        }
+    };
+
     return (
         <td
             className={`border-b border-r border-gray-100 relative h-10 p-0 box-border overflow-hidden select-none
@@ -80,6 +89,7 @@ export const TableCell: React.FC<TableCellProps> = ({
             `}
             onClick={(e) => handleCellClick(e, row.id, column.id)}
             onDoubleClick={() => handleCellDoubleClick(row.id, column.id)}
+            onContextMenu={handleContextMenu}
             style={{ verticalAlign: 'top', height: '40px', width, minWidth: width, maxWidth: width }}
         >
             {phaseDisplay ? phaseDisplay : isLoading ? (

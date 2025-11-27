@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { COLORS } from '@/config/constants';
-import { IconDatabase, IconPlus, IconSettings, IconChevronRight, IconKanban } from './Icons';
+import { IconDatabase, IconPlus, IconSettings, IconChevronRight, IconKanban, IconContact } from './Icons';
 
 
 interface SidebarProps {
@@ -21,6 +21,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ tables, currentTableId, onSele
     const isCreateTable = pathname === '/dashboard/create';
     const isTableView = pathname?.startsWith('/dashboard/tables/');
     const isStatusTracking = pathname === '/dashboard/status-tracking';
+    const isContact = pathname === '/dashboard/contact';
 
 
 
@@ -85,7 +86,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ tables, currentTableId, onSele
                     </button>
                 </nav>
 
-                {/* Status Tracking Section */}
+                {/* Views Section */}
                 <div className="px-3 pb-3 border-t border-gray-100 pt-3 mt-3">
                     {!isCollapsed && (
                         <div className="pt-2 pb-2 px-3 text-[10px] font-mono text-gray-400 uppercase tracking-wider font-bold">
@@ -99,6 +100,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ tables, currentTableId, onSele
                     >
                         <IconKanban className={`w-4 h-4 shrink-0 ${isStatusTracking ? 'text-blue-500' : 'text-gray-400'}`} />
                         {!isCollapsed && <span>ステータス</span>}
+                    </button>
+                    <button
+                        onClick={() => router.push('/dashboard/contact')}
+                        className={`w-full text-left px-3 py-2 rounded-sm text-sm font-medium transition-colors flex items-center ${isContact ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-50'} ${isCollapsed ? 'justify-center' : 'gap-3'}`}
+                        title="Contact"
+                    >
+                        <IconContact className={`w-4 h-4 shrink-0 ${isContact ? 'text-blue-500' : 'text-gray-400'}`} />
+                        {!isCollapsed && <span>Contact</span>}
                     </button>
                 </div>
 

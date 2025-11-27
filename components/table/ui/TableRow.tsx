@@ -22,6 +22,7 @@ interface TableRowProps {
     handleCellDoubleClick: (rowId: string, colId: string) => void;
     handleCellUpdate: (rowId: string, colId: string, value: any) => void;
     setEditingCell: (cell: { rowId: string; colId: string } | null) => void;
+    onCellContextMenu?: (e: React.MouseEvent, rowId: string, colId: string, value: any) => void;
 }
 
 export const TableRow: React.FC<TableRowProps> = ({
@@ -41,7 +42,8 @@ export const TableRow: React.FC<TableRowProps> = ({
     handleCellClick,
     handleCellDoubleClick,
     handleCellUpdate,
-    setEditingCell
+    setEditingCell,
+    onCellContextMenu
 }) => {
     const isGenerating = generatingRowIds.has(row.id);
     const isRowSelected = selectedRowIds.has(row.id);
@@ -91,6 +93,7 @@ export const TableRow: React.FC<TableRowProps> = ({
                         handleCellDoubleClick={handleCellDoubleClick}
                         handleCellUpdate={handleCellUpdate}
                         setEditingCell={setEditingCell}
+                        onContextMenu={onCellContextMenu}
                     />
                 );
             })}
