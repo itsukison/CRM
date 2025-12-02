@@ -89,51 +89,55 @@ export const TableCell: React.FC<TableCellProps> = ({
         }
     };
 
-    const getBorderClasses = () => {
-        if (!isSelected || isEditing || !selectionBorders) return '';
+    const getSelectionStyles = () => {
+        if (!isSelected || isEditing || !selectionBorders) return {};
 
-        const classes = ['z-10']; // Ensure selected cells are above others
+        const shadows: string[] = [];
+        const color = '#0052FF';
 
-        if (selectionBorders.top) classes.push('border-t-2 border-t-[#0052FF]');
-        if (selectionBorders.bottom) classes.push('border-b-2 border-b-[#0052FF]');
-        if (selectionBorders.left) classes.push('border-l-2 border-l-[#0052FF]');
-        if (selectionBorders.right) classes.push('border-r-2 border-r-[#0052FF]');
+        if (selectionBorders.top) shadows.push(`inset 0 2px 0 0 ${color}`);
+        if (selectionBorders.bottom) shadows.push(`inset 0 -2px 0 0 ${color}`);
+        if (selectionBorders.left) shadows.push(`inset 2px 0 0 0 ${color}`);
+        if (selectionBorders.right) shadows.push(`inset -2px 0 0 0 ${color}`);
 
-        return classes.join(' ');
+        return {
+            boxShadow: shadows.join(', '),
+            zIndex: 50
+        };
     };
 
     return (
         <td
-            className={`border-b border-r border-[#E6E8EB] relative h-10 p-0 box-border overflow-hidden select-none
-                ${isSelected && !isEditing ? 'bg-[#E6F2FF]' : ''}
-                ${getBorderClasses()}
+            className={`border-b border-r border-[#E6E8EB] relative h-8 p-0 box-border overflow-hidden select-none
+                ${isSelected && !isEditing ? 'bg-[#0052FF]/5' : ''}
             `}
             onClick={(e) => handleCellClick(e, row.id, column.id)}
             onDoubleClick={() => handleCellDoubleClick(row.id, column.id)}
             onContextMenu={handleContextMenu}
-            style={{ verticalAlign: 'top', height: '40px', width, minWidth: width, maxWidth: width }}
+            style={{
+                verticalAlign: 'top',
+                height: '32px',
+                width,
+                minWidth: width,
+                maxWidth: width,
+                ...getSelectionStyles()
+            }}
         >
             {phaseDisplay ? phaseDisplay : isLoading ? (
-                <div className="w-full h-full flex items-center px-3">
+                <div className="w-full h-full flex items-center px-2">
                     <div className="h-2 w-2/3 bg-[#E6E8EB] rounded animate-pulse"></div>
                 </div>
             ) : isEditing ? (
-                <textarea
-                    autoFocus
-                    className="absolute inset-0 w-full h-full px-3 py-2.5 text-sm bg-white outline-none font-mono text-[#0A0B0D] resize-none shadow-xl border-2 border-[#0052FF] z-50"
-                    value={rawValue || ''}
-                    onChange={(e) => handleCellUpdate(row.id, column.id, e.target.value)}
-                    onBlur={() => setEditingCell(null)}
-                    onKeyDown={(e) => {
-                        e.stopPropagation(); // Prevent global keys from triggering
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            setEditingCell(null);
-                        }
+                <CellEditor
+                    initialValue={rawValue}
+                    onSave={(value) => {
+                        handleCellUpdate(row.id, column.id, value);
+                        setEditingCell(null);
                     }}
+                    onCancel={() => setEditingCell(null)}
                 />
             ) : (
-                <div className={`px-3 py-2.5 w-full h-full text-[#0A0B0D] text-sm overflow-hidden font-mono
+                <div className={`px-2 py-1.5 w-full h-full text-[#0A0B0D] text-xs overflow-hidden font-mono flex items-center
                     ${column.textOverflow === 'wrap' ? 'whitespace-normal break-words leading-snug' :
                         column.textOverflow === 'visible' ? 'whitespace-nowrap' :
                             'whitespace-nowrap'
@@ -148,6 +152,54 @@ export const TableCell: React.FC<TableCellProps> = ({
         </td>
     );
 };
+
+interface CellEditorProps {
+    initialValue: any;
+    onSave: (value: any) => void;
+    onCancel: () => void;
+}
+
+const CellEditor: React.FC<CellEditorProps> = ({ initialValue, onSave, onCancel }) => {
+    const [value, setValue] = React.useState(initialValue || '');
+    const [isComposing, setIsComposing] = React.useState(false);
+    const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+    // Focus on mount
+    React.useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.focus();
+            // Set cursor to end
+            const len = textareaRef.current.value.length;
+            textareaRef.current.setSelectionRange(len, len);
+        }
+    }, []);
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        e.stopPropagation(); // Prevent global keys from triggering
+
+        if (e.key === 'Enter' && !e.shiftKey) {
+            if (isComposing) return;
+            e.preventDefault();
+            onSave(value);
+        } else if (e.key === 'Escape') {
+            onCancel();
+        }
+    };
+
+    return (
+        <textarea
+            ref={textareaRef}
+            className="absolute inset-0 w-full h-full px-2 py-1.5 text-xs bg-white outline-none font-mono text-[#0A0B0D] resize-none shadow-xl border-2 border-[#0052FF] z-50"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onBlur={() => onSave(value)}
+            onKeyDown={handleKeyDown}
+            onCompositionStart={() => setIsComposing(true)}
+            onCompositionEnd={() => setIsComposing(false)}
+        />
+    );
+};
+
 
 const renderCellValue = (value: any, type: string) => {
     if (value === undefined || value === null || value === '') return <span className="text-[#B1B7C3] text-[10px] italic select-none"></span>;

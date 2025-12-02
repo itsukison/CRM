@@ -35,10 +35,10 @@ export default function ContactPage() {
             <div className="border-b border-[#DEE1E7] bg-white px-6 py-4">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold tracking-tight text-[#0A0B0D]">
+                        <h1 className="text-lg font-bold tracking-tight text-[#0A0B0D]">
                             メール配信
                         </h1>
-                        <p className="text-sm text-[#5B616E] mt-1">
+                        <p className="text-xs text-[#5B616E] mt-1">
                             テンプレート管理と送信履歴
                         </p>
                     </div>

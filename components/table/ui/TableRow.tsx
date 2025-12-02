@@ -31,7 +31,7 @@ interface TableRowProps {
     setEditingCell: (cell: { rowId: string; colId: string } | null) => void;
     handleAddRowAbove: (rowId: string) => void;
     handleAddRowBelow: (rowId: string) => void;
-    handleDeleteRow: (rowId?: string) => void;
+    handleDeleteRow: (rowId?: string, skipConfirmation?: boolean) => void;
     onCellContextMenu?: (e: React.MouseEvent, rowId: string, colId: string, value: any) => void;
 }
 
@@ -137,11 +137,32 @@ export const TableRow: React.FC<TableRowProps> = ({
                     <td className="border-b border-[#E6E8EB] text-center"></td>
                 </tr>
             </ContextMenuTrigger>
-            <ContextMenuContent>
-                <ContextMenuItem onClick={() => handleAddRowAbove(row.id)}>上に行を追加</ContextMenuItem>
-                <ContextMenuItem onClick={() => handleAddRowBelow(row.id)}>下に行を追加</ContextMenuItem>
-                <ContextMenuSeparator />
-                <ContextMenuItem onClick={() => handleDeleteRow(row.id)} className="text-red-600 focus:text-red-600">
+            <ContextMenuContent className="bg-white border border-[#E6E8EB] shadow-xl p-1 rounded-xl flex flex-col gap-0.5 min-w-[160px]">
+                <ContextMenuItem
+                    className="flex items-center gap-2 px-2 py-1.5 text-xs text-[#0A0B0D] hover:bg-[#F5F5F7] rounded-lg transition-colors w-full text-left outline-none cursor-pointer"
+                    onClick={() => handleAddRowAbove(row.id)}
+                >
+                    上に行を追加
+                </ContextMenuItem>
+                <ContextMenuItem
+                    className="flex items-center gap-2 px-2 py-1.5 text-xs text-[#0A0B0D] hover:bg-[#F5F5F7] rounded-lg transition-colors w-full text-left outline-none cursor-pointer"
+                    onClick={() => handleAddRowBelow(row.id)}
+                >
+                    下に行を追加
+                </ContextMenuItem>
+                <div className="h-[1px] bg-[#E6E8EB] my-1 mx-1" />
+                <ContextMenuItem
+                    className="flex items-center gap-2 px-2 py-1.5 text-xs text-[#FF4D4D] hover:bg-[#FFF5F5] rounded-lg transition-colors w-full text-left outline-none cursor-pointer focus:text-[#FF4D4D] focus:bg-[#FFF5F5]"
+                    onClick={() => {
+                        // If multiple rows are selected and current row is one of them, delete all selected
+                        // Otherwise delete just this row
+                        if (selectedRowIds.has(row.id) && selectedRowIds.size > 0) {
+                            handleDeleteRow(undefined, true); // undefined target -> delete selected, true -> skip confirm
+                        } else {
+                            handleDeleteRow(row.id, true); // delete specific row, skip confirm
+                        }
+                    }}
+                >
                     行を削除
                 </ContextMenuItem>
             </ContextMenuContent>

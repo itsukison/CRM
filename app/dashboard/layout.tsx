@@ -108,13 +108,7 @@ export default function DashboardLayout({
             />
 
             <main className="flex-1 relative z-0 flex flex-col h-full overflow-hidden">
-                {/* Top Bar with Org Switcher and User */}
-                <div className="flex justify-between items-center px-6 py-4 border-b border-[#E6E8EB] bg-white z-10">
-                    <OrganizationSwitcher />
-                    <div className="text-sm text-[#5B616E] font-mono">
-                        {user?.email}
-                    </div>
-                </div>
+
 
                 <TablesProvider tables={tables}>
                     <div className="flex-1 overflow-auto bg-white">

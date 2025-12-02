@@ -37,38 +37,49 @@ export const useTableData = ({
         setShowAddMenu(false);
     };
 
-    const handleUnifiedDelete = (targetRowId?: string) => {
+    const handleUnifiedDelete = (targetRowId?: string, skipConfirmation?: boolean) => {
+        const performDelete = (idsToDelete: string[]) => {
+            onUpdateTable(prev => ({
+                ...prev,
+                rows: prev.rows.filter(r => !idsToDelete.includes(r.id))
+            }));
+            // Update selection
+            const newSelected = new Set(selectedRowIds);
+            idsToDelete.forEach(id => newSelected.delete(id));
+            onSelectRowIds(newSelected);
+            if (idsToDelete.length === selectedRowIds.size) {
+                onSelectCellIds(new Set());
+            }
+        };
+
         if (targetRowId) {
+            if (skipConfirmation) {
+                performDelete([targetRowId]);
+                return;
+            }
+
             setConfirmDialog({
                 isOpen: true,
                 title: '行の削除',
                 description: 'この行を削除しますか？',
-                onConfirm: () => {
-                    onUpdateTable(prev => ({
-                        ...prev,
-                        rows: prev.rows.filter(r => r.id !== targetRowId)
-                    }));
-                    // If the deleted row was selected, remove it from selection
-                    if (selectedRowIds.has(targetRowId)) {
-                        const newSelected = new Set(selectedRowIds);
-                        newSelected.delete(targetRowId);
-                        onSelectRowIds(newSelected);
-                    }
-                }
+                onConfirm: () => performDelete([targetRowId])
             });
             return;
         }
 
         if (selectedRowIds.size > 0) {
+            const idsToDelete = Array.from(selectedRowIds);
+            if (skipConfirmation) {
+                performDelete(idsToDelete);
+                return;
+            }
+
             setConfirmDialog({
                 isOpen: true,
                 title: '行の削除',
                 description: `選択された ${selectedRowIds.size} 件の行を削除しますか？`,
                 onConfirm: () => {
-                    onUpdateTable(prev => ({
-                        ...prev,
-                        rows: prev.rows.filter(r => !selectedRowIds.has(r.id))
-                    }));
+                    performDelete(idsToDelete);
                     onSelectRowIds(new Set());
                     onSelectCellIds(new Set());
                 }

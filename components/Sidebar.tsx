@@ -37,13 +37,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ tables, currentTableId, onSele
                 </button>
 
                 {/* Logo Area */}
-                <div className={`p-6 cursor-pointer group ${isCollapsed ? 'flex justify-center px-2' : ''}`} onClick={() => router.push('/')}>
+                <div className={`py-6 px-4 cursor-pointer group ${isCollapsed ? 'flex justify-center px-2' : ''}`} onClick={() => router.push('/')}>
                     <div className="w-6 h-6 transition-transform group-hover:scale-95 shrink-0 bg-[#0052FF]"></div>
                     {!isCollapsed && <h1 className="ml-3 text-lg font-bold tracking-tight text-[#0A0B0D] group-hover:text-[#0052FF] transition-colors whitespace-nowrap overflow-hidden">Flowly</h1>}
                 </div>
 
                 {/* Main Nav */}
-                <nav className="flex-1 px-3 space-y-1">
+                <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
                     <button
                         onClick={() => router.push('/dashboard')}
                         className={`w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-colors flex items-center ${isDashboard && !isTableView && !isCreateTable ? 'text-[#0A0B0D] bg-[#F5F5F7]' : 'text-[#5B616E] hover:bg-[#FAFAFA] hover:text-[#0A0B0D]'} ${isCollapsed ? 'justify-center' : 'gap-3'}`}
@@ -119,7 +119,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ tables, currentTableId, onSele
                             <span className="text-[10px] font-mono text-[#5B616E]">システム稼働中</span>
                         </div>
                     )}
-                    <button className={`py-2 px-3 bg-[#F5F5F7] hover:bg-[#E6E8EB] rounded-xl text-xs font-semibold text-[#0A0B0D] transition-colors flex items-center ${isCollapsed ? 'justify-center w-full' : 'gap-2 w-full justify-center'}`}>
+                    <button
+                        onClick={() => router.push('/dashboard/settings')}
+                        className={`py-2 px-3 bg-[#F5F5F7] hover:bg-[#E6E8EB] rounded-xl text-xs font-semibold text-[#0A0B0D] transition-colors flex items-center ${isCollapsed ? 'justify-center w-full' : 'gap-2 w-full justify-center'}`}
+                    >
                         <IconSettings className="w-3.5 h-3.5" /> {!isCollapsed && "設定"}
                     </button>
                 </div>

@@ -393,6 +393,7 @@ export const TableView: React.FC<TableViewProps> = ({
                 setNewFilter={filter.setNewFilter}
                 addFilter={filter.addFilter}
                 removeFilter={filter.removeFilter}
+                onUpdateFilters={onUpdateFilters}
 
                 // AI Generation
                 showGenPanel={ai.showGenPanel}
@@ -438,6 +439,7 @@ export const TableView: React.FC<TableViewProps> = ({
                         table={displayTable}
                         columnWidths={columns.columnWidths}
                         activeSorts={activeSorts}
+                        onUpdateSorts={onUpdateSorts}
                         activeColMenu={columns.activeColMenu}
                         setActiveColMenu={columns.setActiveColMenu}
                         editingCol={columns.editingCol}

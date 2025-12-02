@@ -73,6 +73,7 @@ export const SignInPage: React.FC = () => {
                         border: `1px solid ${COLORS.GRAY_15}`,
                         padding: '2rem',
                         background: COLORS.WHITE,
+                        borderRadius: '0.75rem',
                     }}>
                         {error && (
                             <div style={{

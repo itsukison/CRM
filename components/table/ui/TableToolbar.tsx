@@ -5,7 +5,7 @@ import { Checkbox } from '@/src/ui/primitives/checkbox';
 import {
     IconSparkles, IconPlus, IconTrash, IconCheck, IconBolt, IconX, IconDatabase, IconSettings,
     IconFilter, IconSort, IconChevronRight, IconFileText, IconAlertTriangle, IconInfo, IconSearch,
-    IconTextClip, IconTextWrap, IconTextVisible, IconDownload, IconMail
+    IconTextClip, IconTextWrap, IconTextVisible, IconDownload, IconMail, IconDots
 } from '@/components/Icons';
 import { EnrichmentProgress, GenerationProgress } from '@/services/enrichmentService';
 
@@ -32,6 +32,7 @@ interface TableToolbarProps {
     setNewFilter: (filter: Filter) => void;
     addFilter: (filter: Filter) => void;
     removeFilter: (index: number) => void;
+    onUpdateFilters: (filters: Filter[]) => void;
 
     // AI Generation
     showGenPanel: boolean;
@@ -90,6 +91,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
     setNewFilter,
     addFilter,
     removeFilter,
+    onUpdateFilters,
     showGenPanel,
     setShowGenPanel,
     genPrompt,
@@ -126,7 +128,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
     return (
         <div className="h-16 border-b border-[#E6E8EB] bg-white flex items-center justify-between px-6 sticky top-0 z-50">
             <div className="flex items-center gap-3">
-                <h1 className="text-xl font-bold text-[#0A0B0D] tracking-tight">All Companies</h1>
+                <h1 className="text-lg font-bold text-[#0A0B0D] tracking-tight">{table.name}</h1>
                 <span className="text-xs text-[#5B616E] font-mono bg-[#F5F5F7] px-2 py-1 rounded-md">
                     {table.rows.length} 行 • {table.columns.length} 列
                 </span>
@@ -221,76 +223,83 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                         <IconFilter className="w-3.5 h-3.5" />
 
                         {activeFilters.length > 0 && (
-                            <span className="bg-[#0A0B0D] text-white text-[10px] px-1.5 min-w-[16px] h-4 flex items-center justify-center font-mono">
+                            <span className="bg-[#0A0B0D] text-white text-[10px] px-1 min-w-[16px] h-4 flex items-center justify-center font-mono rounded-full">
                                 {activeFilters.length}
                             </span>
                         )}
                     </button>
 
                     {showFilterMenu && (
-                        <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-[#E6E8EB] rounded-xl shadow-2xl p-4 z-50">
-                            <h3 className="text-sm font-bold text-[#0A0B0D] mb-4">フィルター設定</h3>
-
-                            {activeFilters.length > 0 && (
-                                <>
-                                    <h4 className="text-xs font-bold text-[#5B616E] uppercase tracking-wider mb-2 font-mono">アクティブ</h4>
-                                    <div className="space-y-2 mb-4">
-                                        {activeFilters.map((filter, idx) => (
-                                            <div key={idx} className="flex items-center gap-2 bg-[#F5F5F7] p-2 rounded-lg border border-[#E6E8EB]">
-                                                <span className="text-xs font-medium text-[#0A0B0D]">
-                                                    {legacyColumns.find(c => c.id === filter.columnId)?.title}
-                                                </span>
-                                                <span className="text-[10px] text-[#5B616E] bg-white px-1 rounded border border-[#E6E8EB] font-mono">
-                                                    {filter.operator === 'contains' ? '含む' : filter.operator === 'equals' ? '等しい' : filter.operator === 'greater' ? '大きい' : '小さい'}
-                                                </span>
-                                                <span className="text-xs text-[#0A0B0D] flex-1 truncate font-mono">{filter.value}</span>
-                                                <button onClick={() => removeFilter(idx)} className="text-[#B1B7C3] hover:text-[#FC401F]">
-                                                    <IconX className="w-3 h-3" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div className="border-t border-[#E6E8EB] mb-4"></div>
-                                </>
-                            )}
+                        <div className="absolute top-full right-0 mt-2 w-[400px] bg-white border border-[#E6E8EB] rounded-xl shadow-2xl p-3 z-50 animate-in fade-in zoom-in-95 duration-100">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-sm font-bold text-[#0A0B0D]">フィルター</h3>
+                                <button onClick={() => setShowFilterMenu(false)} className="text-[#B1B7C3] hover:text-[#0A0B0D]">
+                                    <IconX className="w-4 h-4" />
+                                </button>
+                            </div>
 
                             <div className="space-y-2">
-                                <CustomSelect
-                                    value={newFilter.columnId}
-                                    onChange={(val) => setNewFilter({ ...newFilter, columnId: val })}
-                                    options={legacyColumns.map(c => ({ value: c.id, label: c.title }))}
-                                    className="bg-[#F5F5F7]"
-                                />
-                                <div className="flex gap-2">
-                                    <CustomSelect
-                                        className="w-1/3"
-                                        value={newFilter.operator}
-                                        onChange={(val) => setNewFilter({ ...newFilter, operator: val as any })}
-                                        options={[
-                                            { value: 'contains', label: '含む' },
-                                            { value: 'equals', label: '等しい' },
-                                            { value: 'greater', label: '大きい' },
-                                            { value: 'less', label: '小さい' },
-                                        ]}
-                                    />
-                                    <input
-                                        className="flex-1 text-xs bg-[#F5F5F7] border-none rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#0052FF] placeholder:text-[#B1B7C3] font-mono"
-                                        placeholder="値..."
-                                        value={newFilter.value}
-                                        onChange={(e) => setNewFilter({ ...newFilter, value: e.target.value })}
-                                    />
-                                </div>
+                                {activeFilters.map((filter, idx) => (
+                                    <div key={idx} className="flex items-center gap-2">
+
+
+                                        <CustomSelect
+                                            value={filter.columnId}
+                                            onChange={(val) => {
+                                                const newFilters = [...activeFilters];
+                                                newFilters[idx] = { ...filter, columnId: val };
+                                                onUpdateFilters(newFilters);
+                                            }}
+                                            options={legacyColumns.map(c => ({ value: c.id, label: c.title }))}
+                                            className="w-[130px] bg-[#F5F5F7] border-transparent focus:ring-[#595959]"
+                                        />
+
+                                        <CustomSelect
+                                            value={filter.operator}
+                                            onChange={(val) => {
+                                                const newFilters = [...activeFilters];
+                                                newFilters[idx] = { ...filter, operator: val as any };
+                                                onUpdateFilters(newFilters);
+                                            }}
+                                            options={[
+                                                { value: 'contains', label: '含む' },
+                                                { value: 'equals', label: '等しい' },
+                                                { value: 'greater', label: '大きい' },
+                                                { value: 'less', label: '小さい' },
+                                            ]}
+                                            className="w-[90px] bg-[#F5F5F7] border-transparent focus:ring-[#595959]"
+                                        />
+
+                                        <input
+                                            className="flex-1 min-w-0 text-xs bg-[#F5F5F7] border border-transparent rounded-xl px-2 py-2.5 outline-none focus:border-[#595959] focus:ring-1 focus:ring-[#595959] placeholder:text-[#B1B7C3]"
+                                            placeholder="値..."
+                                            value={filter.value}
+                                            onChange={(e) => {
+                                                const newFilters = [...activeFilters];
+                                                newFilters[idx] = { ...filter, value: e.target.value };
+                                                onUpdateFilters(newFilters);
+                                            }}
+                                        />
+
+                                        <button
+                                            onClick={() => removeFilter(idx)}
+                                            className="text-[#B1B7C3] hover:text-[#FC401F] p-1"
+                                        >
+                                            <IconTrash className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                ))}
+
                                 <button
                                     onClick={() => {
-                                        if (newFilter.columnId && newFilter.value) {
-                                            addFilter(newFilter);
-                                            setNewFilter({ columnId: '', operator: 'contains', value: '' });
-                                        }
+                                        // Add a default filter
+                                        const firstColId = legacyColumns[0]?.id || '';
+                                        addFilter({ columnId: firstColId, operator: 'contains', value: '' });
                                     }}
-                                    disabled={!newFilter.columnId || !newFilter.value}
-                                    className="w-full py-2 bg-[#0A0B0D] text-white text-xs font-bold rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed font-mono"
+                                    className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-[#5B616E] hover:text-[#0A0B0D] hover:bg-[#F5F5F7] rounded-lg transition-colors"
                                 >
-                                    フィルター追加
+                                    <IconPlus className="w-3.5 h-3.5" />
+                                    フィルターを追加
                                 </button>
                             </div>
                         </div>
@@ -307,73 +316,69 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                     >
                         <IconSort className="w-3.5 h-3.5" />
                         {activeSorts.length > 0 && (
-                            <span className="bg-[#0A0B0D] text-white text-[10px] px-1.5 min-w-[16px] h-4 flex items-center justify-center font-mono">
+                            <span className="bg-[#0A0B0D] text-white text-[10px] px-1 min-w-[16px] h-4 flex items-center justify-center font-mono rounded-full">
                                 {activeSorts.length}
                             </span>
                         )}
                     </button>
 
                     {showSortMenu && (
-                        <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-[#E6E8EB] rounded-xl shadow-2xl p-4 z-50">
-                            <h3 className="text-sm font-bold text-[#0A0B0D] mb-4">並び替え設定</h3>
-
-                            {activeSorts.length > 0 && (
-                                <>
-                                    <h4 className="text-xs font-bold text-[#5B616E] uppercase tracking-wider mb-2 font-mono">アクティブ</h4>
-                                    <div className="space-y-2 mb-4">
-                                        {activeSorts.map((sort, idx) => (
-                                            <div key={idx} className="flex items-center justify-between bg-[#F5F5F7] p-2 rounded-lg border border-[#E6E8EB]">
-                                                <span className="text-xs font-medium text-[#0A0B0D]">
-                                                    {legacyColumns.find(c => c.id === sort.columnId)?.title}
-                                                </span>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-[10px] text-[#5B616E] uppercase font-mono">{sort.direction === 'asc' ? '昇順' : '降順'}</span>
-                                                    <button
-                                                        onClick={() => onUpdateSorts(activeSorts.filter((_, i) => i !== idx))}
-                                                        className="text-[#B1B7C3] hover:text-[#FC401F]"
-                                                    >
-                                                        <IconX className="w-3 h-3" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div className="border-t border-[#E6E8EB] mb-4"></div>
-                                </>
-                            )}
+                        <div className="absolute top-full right-0 mt-2 w-[320px] bg-white border border-[#E6E8EB] rounded-xl shadow-2xl p-3 z-50 animate-in fade-in zoom-in-95 duration-100">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-sm font-bold text-[#0A0B0D]">並び替え</h3>
+                                <button onClick={() => setShowSortMenu(false)} className="text-[#B1B7C3] hover:text-[#0A0B0D]">
+                                    <IconX className="w-4 h-4" />
+                                </button>
+                            </div>
 
                             <div className="space-y-2">
-                                <CustomSelect
-                                    value={newSort.columnId}
-                                    onChange={(val) => setNewSort({ ...newSort, columnId: val })}
-                                    options={legacyColumns.map(c => ({ value: c.id, label: c.title }))}
-                                    className="bg-[#F5F5F7]"
-                                />
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => setNewSort({ ...newSort, direction: 'asc' })}
-                                        className={`flex-1 py-2 text-xs font-medium border rounded-lg transition-colors font-mono ${newSort.direction === 'asc' ? 'bg-[#0A0B0D]/50 border-[#0A0B0D]/20 text-white' : 'bg-white border-[#E6E8EB] text-[#5B616E] hover:bg-[#F5F5F7]'}`}
-                                    >
-                                        昇順
-                                    </button>
-                                    <button
-                                        onClick={() => setNewSort({ ...newSort, direction: 'desc' })}
-                                        className={`flex-1 py-2 text-xs font-medium border rounded-lg transition-colors font-mono ${newSort.direction === 'desc' ? 'bg-[#0A0B0D]/50 border-[#0A0B0D]/20 text-white' : 'bg-white border-[#E6E8EB] text-[#5B616E] hover:bg-[#F5F5F7]'}`}
-                                    >
-                                        降順
-                                    </button>
-                                </div>
+                                {activeSorts.map((sort, idx) => (
+                                    <div key={idx} className="flex items-center gap-2">
+
+                                        <CustomSelect
+                                            value={sort.columnId}
+                                            onChange={(val) => {
+                                                const newSorts = [...activeSorts];
+                                                newSorts[idx] = { ...sort, columnId: val };
+                                                onUpdateSorts(newSorts);
+                                            }}
+                                            options={legacyColumns.map(c => ({ value: c.id, label: c.title }))}
+                                            className="flex-1 bg-[#F5F5F7] border-transparent focus:ring-[#595959]"
+                                        />
+
+                                        <CustomSelect
+                                            value={sort.direction}
+                                            onChange={(val) => {
+                                                const newSorts = [...activeSorts];
+                                                newSorts[idx] = { ...sort, direction: val as 'asc' | 'desc' };
+                                                onUpdateSorts(newSorts);
+                                            }}
+                                            options={[
+                                                { value: 'asc', label: '昇順' },
+                                                { value: 'desc', label: '降順' },
+                                            ]}
+                                            className="w-[80px] bg-[#F5F5F7] border-transparent focus:ring-[#595959]"
+                                        />
+
+                                        <button
+                                            onClick={() => onUpdateSorts(activeSorts.filter((_, i) => i !== idx))}
+                                            className="text-[#B1B7C3] hover:text-[#FC401F] p-1"
+                                        >
+                                            <IconTrash className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                ))}
+
                                 <button
                                     onClick={() => {
-                                        if (newSort.columnId) {
-                                            addSort(newSort);
-                                            setNewSort({ columnId: '', direction: 'asc' });
-                                        }
+                                        // Add a default sort
+                                        const firstColId = legacyColumns[0]?.id || '';
+                                        onUpdateSorts([...activeSorts, { columnId: firstColId, direction: 'asc' }]);
                                     }}
-                                    disabled={!newSort.columnId}
-                                    className="w-full py-2 bg-[#0A0B0D] text-white text-xs font-bold rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed font-mono"
+                                    className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-[#5B616E] hover:text-[#0A0B0D] hover:bg-[#F5F5F7] rounded-lg transition-colors"
                                 >
-                                    並び替え追加
+                                    <IconPlus className="w-3.5 h-3.5" />
+                                    並び替えを追加
                                 </button>
                             </div>
                         </div>
@@ -468,7 +473,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                                     何を生成しますか？
                                 </label>
                                 <textarea
-                                    className="w-full px-3 py-2 bg-[#F5F5F7] border-none rounded-lg text-xs focus:ring-2 focus:ring-[#0052FF] outline-none placeholder:text-[#B1B7C3] font-mono resize-none"
+                                    className="w-full px-3 py-2 bg-[#F5F5F7] border-none rounded-lg text-xs focus:ring-2 focus:ring-[#808080] outline-none placeholder:text-[#B1B7C3] font-mono resize-none"
                                     placeholder="例: 日本のSaaS企業..."
                                     value={genPrompt}
                                     onChange={(e) => setGenPrompt(e.target.value)}
@@ -486,7 +491,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                                         type="number"
                                         min={1}
                                         max={50}
-                                        className="w-full px-3 py-2 bg-[#F5F5F7] border-none rounded-xl text-xs focus:ring-2 focus:ring-[#0052FF] outline-none font-mono"
+                                        className="w-full px-3 py-2 bg-[#F5F5F7] border-none rounded-xl text-xs focus:ring-2 focus:ring-[#808080] outline-none font-mono"
                                         value={genCount}
                                         onChange={(e) => setGenCount(Number(e.target.value))}
                                     />
@@ -529,7 +534,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
                                     新規列（任意）
                                 </label>
                                 <input
-                                    className="w-full px-3 py-2 bg-[#F5F5F7] border-none rounded-xl text-xs focus:ring-2 focus:ring-[#0052FF] outline-none placeholder:text-[#B1B7C3] font-mono"
+                                    className="w-full px-3 py-2 bg-[#F5F5F7] border-none rounded-xl text-xs focus:ring-2 focus:ring-[#808080] outline-none placeholder:text-[#B1B7C3] font-mono"
                                     placeholder="例: CEO名,設立年"
                                     value={genNewColsString}
                                     onChange={(e) => setGenNewColsString(e.target.value)}

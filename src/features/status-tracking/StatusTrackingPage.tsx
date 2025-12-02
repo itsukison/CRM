@@ -152,10 +152,10 @@ export default function StatusTrackingPage() {
             {/* Header with Config Panel on the right */}
             <div className="border-b border-[#DEE1E7] bg-white px-6 py-4 flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-[#0A0B0D]">
+                    <h1 className="text-lg font-bold tracking-tight text-[#0A0B0D]">
                         ステータストラッキング
                     </h1>
-                    <p className="text-sm text-[#5B616E] mt-1">
+                    <p className="text-xs text-[#5B616E] mt-1">
                         案件の進捗状況をカンバンボードで管理
                     </p>
                 </div>
