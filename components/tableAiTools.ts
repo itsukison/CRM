@@ -14,9 +14,10 @@ export interface GenerateToolOptions {
     count: number;
     targetColumnIds: string[];
     prompt?: string;
+    companyContext?: string;
 }
 
-const findCompanyKeyColumn = (columns: ColumnDefinition[]) => {
+export const findCompanyKeyColumn = (columns: ColumnDefinition[]) => {
     const allColumns = columns.map(definitionToColumn);
     const companyKeyColumn =
         allColumns.find(c => c.id === 'company_name') ||
@@ -99,7 +100,7 @@ export const enrichRowsWithCompanyDetails = async (
 export const generateCompaniesAndEnrich = async (
     options: GenerateToolOptions
 ): Promise<TableData> => {
-    const { table, count, targetColumnIds, prompt } = options;
+    const { table, count, targetColumnIds, prompt, companyContext } = options;
 
     const targetColDefs = table.columns.filter(c => targetColumnIds.includes(c.id));
     const targetCols = targetColDefs.map(definitionToColumn);
@@ -110,7 +111,10 @@ export const generateCompaniesAndEnrich = async (
         return table;
     }
 
-    const query = prompt || '日本の実在する企業';
+    let query = prompt || '日本の実在する企業';
+    if (companyContext) {
+        query += `\n\n【ユーザーの会社情報（この会社にとっての理想的な顧客を探してください）】\n${companyContext}`;
+    }
     const companyNames = await identifyCompanies(query, count);
 
     if (!companyNames || companyNames.length === 0) {

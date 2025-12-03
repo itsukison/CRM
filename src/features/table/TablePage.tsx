@@ -4,9 +4,12 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { TableView } from '@/components/TableView';
 import { ChatWidget } from '@/components/ChatWidget';
-import { TableData, Filter, SortState, Row } from '@/types';
+import { TableData, Filter, SortState, Row, definitionToColumn } from '@/types';
 import { getTable, updateTable } from '@/services/tableService';
 import { createRow, updateRow, deleteRow, rowToData } from '@/services/rowService';
+import { identifyCompanies, scrapeCompanyDetails } from '@/services/companyService';
+import { findCompanyKeyColumn } from '@/components/tableAiTools';
+import { toast } from 'sonner';
 
 interface TablePageProps {
     tableId: string;
@@ -37,6 +40,9 @@ const TablePage: React.FC<TablePageProps> = ({ tableId }) => {
 
                 setTable(loadedTable);
                 prevTableRef.current = JSON.parse(JSON.stringify(loadedTable));
+
+                // Check for pending generation
+                checkPendingGeneration(loadedTable);
             } catch (err) {
                 console.error('Error loading table:', err);
                 setError('テーブルの読み込みに失敗しました');
@@ -46,6 +52,120 @@ const TablePage: React.FC<TablePageProps> = ({ tableId }) => {
         }
         loadTable();
     }, [tableId]);
+
+    const checkPendingGeneration = async (currentTable: TableData) => {
+        const pendingGen = sessionStorage.getItem(`pending_generation_${tableId}`);
+        if (pendingGen) {
+            try {
+                const params = JSON.parse(pendingGen);
+                sessionStorage.removeItem(`pending_generation_${tableId}`);
+
+                toast.info('AI生成を開始しました', { description: 'バックグラウンドで企業リストを作成しています...' });
+                await startRealtimeGeneration(currentTable, params);
+            } catch (e) {
+                console.error('Failed to parse pending generation params:', e);
+            }
+        }
+    };
+
+    const startRealtimeGeneration = async (currentTable: TableData, params: { prompt: string; count: number; companyContext: string }) => {
+        const { prompt, count, companyContext } = params;
+
+        // 1. Identify Companies
+        let query = prompt;
+        if (companyContext) {
+            query += `\n\n【ユーザーの会社情報（この会社にとっての理想的な顧客を探してください）】\n${companyContext}`;
+        }
+
+        try {
+            const companyNames = await identifyCompanies(query, count);
+            if (!companyNames || companyNames.length === 0) {
+                toast.error('企業の特定に失敗しました');
+                return;
+            }
+
+            const companyKeyColumn = findCompanyKeyColumn(currentTable.columns);
+            if (!companyKeyColumn) {
+                toast.error('会社名カラムが見つかりません');
+                return;
+            }
+
+            // 2. Process each company sequentially (or with limited concurrency)
+            // We'll do sequential for now to ensure stable updates and avoid rate limits
+            for (const name of companyNames) {
+                await processCompanyRow(currentTable.id, currentTable.columns, companyKeyColumn.id, name, companyContext);
+            }
+
+            toast.success('生成が完了しました');
+        } catch (e) {
+            console.error('Generation failed:', e);
+            toast.error('生成中にエラーが発生しました');
+        }
+    };
+
+    const processCompanyRow = async (tableId: string, columns: any[], companyKeyColId: string, companyName: string, companyContext?: string) => {
+        // a. Create initial row
+        const newRowData: Record<string, any> = {};
+        columns.forEach(col => newRowData[col.id] = '');
+        newRowData[companyKeyColId] = companyName;
+
+        // Set default status if status column exists
+        const statusCol = columns.find(c => c.id === 'col_status' || c.title === 'ステータス');
+        if (statusCol) {
+            newRowData[statusCol.id] = '未接触';
+        }
+
+        try {
+            const { row: createdRow, error } = await createRow(tableId, newRowData);
+            if (error || !createdRow) throw error;
+
+            // Update local state immediately
+            setTable(prev => {
+                if (!prev) return null;
+                return {
+                    ...prev,
+                    rows: [...prev.rows, createdRow]
+                };
+            });
+
+            // b. Enrich row
+            const targetCols = columns.map(definitionToColumn).filter(c => c.id !== companyKeyColId);
+            const targetTitles = targetCols.map(c => c.title);
+
+            const { data } = await scrapeCompanyDetails(companyName, targetTitles, companyContext);
+
+            // Merge enriched data
+            const enrichedData = { ...createdRow };
+            targetCols.forEach(col => {
+                const value = data[col.title];
+                if (value !== undefined) {
+                    // Handle Tags: split by comma if it's the tags column
+                    if (col.type === 'tag' && typeof value === 'string' && value.includes(',')) {
+                        // Keep as string if TableCell handles it, or split if it expects array.
+                        // Let's keep as string for now and handle splitting in TableCell for rendering consistency
+                        enrichedData[col.id] = value;
+                    } else {
+                        enrichedData[col.id] = value;
+                    }
+                }
+            });
+
+            // c. Update row
+            await updateRow(createdRow.id, rowToData(enrichedData));
+
+            // Update local state with enriched data
+            setTable(prev => {
+                if (!prev) return null;
+                return {
+                    ...prev,
+                    rows: prev.rows.map(r => r.id === createdRow.id ? enrichedData : r)
+                };
+            });
+
+        } catch (e) {
+            console.error(`Failed to process row for ${companyName}:`, e);
+        }
+    };
 
     const handleUpdateTable = async (updatedTableOrFn: TableData | ((prev: TableData) => TableData)) => {
         setTable(prev => {

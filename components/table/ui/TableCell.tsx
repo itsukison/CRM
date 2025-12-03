@@ -1,5 +1,5 @@
 import React from 'react';
-import { Row, Column, definitionToColumn } from '@/types';
+import { Row, Column, definitionToColumn, TagOption } from '@/types';
 import { EnrichmentProgress } from '@/services/enrichmentService';
 import { IconSearch, IconFileText, IconDatabase, IconAlertTriangle } from '@/components/Icons';
 import { evaluateFormula } from '../utils';
@@ -130,6 +130,7 @@ export const TableCell: React.FC<TableCellProps> = ({
             ) : isEditing ? (
                 <CellEditor
                     initialValue={rawValue}
+                    column={column}
                     onSave={(value) => {
                         handleCellUpdate(row.id, column.id, value);
                         setEditingCell(null);
@@ -155,11 +156,16 @@ export const TableCell: React.FC<TableCellProps> = ({
 
 interface CellEditorProps {
     initialValue: any;
+    column: Column;
     onSave: (value: any) => void;
     onCancel: () => void;
 }
 
-const CellEditor: React.FC<CellEditorProps> = ({ initialValue, onSave, onCancel }) => {
+const CellEditor: React.FC<CellEditorProps> = ({ initialValue, column, onSave, onCancel }) => {
+    if (column.type === 'tag') {
+        return <TagEditor initialValue={initialValue} column={column} onSave={onSave} onCancel={onCancel} />;
+    }
+
     const [value, setValue] = React.useState(initialValue || '');
     const [isComposing, setIsComposing] = React.useState(false);
     const textareaRef = React.useRef<HTMLTextAreaElement>(null);
@@ -200,6 +206,122 @@ const CellEditor: React.FC<CellEditorProps> = ({ initialValue, onSave, onCancel 
     );
 };
 
+const TagEditor: React.FC<CellEditorProps> = ({ initialValue, column, onSave, onCancel }) => {
+    const [inputValue, setInputValue] = React.useState('');
+    const [selectedTags, setSelectedTags] = React.useState<string[]>(
+        typeof initialValue === 'string' ? initialValue.split(',').map(t => t.trim()).filter(Boolean) :
+            Array.isArray(initialValue) ? initialValue : []
+    );
+    const [isOpen, setIsOpen] = React.useState(true);
+    const containerRef = React.useRef<HTMLDivElement>(null);
+    const inputRef = React.useRef<HTMLInputElement>(null);
+
+    const options = column.options || [];
+
+    React.useEffect(() => {
+        if (inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, []);
+
+    // Close when clicking outside
+    React.useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                onSave(selectedTags.join(', '));
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [selectedTags, onSave]);
+
+    const toggleTag = (tag: string) => {
+        if (selectedTags.includes(tag)) {
+            setSelectedTags(prev => prev.filter(t => t !== tag));
+        } else {
+            setSelectedTags(prev => [...prev, tag]);
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        e.stopPropagation();
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (inputValue.trim()) {
+                if (!selectedTags.includes(inputValue.trim())) {
+                    setSelectedTags(prev => [...prev, inputValue.trim()]);
+                }
+                setInputValue('');
+            } else {
+                onSave(selectedTags.join(', '));
+            }
+        } else if (e.key === 'Escape') {
+            onCancel();
+        } else if (e.key === 'Backspace' && !inputValue && selectedTags.length > 0) {
+            setSelectedTags(prev => prev.slice(0, -1));
+        }
+    };
+
+    // Filter options based on input
+    const filteredOptions = options.filter(opt =>
+        opt.label.toLowerCase().includes(inputValue.toLowerCase()) &&
+        !selectedTags.includes(opt.label)
+    );
+
+    return (
+        <div ref={containerRef} className="absolute inset-0 min-w-[200px] bg-white shadow-xl border border-[#E6E8EB] rounded-md z-50 flex flex-col">
+            <div className="p-2 flex flex-wrap gap-1 border-b border-[#E6E8EB] min-h-[32px]">
+                {selectedTags.map((tag, idx) => (
+                    <span key={idx} className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] bg-[#F5F5F7] text-[#0A0B0D] border border-[#E6E8EB]">
+                        {tag}
+                        <button
+                            onClick={(e) => { e.stopPropagation(); toggleTag(tag); }}
+                            className="ml-1 hover:text-red-500"
+                        >
+                            ×
+                        </button>
+                    </span>
+                ))}
+                <input
+                    ref={inputRef}
+                    value={inputValue}
+                    onChange={e => setInputValue(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className="flex-1 min-w-[60px] text-xs outline-none bg-transparent"
+                    placeholder={selectedTags.length === 0 ? "Select or create..." : ""}
+                />
+            </div>
+            {isOpen && (filteredOptions.length > 0 || inputValue) && (
+                <div className="max-h-[200px] overflow-y-auto p-1">
+                    {inputValue && !options.some(o => o.label === inputValue) && !selectedTags.includes(inputValue) && (
+                        <div
+                            className="px-2 py-1.5 text-xs hover:bg-[#F5F5F7] cursor-pointer rounded text-blue-600"
+                            onClick={() => {
+                                toggleTag(inputValue);
+                                setInputValue('');
+                            }}
+                        >
+                            Create "{inputValue}"
+                        </div>
+                    )}
+                    {filteredOptions.map(opt => (
+                        <div
+                            key={opt.id}
+                            className="px-2 py-1.5 text-xs hover:bg-[#F5F5F7] cursor-pointer rounded text-[#0A0B0D]"
+                            onClick={() => {
+                                toggleTag(opt.label);
+                                setInputValue('');
+                            }}
+                        >
+                            {opt.label}
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
 
 const renderCellValue = (value: any, type: string) => {
     if (value === undefined || value === null || value === '') return <span className="text-[#B1B7C3] text-[10px] italic select-none"></span>;
@@ -212,7 +334,32 @@ const renderCellValue = (value: any, type: string) => {
                 </a>
             );
         case 'tag':
-            return <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-[#F5F5F7] text-[#0A0B0D] border border-[#E6E8EB] uppercase tracking-wider font-mono">{value}</span>;
+            const tags = typeof value === 'string' ? value.split(',').map(t => t.trim()).filter(Boolean) : Array.isArray(value) ? value : [String(value)];
+
+            return (
+                <div className="flex flex-wrap gap-1">
+                    {tags.map((tag, idx) => {
+                        let bg = 'bg-[#F5F5F7]';
+                        let text = 'text-[#0A0B0D]';
+                        let border = 'border-[#E6E8EB]';
+
+                        // Status Colors
+                        if (tag === '未接触') { bg = 'bg-gray-100'; text = 'text-gray-600'; border = 'border-gray-200'; }
+                        else if (tag === '調査中') { bg = 'bg-blue-50'; text = 'text-blue-600'; border = 'border-blue-200'; }
+                        else if (tag === '連絡済み') { bg = 'bg-green-50'; text = 'text-green-600'; border = 'border-green-200'; }
+                        else if (tag === '除外候補') { bg = 'bg-red-50'; text = 'text-red-600'; border = 'border-red-200'; }
+                        else if (tag === 'High' || tag === '高') { bg = 'bg-green-50'; text = 'text-green-700'; border = 'border-green-200'; }
+                        else if (tag === 'Medium' || tag === '中') { bg = 'bg-yellow-50'; text = 'text-yellow-700'; border = 'border-yellow-200'; }
+                        else if (tag === 'Low' || tag === '低') { bg = 'bg-gray-50'; text = 'text-gray-500'; border = 'border-gray-200'; }
+
+                        return (
+                            <span key={idx} className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-medium ${bg} ${text} ${border} border uppercase tracking-wider font-mono whitespace-nowrap`}>
+                                {tag}
+                            </span>
+                        );
+                    })}
+                </div>
+            );
         case 'number':
             return <span className="font-mono text-[#0A0B0D]">{value}</span>;
         case 'date':

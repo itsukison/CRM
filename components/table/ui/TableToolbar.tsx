@@ -126,7 +126,7 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
     const legacyColumns = table.columns.map(definitionToColumn);
 
     return (
-        <div className="h-16 border-b border-[#E6E8EB] bg-white flex items-center justify-between px-6 sticky top-0 z-50">
+        <div className="h-16 border-b border-[#E6E8EB] bg-white flex items-center justify-between px-6 sticky top-0 z-[70]">
             <div className="flex items-center gap-3">
                 <h1 className="text-lg font-bold text-[#0A0B0D] tracking-tight">{table.name}</h1>
                 <span className="text-xs text-[#5B616E] font-mono bg-[#F5F5F7] px-2 py-1 rounded-md">

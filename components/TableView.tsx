@@ -104,7 +104,7 @@ export const TableView: React.FC<TableViewProps> = ({
                 const letter = getColumnLetter(i);
                 placeholderColumns.push({
                     id: `placeholder_col_${letter}`,
-                    name: `Column ${letter}`,
+                    name: '',
                     type: 'text' as const,
                     order: i,
                     textOverflow: 'clip' as const,

@@ -4,6 +4,12 @@ export type TextOverflowMode = 'wrap' | 'clip' | 'visible' | 'ellipsis';
 
 export const COMPANY_COLUMN_ID = 'company_name';
 
+export interface TagOption {
+    id: string;
+    label: string;
+    color?: string;
+}
+
 // Column Definition for JSONB schema (stored in tables.columns)
 export interface ColumnDefinition {
     id: string;
@@ -14,6 +20,7 @@ export interface ColumnDefinition {
     order: number;
     textOverflow?: TextOverflowMode;
     isPlaceholder?: boolean; // True for placeholder columns that shouldn't be synced to database
+    options?: TagOption[];
 }
 
 // Legacy Column interface (for backward compatibility with existing components)
@@ -23,6 +30,7 @@ export interface Column {
     type: ColumnType;
     description?: string;
     textOverflow?: TextOverflowMode;
+    options?: TagOption[];
 }
 
 // Helper function to convert ColumnDefinition to legacy Column format
@@ -33,6 +41,7 @@ export function definitionToColumn(def: ColumnDefinition): Column {
         type: def.type,
         description: def.description,
         textOverflow: def.textOverflow as TextOverflowMode | undefined,
+        options: def.options,
     };
 }
 
@@ -46,5 +55,6 @@ export function columnToDefinition(col: Column, order: number): ColumnDefinition
         order: order,
         description: col.description,
         textOverflow: col.textOverflow,
+        options: col.options,
     };
 }

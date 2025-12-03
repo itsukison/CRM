@@ -51,6 +51,7 @@ export default function CreateTablePage() {
 
     return (
         <TableCreator
+            isOpen={true}
             onTableCreated={handleTableCreated}
             onCancel={() => router.push('/dashboard')}
             orgId={currentOrganization?.id}

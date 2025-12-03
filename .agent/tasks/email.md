@@ -1,3 +1,6 @@
+You just implemented this feature where user can create an AI generated table from the @CRM/app/dashboard  page, with some default columns. However, there are a couple columns that are not generating ideail results.
+1) It should follow the data generation flow from @tool
+
 AI Email Agent Feature
 Phase 1: Database Schema (Supabase MCP)
 Create three new tables via Supabase MCP:

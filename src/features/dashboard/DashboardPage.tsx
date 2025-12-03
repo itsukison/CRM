@@ -21,9 +21,12 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/ui/primitives/alert-dialog';
-import { deleteTable } from '@/services/tableService';
+import { deleteTable, createTable } from '@/services/tableService';
+import { createRow, rowToData } from '@/services/rowService';
 import { toast } from 'sonner';
 import { IconDatabase, IconDots, IconTrash } from '@/components/Icons';
+import { TableCreator } from '@/components/TableCreator';
+import { useAuth } from '@/contexts/AuthContext';
 
 const DashboardPage: React.FC = () => {
     const router = useRouter();
@@ -38,12 +41,53 @@ const DashboardPage: React.FC = () => {
 
 
 
+    const { currentOrganization } = useAuth();
+    const [isCreatorOpen, setIsCreatorOpen] = useState(false);
+
     const handleTableClick = (tableId: string) => {
         router.push(`/dashboard/tables/${tableId}`);
     };
 
     const handleCreateClick = () => {
-        router.push('/dashboard/create');
+        setIsCreatorOpen(true);
+    };
+
+    const handleTableCreated = async (tableData: TableData, generationParams?: { prompt: string; count: number; companyContext: string }) => {
+        if (!currentOrganization) {
+            toast.error('組織が選択されていません');
+            return;
+        }
+
+        try {
+            // 1. Create the table definition
+            const { table: newTable, error: tableError } = await createTable(
+                currentOrganization.id,
+                tableData.name,
+                tableData.description,
+                tableData.columns
+            );
+
+            if (tableError || !newTable) throw tableError;
+
+            // 2. Insert initial rows (if any)
+            if (tableData.rows.length > 0) {
+                await Promise.all(tableData.rows.map(row =>
+                    createRow(newTable.id, rowToData(row))
+                ));
+            }
+
+            // 3. Handle AI Generation if requested
+            if (generationParams) {
+                sessionStorage.setItem(`pending_generation_${newTable.id}`, JSON.stringify(generationParams));
+            }
+
+            router.push(`/dashboard/tables/${newTable.id}`);
+            toast.success('テーブルを作成しました');
+            setIsCreatorOpen(false);
+        } catch (error) {
+            console.error('Failed to create table:', error);
+            toast.error('テーブルの作成に失敗しました');
+        }
     };
 
     const handleDeleteTable = async () => {
@@ -152,6 +196,13 @@ const DashboardPage: React.FC = () => {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            <TableCreator
+                isOpen={isCreatorOpen}
+                onTableCreated={handleTableCreated}
+                onCancel={() => setIsCreatorOpen(false)}
+                orgId={currentOrganization?.id}
+            />
         </div>
     );
 };

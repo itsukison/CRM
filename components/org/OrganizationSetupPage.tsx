@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { createOrganization } from '../../services/organizationService';
 import { acceptInvitation } from '../../services/invitationService';
 import { COLORS } from '@/config/constants';
+import { cn } from '@/lib/utils';
 
 type SetupMode = 'create' | 'join';
 
@@ -80,37 +81,10 @@ export const OrganizationSetupPage: React.FC = () => {
     // Show loading state while checking authentication
     if (loading) {
         return (
-            <div style={{
-                minHeight: '100vh',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: COLORS.GRAY_0,
-            }}>
-                <div style={{
-                    textAlign: 'center',
-                    fontFamily: 'Inter, sans-serif',
-                }}>
-                    <div style={{
-                        width: '48px',
-                        height: '48px',
-                        margin: '0 auto 1rem',
-                        border: `3px solid ${COLORS.GRAY_15}`,
-                        borderTopColor: COLORS.BLUE,
-                        borderRadius: '50%',
-                        animation: 'spin 1s linear infinite',
-                    }} />
-                    <p style={{
-                        fontSize: '0.875rem',
-                        color: COLORS.GRAY_60,
-                    }}>
-                        読み込み中...
-                    </p>
-                    <style>{`
-                        @keyframes spin {
-                            to { transform: rotate(360deg); }
-                        }
-                    `}</style>
+            <div className="min-h-screen flex items-center justify-center bg-white">
+                <div className="text-center">
+                    <div className="w-12 h-12 mx-auto mb-4 border-4 border-[#F5F5F7] border-t-[#0052FF] rounded-full animate-spin" />
+                    <p className="text-sm text-[#5B616E] font-mono">読み込み中...</p>
                 </div>
             </div>
         );
@@ -122,119 +96,56 @@ export const OrganizationSetupPage: React.FC = () => {
     }
 
     return (
-        <div style={{
-            minHeight: '100vh',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: COLORS.GRAY_0,
-        }}>
-            <div style={{
-                width: '100%',
-                maxWidth: '500px',
-                padding: '2rem',
-            }}>
+        <div className="min-h-screen flex items-center justify-center bg-white p-4">
+            <div className="w-full max-w-[500px]">
                 {/* Logo/Title */}
-                <div style={{ marginBottom: '3rem', textAlign: 'center' }}>
-                    <h1 style={{
-                        fontSize: '2rem',
-                        fontWeight: 'bold',
-                        color: COLORS.GRAY_100,
-                        marginBottom: '0.5rem',
-                        fontFamily: 'Inter, sans-serif',
-                    }}>
+                <div className="mb-12 text-center">
+                    <h1 className="text-3xl font-bold text-[#0A0B0D] mb-2 font-inter tracking-tight">
                         組織のセットアップ
                     </h1>
-                    <p style={{
-                        fontSize: '0.875rem',
-                        color: COLORS.GRAY_50,
-                        fontFamily: 'Inter, sans-serif',
-                        marginTop: '0.5rem',
-                    }}>
+                    <p className="text-sm text-[#5B616E] font-inter">
                         新しい組織を作成するか、既存の組織に参加してください
                     </p>
                 </div>
 
                 {/* Mode Toggle */}
-                <div style={{
-                    display: 'flex',
-                    gap: '0.5rem',
-                    marginBottom: '2rem',
-                    border: `1px solid ${COLORS.GRAY_15}`,
-                    background: COLORS.WHITE,
-                }}>
+                <div className="flex gap-2 mb-8 p-1 bg-[#F5F5F7] rounded-xl border border-[#E6E8EB]">
                     <button
                         onClick={() => setMode('create')}
-                        style={{
-                            flex: 1,
-                            padding: '0.875rem',
-                            background: mode === 'create' ? COLORS.BLUE : 'transparent',
-                            color: mode === 'create' ? COLORS.WHITE : COLORS.GRAY_60,
-                            border: 'none',
-                            fontSize: '0.875rem',
-                            fontFamily: 'JetBrains Mono, monospace',
-                            fontWeight: 'bold',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.05em',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                        }}
+                        className={cn(
+                            "flex-1 py-3 rounded-lg text-sm font-bold font-mono uppercase tracking-wider transition-all duration-200",
+                            mode === 'create'
+                                ? "bg-white text-[#0A0B0D] shadow-sm"
+                                : "text-[#5B616E] hover:text-[#0A0B0D]"
+                        )}
                     >
                         新規作成
                     </button>
                     <button
                         onClick={() => setMode('join')}
-                        style={{
-                            flex: 1,
-                            padding: '0.875rem',
-                            background: mode === 'join' ? COLORS.BLUE : 'transparent',
-                            color: mode === 'join' ? COLORS.WHITE : COLORS.GRAY_60,
-                            border: 'none',
-                            fontSize: '0.875rem',
-                            fontFamily: 'JetBrains Mono, monospace',
-                            fontWeight: 'bold',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.05em',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                        }}
+                        className={cn(
+                            "flex-1 py-3 rounded-lg text-sm font-bold font-mono uppercase tracking-wider transition-all duration-200",
+                            mode === 'join'
+                                ? "bg-white text-[#0A0B0D] shadow-sm"
+                                : "text-[#5B616E] hover:text-[#0A0B0D]"
+                        )}
                     >
                         参加する
                     </button>
                 </div>
 
                 {/* Form Container */}
-                <div style={{
-                    border: `1px solid ${COLORS.GRAY_15}`,
-                    padding: '2rem',
-                    background: COLORS.WHITE,
-                }}>
+                <div className="bg-white rounded-2xl border border-[#E6E8EB] p-8 shadow-sm">
                     {error && (
-                        <div style={{
-                            padding: '0.75rem',
-                            marginBottom: '1.5rem',
-                            border: `2px solid ${COLORS.RED}`,
-                            background: `${COLORS.RED}10`,
-                            color: COLORS.RED,
-                            fontSize: '0.875rem',
-                            fontFamily: 'Inter, sans-serif',
-                        }}>
+                        <div className="p-3 mb-6 border border-red-200 bg-red-50 text-red-600 text-sm rounded-lg font-inter">
                             {error}
                         </div>
                     )}
 
                     {mode === 'create' ? (
-                        <form onSubmit={handleCreateOrganization}>
-                            <div style={{ marginBottom: '1.5rem' }}>
-                                <label style={{
-                                    display: 'block',
-                                    marginBottom: '0.5rem',
-                                    fontSize: '0.75rem',
-                                    fontFamily: 'JetBrains Mono, monospace',
-                                    color: COLORS.GRAY_60,
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.05em',
-                                }}>
+                        <form onSubmit={handleCreateOrganization} className="space-y-6">
+                            <div>
+                                <label className="block mb-2 text-xs font-bold text-[#5B616E] uppercase tracking-wider font-mono">
                                     組織名 *
                                 </label>
                                 <input
@@ -243,91 +154,38 @@ export const OrganizationSetupPage: React.FC = () => {
                                     onChange={(e) => setOrgName(e.target.value)}
                                     required
                                     placeholder="例: Acme Inc."
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        border: `1px solid ${COLORS.GRAY_15}`,
-                                        fontSize: '1rem',
-                                        fontFamily: 'Inter, sans-serif',
-                                        color: COLORS.GRAY_100,
-                                        outline: 'none',
-                                    }}
-                                    onFocus={(e) => e.target.style.borderColor = COLORS.BLUE}
-                                    onBlur={(e) => e.target.style.borderColor = COLORS.GRAY_15}
+                                    className="w-full px-4 py-3 bg-[#F5F5F7] border-transparent rounded-xl text-[#0A0B0D] placeholder:text-gray-400 focus:border-[#0052FF] focus:ring-0 focus:bg-white transition-all font-inter text-base"
                                 />
                             </div>
 
-                            <div style={{ marginBottom: '1.5rem' }}>
-                                <label style={{
-                                    display: 'block',
-                                    marginBottom: '0.5rem',
-                                    fontSize: '0.75rem',
-                                    fontFamily: 'JetBrains Mono, monospace',
-                                    color: COLORS.GRAY_60,
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.05em',
-                                }}>
-                                    説明（任意）
+                            <div>
+                                <label className="block mb-2 text-xs font-bold text-[#5B616E] uppercase tracking-wider font-mono">
+                                    会社コンテキスト（AI生成用）
                                 </label>
+                                <p className="text-xs text-[#5B616E] mb-3 font-inter leading-relaxed">
+                                    どのような会社か、主な顧客層、提供している製品・サービスなどを詳しく記述してください。この情報はAIがリード顧客を提案・評価する際に使用されます。
+                                </p>
                                 <textarea
                                     value={orgDescription}
                                     onChange={(e) => setOrgDescription(e.target.value)}
-                                    placeholder="組織の説明を入力してください"
-                                    rows={3}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        border: `1px solid ${COLORS.GRAY_15}`,
-                                        fontSize: '1rem',
-                                        fontFamily: 'Inter, sans-serif',
-                                        color: COLORS.GRAY_100,
-                                        outline: 'none',
-                                        resize: 'vertical',
-                                    }}
-                                    onFocus={(e) => e.target.style.borderColor = COLORS.BLUE}
-                                    onBlur={(e) => e.target.style.borderColor = COLORS.GRAY_15}
+                                    placeholder="例：当社は中小企業向けにSaaS型の勤怠管理システムを提供しています。主な顧客は従業員数50-300名のIT企業や製造業です。..."
+                                    rows={5}
+                                    className="w-full px-4 py-3 bg-[#F5F5F7] border-transparent rounded-xl text-[#0A0B0D] placeholder:text-gray-400 focus:border-[#0052FF] focus:ring-0 focus:bg-white transition-all font-mono text-sm resize-y"
                                 />
                             </div>
 
                             <button
                                 type="submit"
                                 disabled={submitting}
-                                style={{
-                                    width: '100%',
-                                    padding: '0.875rem',
-                                    background: submitting ? COLORS.GRAY_30 : COLORS.BLUE,
-                                    color: COLORS.WHITE,
-                                    border: 'none',
-                                    fontSize: '0.875rem',
-                                    fontFamily: 'JetBrains Mono, monospace',
-                                    fontWeight: 'bold',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.05em',
-                                    cursor: submitting ? 'not-allowed' : 'pointer',
-                                    transition: 'background 0.2s',
-                                }}
-                                onMouseEnter={(e) => {
-                                    if (!submitting) e.currentTarget.style.background = COLORS.CERULEAN;
-                                }}
-                                onMouseLeave={(e) => {
-                                    if (!submitting) e.currentTarget.style.background = COLORS.BLUE;
-                                }}
+                                className="w-full py-4 bg-[#0A0B0D] text-white rounded-xl font-bold font-mono uppercase tracking-wider hover:bg-black/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                             >
                                 {loading ? '作成中...' : '組織を作成'}
                             </button>
                         </form>
                     ) : (
-                        <form onSubmit={handleJoinOrganization}>
-                            <div style={{ marginBottom: '1.5rem' }}>
-                                <label style={{
-                                    display: 'block',
-                                    marginBottom: '0.5rem',
-                                    fontSize: '0.75rem',
-                                    fontFamily: 'JetBrains Mono, monospace',
-                                    color: COLORS.GRAY_60,
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.05em',
-                                }}>
+                        <form onSubmit={handleJoinOrganization} className="space-y-6">
+                            <div>
+                                <label className="block mb-2 text-xs font-bold text-[#5B616E] uppercase tracking-wider font-mono">
                                     招待トークン
                                 </label>
                                 <input
@@ -336,24 +194,9 @@ export const OrganizationSetupPage: React.FC = () => {
                                     onChange={(e) => setInvitationToken(e.target.value)}
                                     required
                                     placeholder="招待トークンを入力してください"
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        border: `1px solid ${COLORS.GRAY_15}`,
-                                        fontSize: '1rem',
-                                        fontFamily: 'Inter, sans-serif',
-                                        color: COLORS.GRAY_100,
-                                        outline: 'none',
-                                    }}
-                                    onFocus={(e) => e.target.style.borderColor = COLORS.BLUE}
-                                    onBlur={(e) => e.target.style.borderColor = COLORS.GRAY_15}
+                                    className="w-full px-4 py-3 bg-[#F5F5F7] border-transparent rounded-xl text-[#0A0B0D] placeholder:text-gray-400 focus:border-[#0052FF] focus:ring-0 focus:bg-white transition-all font-mono text-base"
                                 />
-                                <p style={{
-                                    marginTop: '0.5rem',
-                                    fontSize: '0.75rem',
-                                    color: COLORS.GRAY_50,
-                                    fontFamily: 'Inter, sans-serif',
-                                }}>
+                                <p className="mt-2 text-xs text-[#5B616E] font-inter">
                                     組織の管理者から送信された招待トークンを入力してください
                                 </p>
                             </div>
@@ -361,26 +204,7 @@ export const OrganizationSetupPage: React.FC = () => {
                             <button
                                 type="submit"
                                 disabled={submitting}
-                                style={{
-                                    width: '100%',
-                                    padding: '0.875rem',
-                                    background: submitting ? COLORS.GRAY_30 : COLORS.BLUE,
-                                    color: COLORS.WHITE,
-                                    border: 'none',
-                                    fontSize: '0.875rem',
-                                    fontFamily: 'JetBrains Mono, monospace',
-                                    fontWeight: 'bold',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.05em',
-                                    cursor: submitting ? 'not-allowed' : 'pointer',
-                                    transition: 'background 0.2s',
-                                }}
-                                onMouseEnter={(e) => {
-                                    if (!submitting) e.currentTarget.style.background = COLORS.CERULEAN;
-                                }}
-                                onMouseLeave={(e) => {
-                                    if (!submitting) e.currentTarget.style.background = COLORS.BLUE;
-                                }}
+                                className="w-full py-4 bg-[#0A0B0D] text-white rounded-xl font-bold font-mono uppercase tracking-wider hover:bg-black/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                             >
                                 {loading ? '参加中...' : '組織に参加'}
                             </button>
@@ -388,22 +212,11 @@ export const OrganizationSetupPage: React.FC = () => {
                     )}
                 </div>
 
-                {/* Skip Option - for users who want to go back */}
-                <div style={{
-                    marginTop: '1.5rem',
-                    textAlign: 'center',
-                }}>
+                {/* Skip Option */}
+                <div className="mt-8 text-center">
                     <button
                         onClick={() => router.push('/signin')}
-                        style={{
-                            background: 'transparent',
-                            border: 'none',
-                            color: COLORS.GRAY_50,
-                            fontSize: '0.875rem',
-                            fontFamily: 'Inter, sans-serif',
-                            cursor: 'pointer',
-                            textDecoration: 'underline',
-                        }}
+                        className="text-sm text-[#5B616E] hover:text-[#0A0B0D] font-inter underline decoration-gray-300 underline-offset-4 transition-colors"
                     >
                         サインインに戻る
                     </button>

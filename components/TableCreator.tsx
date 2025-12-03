@@ -1,210 +1,285 @@
 // TableCreator component - simplified version without AI data generation
 import React, { useState } from 'react';
 import { Column, TableData, columnToDefinition, Row, COMPANY_COLUMN_ID } from '@/types';
-import { IconPlus, IconTrash } from './Icons';
+import { IconPlus, IconTrash, IconSparkles, IconTable } from './Icons';
 import { Button } from '@/ui/primitives/button';
 import { Input } from '@/ui/primitives/input';
 import { Label } from '@/ui/primitives/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/ui/primitives/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/ui/primitives/dialog';
 import { toast } from 'sonner';
+import { generateCompaniesAndEnrich } from './tableAiTools';
+import { useAuth } from '@/contexts/AuthContext';
+import { cn } from '@/lib/utils';
 
-interface TableCreatorProps {
-    onTableCreated: (table: TableData) => void;
-    onCancel: () => void;
-    orgId?: string;
+interface GenerationParams {
+    prompt: string;
+    count: number;
+    companyContext: string;
 }
 
-export const TableCreator: React.FC<TableCreatorProps> = ({ onTableCreated, onCancel, orgId }) => {
+interface TableCreatorProps {
+    onTableCreated: (table: TableData, generationParams?: GenerationParams) => void;
+    onCancel: () => void;
+    orgId?: string;
+    isOpen: boolean;
+}
+
+type CreatorMode = 'select' | 'import' | 'ai';
+
+export const TableCreator: React.FC<TableCreatorProps> = ({ onTableCreated, onCancel, orgId, isOpen }) => {
+    const { currentOrganization } = useAuth();
+    const [mode, setMode] = useState<CreatorMode>('select');
     const [name, setName] = useState('');
-    const [description, setDescription] = useState('');
+
+    // AI Generation State
+    const [aiPrompt, setAiPrompt] = useState('');
+    const [rowCount, setRowCount] = useState(10);
+    const [isGenerating, setIsGenerating] = useState(false);
+
+    // Default columns for AI generation
     const [columns, setColumns] = useState<Column[]>([
         { id: COMPANY_COLUMN_ID, title: '会社名', type: 'text' },
-        { id: 'col_2', title: '業界', type: 'tag' },
-        { id: 'col_3', title: '担当者名', type: 'text' },
-        { id: 'col_4', title: 'メール', type: 'email' },
+        { id: 'col_summary', title: '会社概要', type: 'text' },
+        { id: 'col_website', title: 'ウェブサイト', type: 'url' },
+        { id: 'col_employees', title: '従業員規模', type: 'text' },
+        { id: 'col_revenue', title: '想定売上規模', type: 'text' },
+        { id: 'col_linkedin', title: 'SNS', type: 'url' },
+        {
+            id: 'col_fit_score',
+            title: 'フィットスコア',
+            type: 'tag',
+            options: [
+                { id: 'high', label: '高', color: 'green' },
+                { id: 'medium', label: '中', color: 'yellow' },
+                { id: 'low', label: '低', color: 'gray' }
+            ]
+        },
+        { id: 'col_tags', title: 'カテゴリー', type: 'tag' }, // Industry, Product category, etc.
+        {
+            id: 'col_status',
+            title: 'ステータス',
+            type: 'tag',
+            options: [
+                { id: 'uncontacted', label: '未接触', color: 'gray' },
+                { id: 'researching', label: '調査中', color: 'blue' },
+                { id: 'exclude', label: '除外候補', color: 'red' },
+                { id: 'contacted', label: '連絡済み', color: 'green' }
+            ]
+        },
     ]);
 
-    const addColumn = () => {
-        const newId = `col_${columns.length + 1}`;
-        setColumns([...columns, { id: newId, title: '', type: 'text' }]);
-    };
-
-    const removeColumn = (index: number) => {
-        if (columns.length <= 1) {
-            toast.error('少なくとも1つのカラムが必要です');
+    const handleAiGenerate = async () => {
+        if (!name) {
+            toast.error('データベース名を入力してください');
             return;
         }
-        const newCols = [...columns];
-        newCols.splice(index, 1);
-        setColumns(newCols);
-    };
+        if (!aiPrompt) {
+            toast.error('ターゲット企業の条件を入力してください');
+            return;
+        }
 
-    const updateColumn = (index: number, field: keyof Column, value: string) => {
-        const newCols = [...columns];
-        newCols[index] = { ...newCols[index], [field]: value };
-        setColumns(newCols);
-    };
-
-    const createTableWithPlaceholders = () => {
+        setIsGenerating(true);
         try {
-            // Convert Column to ColumnDefinition
+            // Create base table structure
             const columnDefinitions = columns.map((col, idx) => ({
                 ...columnToDefinition(col, idx),
-                textOverflow: 'clip' as const // Set default to clip
+                textOverflow: 'clip' as const
             }));
 
-            const MIN_COLUMNS = 10;
-
-            // Pad to minimum 10 columns (A~J)
-            let finalColumns = [...columnDefinitions];
-            if (finalColumns.length < MIN_COLUMNS) {
-                const needed = MIN_COLUMNS - finalColumns.length;
-                const getColumnLetter = (colIndex: number) => {
-                    let letter = '';
-                    while (colIndex >= 0) {
-                        letter = String.fromCharCode((colIndex % 26) + 65) + letter;
-                        colIndex = Math.floor(colIndex / 26) - 1;
-                    }
-                    return letter;
-                };
-
-                for (let i = 0; i < needed; i++) {
-                    const colIndex = finalColumns.length + i;
-                    const colLetter = getColumnLetter(colIndex);
-                    finalColumns.push({
-                        id: `col_placeholder_${Date.now()}_${i}`,
-                        name: `Column ${colLetter}`,
-                        type: 'text',
-                        description: '',
-                        required: false,
-                        order: colIndex,
-                        textOverflow: 'clip' as const
-                    });
-                }
-            }
-
-            // Generate 50 placeholder rows (empty values) with required 'id'
-            const placeholderRows: Row[] = Array.from({ length: 50 }, (_, i) => {
-                const row: Row = { id: `row_${Date.now()}_${i}` };
-                finalColumns.forEach(col => {
-                    (row as any)[col.id] = null; // empty placeholder
-                });
-                return row;
-            });
-            const newTable: TableData = {
+            const baseTable: TableData = {
                 id: `table_${Date.now()}`,
                 org_id: orgId || 'default',
                 name,
-                description,
-                columns: finalColumns,
-                rows: placeholderRows,
+                description: aiPrompt, // Use prompt as description
+                columns: columnDefinitions,
+                rows: [],
             };
-            onTableCreated(newTable);
+
+            // Pass generation params to parent
+            const companyContext = currentOrganization?.description || '';
+
+            onTableCreated(baseTable, {
+                prompt: aiPrompt,
+                count: rowCount,
+                companyContext
+            });
+
+            onCancel(); // Close dialog
         } catch (e) {
             console.error(e);
-            toast.error('テーブルの作成に失敗しました');
+            toast.error('リストの作成に失敗しました');
+        } finally {
+            setIsGenerating(false);
         }
     };
 
+    const handleImport = () => {
+        toast.info('Excel/XLSXインポート機能は準備中です');
+    };
+
+    const resetAndClose = () => {
+        setMode('select');
+        setName('');
+        setAiPrompt('');
+        onCancel();
+    };
+
     return (
-        <div className="max-w-3xl mx-auto p-8 bg-white min-h-screen animate-in slide-in-from-bottom-4 duration-500">
-            <div className="mb-8">
-                <h2 className="text-3xl font-bold tracking-tight mb-2">データベース作成</h2>
-                <p className="text-gray-500 font-mono text-sm">スキーマを定義してテーブルを作成</p>
-            </div>
-            <div className="space-y-8">
-                <div className="grid grid-cols-1 gap-6">
-                    <div className="space-y-2">
-                        <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">データベース名</Label>
-                        <Input
-                            type="text"
-                            value={name}
-                            onChange={e => setName(e.target.value)}
-                            className="text-lg font-medium"
-                            placeholder="例: 新規リード顧客"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">コンテキスト / 説明</Label>
-                        <textarea
-                            value={description}
-                            onChange={e => setDescription(e.target.value)}
-                            className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                            rows={2}
-                            placeholder="どのようなデータを扱いますか？"
-                        />
-                    </div>
-                    <div>
-                        <Label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">スキーマ定義</Label>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {columns.map((col, idx) => (
-                                <div key={col.id} className="flex gap-3 items-center p-4 bg-gray-50 border border-gray-200 group hover:border-gray-400 transition-all relative" style={{ borderRadius: '4px' }}>
-                                    <button
-                                        onClick={() => removeColumn(idx)}
-                                        className="absolute top-2 right-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                                        title="削除"
-                                    >
-                                        <IconTrash className="w-3.5 h-3.5" />
-                                    </button>
-                                    <div className="flex-1">
-                                        <Input
-                                            type="text"
-                                            value={col.title}
-                                            onChange={e => updateColumn(idx, 'title', e.target.value)}
-                                            className="border-0 rounded-none px-0 focus-visible:ring-0 focus-visible:border-blue-600 font-bold placeholder:font-normal"
-                                            placeholder="カラム名"
-                                        />
-                                    </div>
-                                    <div className="w-32">
-                                        <Select
-                                            value={col.type}
-                                            onValueChange={value => updateColumn(idx, 'type', value as any)}
-                                        >
-                                            <SelectTrigger className="h-9 text-xs font-mono">
-                                                <SelectValue placeholder="型" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="text">テキスト</SelectItem>
-                                                <SelectItem value="number">数値</SelectItem>
-                                                <SelectItem value="tag">タグ</SelectItem>
-                                                <SelectItem value="url">URL</SelectItem>
-                                                <SelectItem value="date">日付</SelectItem>
-                                                <SelectItem value="email">Eメール</SelectItem>
-                                            </SelectContent>
-                                        </Select>
+        <Dialog open={isOpen} onOpenChange={(open) => !open && resetAndClose()}>
+            <DialogContent className="sm:max-w-[600px] bg-white p-0 gap-0 overflow-hidden border-[#E6E8EB] shadow-xl">
+                {mode === 'select' && (
+                    <>
+                        <DialogHeader className="p-8 pb-4">
+                            <DialogTitle className="text-2xl font-bold tracking-tight text-[#0A0B0D]">データベース作成</DialogTitle>
+                            <DialogDescription className="text-[#5B616E]">
+                                作成方法を選択してください
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="p-8 pt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <button
+                                onClick={() => setMode('import')}
+                                className="flex flex-col items-start p-6 border border-[#E6E8EB] rounded-2xl hover:border-[#0052FF] hover:bg-[#F5F5F7] transition-all group text-left"
+                            >
+                                <div className="w-10 h-10 bg-[#F5F5F7] rounded-full flex items-center justify-center mb-4 group-hover:bg-white transition-colors">
+                                    <IconTable className="w-5 h-5 text-[#5B616E] group-hover:text-[#0052FF]" />
+                                </div>
+                                <h3 className="text-base font-bold mb-1 text-[#0A0B0D]">Excel / CSV</h3>
+                                <p className="text-xs text-[#5B616E] leading-relaxed">
+                                    既存のデータをアップロードしてテーブルを作成
+                                </p>
+                            </button>
+
+                            <button
+                                onClick={() => setMode('ai')}
+                                className="flex flex-col items-start p-6 border border-[#E6E8EB] rounded-2xl hover:border-[#0052FF] hover:bg-[#F5F5F7] transition-all group text-left"
+                            >
+                                <div className="w-10 h-10 bg-[#F5F5F7] rounded-full flex items-center justify-center mb-4 group-hover:bg-white transition-colors">
+                                    <IconSparkles className="w-5 h-5 text-[#5B616E] group-hover:text-[#0052FF]" />
+                                </div>
+                                <h3 className="text-base font-bold mb-1 text-[#0A0B0D]">AI リード生成</h3>
+                                <p className="text-xs text-[#5B616E] leading-relaxed">
+                                    条件を指定して企業リストを自動生成
+                                </p>
+                            </button>
+                        </div>
+                    </>
+                )}
+
+                {mode === 'ai' && (
+                    <>
+                        <DialogHeader className="p-8 pb-4 border-b border-[#E6E8EB]">
+                            <DialogTitle className="text-xl font-bold tracking-tight text-[#0A0B0D]">AI リード生成</DialogTitle>
+                            <DialogDescription className="text-[#5B616E]">
+                                ターゲット条件から企業リストを自動生成
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="p-8 space-y-6">
+                            <div className="space-y-3">
+                                <Label className="text-xs font-bold text-[#5B616E] uppercase tracking-wider">リスト名</Label>
+                                <Input
+                                    value={name}
+                                    onChange={e => setName(e.target.value)}
+                                    placeholder="例: 新規開拓リスト_2024Q1"
+                                    className="bg-[#F5F5F7] border-transparent focus:border-[#0052FF] focus:ring-0 rounded-xl font-mono text-sm"
+                                />
+                            </div>
+
+                            <div className="space-y-3">
+                                <Label className="text-xs font-bold text-[#5B616E] uppercase tracking-wider">ターゲット条件</Label>
+                                <div className="relative">
+                                    <textarea
+                                        value={aiPrompt}
+                                        onChange={e => setAiPrompt(e.target.value)}
+                                        className="flex w-full rounded-xl border-transparent bg-[#F5F5F7] px-4 py-3 text-sm font-mono shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0052FF] disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                                        rows={4}
+                                        placeholder="例: 東京都内の従業員数50名以上のSaaS企業..."
+                                    />
+                                    <div className="absolute bottom-3 right-3">
+                                        <IconSparkles className="w-4 h-4 text-[#0052FF] opacity-50" />
                                     </div>
                                 </div>
-                            ))}
+                                {currentOrganization?.description && (
+                                    <p className="text-[10px] text-[#5B616E] flex items-center gap-1">
+                                        <IconSparkles className="w-3 h-3" />
+                                        あなたの会社情報（{currentOrganization.name}）も考慮されます
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="space-y-3">
+                                <div className="flex justify-between items-center">
+                                    <Label className="text-xs font-bold text-[#5B616E] uppercase tracking-wider">生成件数</Label>
+                                    <span className="text-xs font-mono font-bold text-[#0A0B0D]">{rowCount}件</span>
+                                </div>
+                                <Input
+                                    type="number"
+                                    min={1}
+                                    max={50}
+                                    value={rowCount}
+                                    onChange={e => setRowCount(parseInt(e.target.value) || 10)}
+                                    className="bg-[#F5F5F7] border-transparent focus:border-[#0052FF] focus:ring-0 rounded-xl font-mono text-sm"
+                                />
+                            </div>
                         </div>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={addColumn}
-                            className="mt-4 text-xs font-bold text-blue-600 hover:text-blue-800 hover:bg-blue-50 uppercase tracking-wider"
-                        >
-                            <IconPlus className="w-3 h-3 mr-2" /> カラム追加
-                        </Button>
-                    </div>
-                    <div className="pt-8 flex gap-4 border-t border-gray-100">
-                        <Button
-                            onClick={createTableWithPlaceholders}
-                            disabled={!name}
-                            className="bg-black text-white hover:bg-gray-800 shadow-lg"
-                            size="lg"
-                        >
-                            作成
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            onClick={onCancel}
-                            size="lg"
-                            className="text-gray-500 hover:text-black"
-                        >
-                            キャンセル
-                        </Button>
-                    </div>
-                </div>
-            </div>
-        </div>
+
+                        <DialogFooter className="p-8 pt-4 border-t border-[#E6E8EB] bg-white">
+                            <Button
+                                variant="ghost"
+                                onClick={() => setMode('select')}
+                                disabled={isGenerating}
+                                className="text-[#5B616E] hover:text-[#0A0B0D] hover:bg-[#F5F5F7]"
+                            >
+                                戻る
+                            </Button>
+                            <Button
+                                onClick={handleAiGenerate}
+                                disabled={isGenerating || !name || !aiPrompt}
+                                className="bg-[#0A0B0D] text-white hover:bg-black/90 rounded-lg px-8"
+                            >
+                                {isGenerating ? (
+                                    <div className="flex items-center gap-2">
+                                        <IconSparkles className="w-4 h-4 animate-spin" />
+                                        生成中...
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-2">
+                                        <IconSparkles className="w-4 h-4" />
+                                        生成開始
+                                    </div>
+                                )}
+                            </Button>
+                        </DialogFooter>
+                    </>
+                )}
+
+                {mode === 'import' && (
+                    <>
+                        <DialogHeader className="p-8 pb-4">
+                            <DialogTitle className="text-xl font-bold tracking-tight text-[#0A0B0D]">インポート</DialogTitle>
+                            <DialogDescription className="text-[#5B616E]">Excel / CSVファイルから作成</DialogDescription>
+                        </DialogHeader>
+
+                        <div className="p-8 flex flex-col items-center justify-center min-h-[200px]">
+                            <div className="w-16 h-16 bg-[#F5F5F7] rounded-full flex items-center justify-center mb-4">
+                                <IconTable className="w-8 h-8 text-[#5B616E]" />
+                            </div>
+                            <p className="text-[#5B616E] font-mono text-sm">この機能は現在開発中です</p>
+                        </div>
+
+                        <DialogFooter className="p-8 pt-4 border-t border-[#E6E8EB]">
+                            <Button
+                                variant="ghost"
+                                onClick={() => setMode('select')}
+                                className="text-[#5B616E] hover:text-[#0A0B0D] hover:bg-[#F5F5F7]"
+                            >
+                                戻る
+                            </Button>
+                        </DialogFooter>
+                    </>
+                )}
+            </DialogContent>
+        </Dialog>
     );
 };

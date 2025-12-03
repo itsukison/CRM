@@ -51,12 +51,13 @@ export const identifyCompanies = async (
 
 export const scrapeCompanyDetails = async (
   companyName: string,
-  columns: string[]
+  columns: string[],
+  companyContext?: string
 ): Promise<{ data: Record<string, string>; sources: string[] }> => {
   const ai = getClient();
 
   const columnsStr = columns.join(", ");
-  const prompt = `
+  let prompt = `
   I need accurate information for the Japanese company "${companyName}".
   Please use Google Search to find the values for the following fields: [${columnsStr}].
   
@@ -65,9 +66,33 @@ export const scrapeCompanyDetails = async (
   Format the output as lines of "KEY::VALUE". 
   If a value is not found, write "KEY::N/A".
   
+  Special Instructions:
+  - For "ウェブサイト" (Website), return only the domain or homepage URL.
+  - For "SNS", return the LinkedIn, Twitter/X, or Facebook URL if found.
+  - For "カテゴリー" (Category), select 2-3 most relevant tags from this list: [IT・通信, 製造業, 建設業, 小売・卸売, 金融・保険, 不動産, サービス業, 医療・福祉, 教育, 官公庁, コンサルティング, 人材, 物流, エネルギー, エンタメ]. Return them as a comma-separated list.
+  `;
+
+  if (companyContext) {
+    prompt += `
+    
+    Also, evaluate the "フィットスコア" (Fit Score) for this company based on the following User Company Context:
+    "${companyContext}"
+    
+    Determine if "${companyName}" is a good potential customer for the User Company.
+    - 高: Strong match (industry, size, needs align).
+    - 中: Partial match.
+    - 低: Poor match.
+    
+    Return "フィットスコア::高", "フィットスコア::中", or "フィットスコア::低".
+    `;
+  }
+
+  prompt += `
   Example Output:
   Founded Date::2010-05-01
   CEO Name::Taro Yamada
+  フィットスコア::高
+  カテゴリー::IT・通信, SaaS, B2B
   `;
 
   try {
@@ -89,24 +114,24 @@ export const scrapeCompanyDetails = async (
         const key = rawKey.trim();
         const value = val.trim();
 
-        const matchedColumn = columns.find(
-          (col) => key.includes(col) || col.includes(key)
-        );
-        if (matchedColumn) {
-          data[matchedColumn] = value;
+        // Direct match
+        if (columns.includes(key)) {
+          data[key] = value;
         } else {
-          columns.forEach((col) => {
-            if (!data[col] && (key.includes(col) || col.includes(key))) {
-              data[col] = value;
-            }
-          });
+          // Fuzzy match
+          const matchedColumn = columns.find(
+            (col) => key.includes(col) || col.includes(key)
+          );
+          if (matchedColumn) {
+            data[matchedColumn] = value;
+          }
         }
       }
     });
 
     columns.forEach((col) => {
       if (!data[col]) {
-        data[col] = "Not Found / Check Source";
+        data[col] = "N/A";
       }
     });
 
@@ -122,7 +147,7 @@ export const scrapeCompanyDetails = async (
   } catch (error) {
     console.error(`Error scraping ${companyName}:`, error);
     const emptyData: Record<string, string> = {};
-    columns.forEach((c) => (emptyData[c] = "Error"));
+    columns.forEach((c) => (emptyData[c] = "N/A"));
     return { data: emptyData, sources: [] };
   }
 };

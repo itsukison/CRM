@@ -3,6 +3,7 @@ import { Column, SortState, ColumnType } from '@/types';
 import { IconSettings, IconSort, IconArrowUp, IconTrash, IconCheck, IconPlus, IconHash, IconCalendar, IconLink, IconTag, IconMail, IconFileText, IconEdit, IconArrowRight, IconArrowLeft } from '@/components/Icons';
 import { CustomSelect } from './CustomSelect';
 import { DescriptionModal } from './DescriptionModal';
+import { TagManagementModal } from './TagManagementModal';
 
 interface TableColumnHeaderProps {
     column: Column;
@@ -39,6 +40,7 @@ export const TableColumnHeader: React.FC<TableColumnHeaderProps> = ({
 }) => {
     const [isRenaming, setIsRenaming] = React.useState(false);
     const [showDescriptionModal, setShowDescriptionModal] = React.useState(false);
+    const [showTagModal, setShowTagModal] = React.useState(false);
     const [showTypeMenu, setShowTypeMenu] = React.useState(false);
     const renameInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -230,6 +232,19 @@ export const TableColumnHeader: React.FC<TableColumnHeaderProps> = ({
                             )}
                         </div>
 
+                        {column.type === 'tag' && (
+                            <button
+                                className="flex items-center gap-2 px-2 py-1.5 text-xs text-[#0A0B0D] hover:bg-[#F5F5F7] rounded-lg transition-colors w-full text-left"
+                                onClick={() => {
+                                    setShowTagModal(true);
+                                    setActiveColMenu(null);
+                                }}
+                            >
+                                <IconTag className="w-3.5 h-3.5 text-[#5B616E]" />
+                                タグを管理
+                            </button>
+                        )}
+
                         <button
                             className="flex items-center gap-2 px-2 py-1.5 text-xs text-[#0A0B0D] hover:bg-[#F5F5F7] rounded-lg transition-colors w-full text-left"
                             onClick={() => {
@@ -254,6 +269,14 @@ export const TableColumnHeader: React.FC<TableColumnHeaderProps> = ({
                     </div>
                 )}
             </th>
+
+            <TagManagementModal
+                isOpen={showTagModal}
+                onClose={() => setShowTagModal(false)}
+                onSave={(options) => handleUpdateColumn({ ...column, options })}
+                initialOptions={column.options || []}
+                columnTitle={column.title}
+            />
 
             <DescriptionModal
                 isOpen={showDescriptionModal}
