@@ -9,7 +9,7 @@ import { getTable, updateTable } from '@/services/tableService';
 import { createRow, updateRow, deleteRow, rowToData } from '@/services/rowService';
 import { identifyCompanies, scrapeCompanyDetails } from '@/services/companyService';
 import { findCompanyKeyColumn } from '@/components/tableAiTools';
-import { EnrichmentProgress } from '@/services/ai/enrichment.service';
+import { EnrichmentProgress } from '@/services/enrichmentService';
 import { toast } from 'sonner';
 
 interface TablePageProps {
@@ -106,7 +106,7 @@ const TablePage: React.FC<TablePageProps> = ({ tableId }) => {
                 newRowData[companyKeyColumn.id] = name;
 
                 // Set default status if status column exists
-                const statusCol = currentTable.columns.find(c => c.id === 'col_status' || c.title === 'ステータス');
+                const statusCol = currentTable.columns.find(c => c.id === 'col_status' || c.name === 'ステータス');
                 if (statusCol) {
                     newRowData[statusCol.id] = '未連絡';
                 }

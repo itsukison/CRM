@@ -237,11 +237,11 @@ const CellEditor: React.FC<CellEditorProps> = ({ initialValue, column, onSave, o
         // Prevent multiple saves
         if (isSavingRef.current) return;
         isSavingRef.current = true;
-        
+
         // Normalize empty values to empty string for consistency
         const normalizedValue = val === undefined || val === null ? '' : val;
         onSave(normalizedValue);
-        
+
         // Reset saving flag after a short delay
         setTimeout(() => {
             isSavingRef.current = false;
@@ -423,7 +423,7 @@ const renderCellValue = (value: any, type: string, column?: Column) => {
                         return { bg, text, border };
                     }
                 }
-                
+
                 // Check for default colors for common tags
                 const defaultColor = getDefaultTagColor(tagLabel);
                 if (defaultColor) {
@@ -433,7 +433,7 @@ const renderCellValue = (value: any, type: string, column?: Column) => {
                     const border = colorParts.find(p => p.startsWith('border-')) || 'border-[#E6E8EB]';
                     return { bg, text, border };
                 }
-                
+
                 // Fallback to default
                 return { bg: 'bg-[#F5F5F7]', text: 'text-[#0A0B0D]', border: 'border-[#E6E8EB]' };
             };
@@ -460,7 +460,7 @@ const renderCellValue = (value: any, type: string, column?: Column) => {
 };
 
 interface TagCellDropdownProps {
-    cellRef: React.RefObject<HTMLTableCellElement>;
+    cellRef: React.RefObject<HTMLTableCellElement | null>;
     initialValue: any;
     column: Column;
     onSave: (value: any) => void;
@@ -566,7 +566,7 @@ const TagCellDropdown: React.FC<TagCellDropdownProps> = ({
             const border = colorParts.find(p => p.startsWith('border-')) || 'border-[#E6E8EB]';
             return { bg, text, border };
         }
-        
+
         // Check for default colors for common tags
         const defaultColor = getDefaultTagColor(tagLabel);
         if (defaultColor) {
@@ -576,7 +576,7 @@ const TagCellDropdown: React.FC<TagCellDropdownProps> = ({
             const border = colorParts.find(p => p.startsWith('border-')) || 'border-[#E6E8EB]';
             return { bg, text, border };
         }
-        
+
         return { bg: 'bg-[#F5F5F7]', text: 'text-[#0A0B0D]', border: 'border-[#E6E8EB]' };
     };
 

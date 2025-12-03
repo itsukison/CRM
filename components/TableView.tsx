@@ -21,7 +21,7 @@ import { useTableFilter } from './table/hooks/useTableFilter';
 import { useTableImport } from './table/hooks/useTableImport';
 import { useTableAI } from './table/hooks/useTableAI';
 import { useAuth } from '@/contexts/AuthContext';
-import { EnrichmentProgress } from '@/services/ai/enrichment.service';
+import { EnrichmentProgress } from '@/services/enrichmentService';
 
 // UI Components
 import { TableToolbar } from './table/ui/TableToolbar';
