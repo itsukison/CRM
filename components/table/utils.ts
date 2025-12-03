@@ -1,5 +1,61 @@
 import { Row, Column } from '@/types';
 
+// Default colors for common tags
+export const getDefaultTagColor = (tagLabel: string): string | null => {
+    const normalized = tagLabel.trim();
+    
+    // Company matchness / Fit score tags
+    if (normalized === '高' || normalized.toLowerCase() === 'high') {
+        return 'bg-green-50 text-green-700 border-green-200';
+    }
+    if (normalized === '中' || normalized.toLowerCase() === 'medium') {
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+    }
+    if (normalized === '低' || normalized.toLowerCase() === 'low') {
+        return 'bg-gray-50 text-gray-500 border-gray-200';
+    }
+    
+    // Status tags
+    if (normalized === '未連絡' || normalized === '未接触' || normalized.toLowerCase() === 'uncontacted') {
+        return 'bg-gray-50 text-gray-500 border-gray-200';
+    }
+    if (normalized === '連絡中' || normalized === '調査中' || normalized.toLowerCase() === 'contacting') {
+        return 'bg-blue-50 text-blue-600 border-blue-200';
+    }
+    if (normalized === '連絡済み' || normalized.toLowerCase() === 'contacted') {
+        return 'bg-green-50 text-green-600 border-green-200';
+    }
+    if (normalized === '除外候補' || normalized.toLowerCase() === 'excluded') {
+        return 'bg-red-50 text-red-600 border-red-200';
+    }
+    
+    // Category tags - assign colors based on industry type
+    const categoryColors: Record<string, string> = {
+        'IT・通信': 'bg-blue-50 text-blue-600 border-blue-200',
+        '製造業': 'bg-indigo-50 text-indigo-600 border-indigo-200',
+        '建設業': 'bg-orange-50 text-orange-600 border-orange-200',
+        '小売・卸売': 'bg-pink-50 text-pink-600 border-pink-200',
+        '金融・保険': 'bg-emerald-50 text-emerald-600 border-emerald-200',
+        '不動産': 'bg-purple-50 text-purple-600 border-purple-200',
+        'サービス業': 'bg-cyan-50 text-cyan-600 border-cyan-200',
+        '医療・福祉': 'bg-red-50 text-red-600 border-red-200',
+        '教育': 'bg-teal-50 text-teal-600 border-teal-200',
+        '官公庁': 'bg-slate-50 text-slate-600 border-slate-200',
+        'コンサルティング': 'bg-violet-50 text-violet-600 border-violet-200',
+        '人材': 'bg-amber-50 text-amber-600 border-amber-200',
+        '物流': 'bg-lime-50 text-lime-600 border-lime-200',
+        'エネルギー': 'bg-yellow-50 text-yellow-700 border-yellow-200',
+        'エンタメ': 'bg-rose-50 text-rose-600 border-rose-200',
+        // Common variations
+        'IT': 'bg-blue-50 text-blue-600 border-blue-200',
+        'SaaS': 'bg-blue-50 text-blue-600 border-blue-200',
+        'フィンテック': 'bg-emerald-50 text-emerald-600 border-emerald-200',
+        'ロボティクス': 'bg-indigo-50 text-indigo-600 border-indigo-200',
+    };
+    
+    return categoryColors[normalized] || null;
+};
+
 // Helper to get column letter from index (A, B, C, etc.)
 const getColumnLetter = (index: number): string => {
     let letter = '';

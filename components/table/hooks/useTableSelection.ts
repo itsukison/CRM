@@ -62,8 +62,14 @@ export const useTableSelection = ({
     };
 
     const handleCellClick = (e: React.MouseEvent, rowId: string, colId: string) => {
-        // Don't select if clicking inside editor
-        if (editingCell) return;
+        // Don't select if clicking inside the same editor
+        // But allow clicking a different cell (which will trigger blur on the current editor)
+        if (editingCell && editingCell.rowId === rowId && editingCell.colId === colId) {
+            return;
+        }
+        
+        // If clicking a different cell while editing, the blur event will handle saving
+        // The blur event fires before click, so the value should be saved by the time we get here
 
         // Prevent browser text selection on shift+click
         if (e.shiftKey) {

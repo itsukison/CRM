@@ -21,6 +21,7 @@ import { useTableFilter } from './table/hooks/useTableFilter';
 import { useTableImport } from './table/hooks/useTableImport';
 import { useTableAI } from './table/hooks/useTableAI';
 import { useAuth } from '@/contexts/AuthContext';
+import { EnrichmentProgress } from '@/services/ai/enrichment.service';
 
 // UI Components
 import { TableToolbar } from './table/ui/TableToolbar';
@@ -42,6 +43,8 @@ interface TableViewProps {
     onSelectRowIds: (ids: Set<string>) => void;
     selectedCellIds: Set<string>;
     onSelectCellIds: (ids: Set<string>) => void;
+    enrichmentProgress?: Map<string, EnrichmentProgress>;
+    generatingRowIds?: Set<string>;
 }
 
 export const TableView: React.FC<TableViewProps> = ({
@@ -54,7 +57,9 @@ export const TableView: React.FC<TableViewProps> = ({
     selectedRowIds,
     onSelectRowIds,
     selectedCellIds,
-    onSelectCellIds
+    onSelectCellIds,
+    enrichmentProgress: externalEnrichmentProgress,
+    generatingRowIds: externalGeneratingRowIds
 }) => {
     const { user, currentOrganization } = useAuth();
 
@@ -457,11 +462,11 @@ export const TableView: React.FC<TableViewProps> = ({
                         table={displayTable}
                         selectedRowIds={selectedRowIds}
                         toggleRowSelection={selection.toggleRowSelection}
-                        generatingRowIds={ai.generatingRowIds}
+                        generatingRowIds={externalGeneratingRowIds ?? ai.generatingRowIds}
                         loadingCells={loadingCells}
                         selectedCellIds={selectedCellIds}
                         editingCell={editingCell}
-                        enrichmentProgress={ai.enrichmentProgress}
+                        enrichmentProgress={externalEnrichmentProgress ?? ai.enrichmentProgress}
                         columnWidths={columns.columnWidths}
                         handleCellClick={selection.handleCellClick}
                         handleCellDoubleClick={(rowId, colId) => {

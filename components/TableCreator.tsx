@@ -50,21 +50,21 @@ export const TableCreator: React.FC<TableCreatorProps> = ({ onTableCreated, onCa
             title: 'フィットスコア',
             type: 'tag',
             options: [
-                { id: 'high', label: '高', color: 'green' },
-                { id: 'medium', label: '中', color: 'yellow' },
-                { id: 'low', label: '低', color: 'gray' }
+                { id: 'high', label: '高', color: 'bg-green-50 text-green-700 border-green-200' },
+                { id: 'medium', label: '中', color: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
+                { id: 'low', label: '低', color: 'bg-gray-50 text-gray-500 border-gray-200' }
             ]
         },
+        { id: 'col_fit_explanation', title: 'フィットスコア理由', type: 'text' },
         { id: 'col_tags', title: 'カテゴリー', type: 'tag' }, // Industry, Product category, etc.
         {
             id: 'col_status',
             title: 'ステータス',
             type: 'tag',
             options: [
-                { id: 'uncontacted', label: '未接触', color: 'gray' },
-                { id: 'researching', label: '調査中', color: 'blue' },
-                { id: 'exclude', label: '除外候補', color: 'red' },
-                { id: 'contacted', label: '連絡済み', color: 'green' }
+                { id: 'uncontacted', label: '未連絡', color: 'bg-gray-50 text-gray-500 border-gray-200' },
+                { id: 'contacting', label: '連絡中', color: 'bg-blue-50 text-blue-600 border-blue-200' },
+                { id: 'contacted', label: '連絡済み', color: 'bg-green-50 text-green-600 border-green-200' }
             ]
         },
     ]);

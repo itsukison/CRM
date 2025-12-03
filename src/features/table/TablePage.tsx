@@ -9,6 +9,7 @@ import { getTable, updateTable } from '@/services/tableService';
 import { createRow, updateRow, deleteRow, rowToData } from '@/services/rowService';
 import { identifyCompanies, scrapeCompanyDetails } from '@/services/companyService';
 import { findCompanyKeyColumn } from '@/components/tableAiTools';
+import { EnrichmentProgress } from '@/services/ai/enrichment.service';
 import { toast } from 'sonner';
 
 interface TablePageProps {
@@ -25,6 +26,8 @@ const TablePage: React.FC<TablePageProps> = ({ tableId }) => {
     const [activeSorts, setActiveSorts] = useState<SortState[]>([]);
     const [selectedRowIds, setSelectedRowIds] = useState<Set<string>>(new Set());
     const [selectedCellIds, setSelectedCellIds] = useState<Set<string>>(new Set());
+    const [enrichmentProgress, setEnrichmentProgress] = useState<Map<string, EnrichmentProgress>>(new Map());
+    const [generatingRowIds, setGeneratingRowIds] = useState<Set<string>>(new Set());
 
     // Refs to track previous state for diffing
     const prevTableRef = useRef<TableData | null>(null);
@@ -71,13 +74,18 @@ const TablePage: React.FC<TablePageProps> = ({ tableId }) => {
     const startRealtimeGeneration = async (currentTable: TableData, params: { prompt: string; count: number; companyContext: string }) => {
         const { prompt, count, companyContext } = params;
 
-        // 1. Identify Companies
+        // Clear previous progress
+        setEnrichmentProgress(new Map());
+        setGeneratingRowIds(new Set());
+
+        // 1. Identify Companies (batch generation first)
         let query = prompt;
         if (companyContext) {
             query += `\n\n【ユーザーの会社情報（この会社にとっての理想的な顧客を探してください）】\n${companyContext}`;
         }
 
         try {
+            toast.info('企業名を生成中...', { description: '企業リストを作成しています...' });
             const companyNames = await identifyCompanies(query, count);
             if (!companyNames || companyNames.length === 0) {
                 toast.error('企業の特定に失敗しました');
@@ -90,82 +98,156 @@ const TablePage: React.FC<TablePageProps> = ({ tableId }) => {
                 return;
             }
 
-            // 2. Process each company sequentially (or with limited concurrency)
-            // We'll do sequential for now to ensure stable updates and avoid rate limits
+            // 2. Create rows with company names only (no enrichment yet)
+            const createdRows: Row[] = [];
             for (const name of companyNames) {
-                await processCompanyRow(currentTable.id, currentTable.columns, companyKeyColumn.id, name, companyContext);
+                const newRowData: Record<string, any> = {};
+                currentTable.columns.forEach(col => newRowData[col.id] = '');
+                newRowData[companyKeyColumn.id] = name;
+
+                // Set default status if status column exists
+                const statusCol = currentTable.columns.find(c => c.id === 'col_status' || c.title === 'ステータス');
+                if (statusCol) {
+                    newRowData[statusCol.id] = '未連絡';
+                }
+
+                const { row: createdRow, error } = await createRow(currentTable.id, newRowData);
+                if (error || !createdRow) {
+                    console.error(`Failed to create row for ${name}:`, error);
+                    continue;
+                }
+
+                createdRows.push(createdRow);
+
+                // Update local state immediately
+                setTable(prev => {
+                    if (!prev) return null;
+                    return {
+                        ...prev,
+                        rows: [...prev.rows, createdRow]
+                    };
+                });
             }
+
+            // 3. Enrich each row sequentially with Google search grounding
+            const targetCols = currentTable.columns.map(definitionToColumn).filter(c =>
+                c.id !== companyKeyColumn.id &&
+                c.id !== 'col_status' &&
+                c.title !== 'ステータス'
+            );
+            const targetTitles = targetCols.map(c => c.title);
+
+            for (let i = 0; i < createdRows.length; i++) {
+                const row = createdRows[i];
+                const companyName = row[companyKeyColumn.id] as string;
+
+                if (!companyName) continue;
+
+                // Mark row as generating
+                setGeneratingRowIds(prev => {
+                    const next = new Set(prev);
+                    next.add(row.id);
+                    return next;
+                });
+
+                // Set progress to "discovery" for all target cells
+                setEnrichmentProgress(prev => {
+                    const next = new Map(prev);
+                    targetCols.forEach(col => {
+                        const cellKey = `${row.id}-${col.id}`;
+                        next.set(cellKey, {
+                            rowId: row.id,
+                            columnId: col.id,
+                            phase: 'discovery'
+                        });
+                    });
+                    return next;
+                });
+
+                try {
+                    const { data } = await scrapeCompanyDetails(companyName, targetTitles, companyContext);
+
+                    // Merge enriched data (excluding status column)
+                    const enrichedData = { ...row };
+                    targetCols.forEach(col => {
+                        const value = data[col.title];
+                        // Set value if it exists, including 'N/A' to ensure empty cells are filled
+                        if (value !== undefined) {
+                            enrichedData[col.id] = value;
+                        }
+                    });
+
+                    // Update row in database
+                    await updateRow(row.id, rowToData(enrichedData, currentTable.columns));
+
+                    // Update local state with enriched data
+                    setTable(prev => {
+                        if (!prev) return null;
+                        return {
+                            ...prev,
+                            rows: prev.rows.map(r => r.id === row.id ? enrichedData : r)
+                        };
+                    });
+
+                    // Mark complete for all target cells
+                    setEnrichmentProgress(prev => {
+                        const next = new Map(prev);
+                        targetCols.forEach(col => {
+                            const cellKey = `${row.id}-${col.id}`;
+                            const value = data[col.title];
+                            next.set(cellKey, {
+                                rowId: row.id,
+                                columnId: col.id,
+                                phase: 'complete',
+                                result: value !== undefined && value !== 'N/A' ? {
+                                    field: col.title,
+                                    value,
+                                    confidence: 'high' as const
+                                } : undefined
+                            });
+                        });
+                        return next;
+                    });
+                } catch (e) {
+                    console.error(`Failed to enrich row for ${companyName}:`, e);
+                    // Mark error for all target cells
+                    setEnrichmentProgress(prev => {
+                        const next = new Map(prev);
+                        targetCols.forEach(col => {
+                            const cellKey = `${row.id}-${col.id}`;
+                            next.set(cellKey, {
+                                rowId: row.id,
+                                columnId: col.id,
+                                phase: 'error',
+                                error: e instanceof Error ? e.message : '不明なエラー'
+                            });
+                        });
+                        return next;
+                    });
+                } finally {
+                    // Remove from generating set
+                    setGeneratingRowIds(prev => {
+                        const next = new Set(prev);
+                        next.delete(row.id);
+                        return next;
+                    });
+                }
+            }
+
+            // Clear progress after a delay
+            setTimeout(() => {
+                setEnrichmentProgress(new Map());
+            }, 3000);
 
             toast.success('生成が完了しました');
         } catch (e) {
             console.error('Generation failed:', e);
             toast.error('生成中にエラーが発生しました');
+            setEnrichmentProgress(new Map());
+            setGeneratingRowIds(new Set());
         }
     };
 
-    const processCompanyRow = async (tableId: string, columns: any[], companyKeyColId: string, companyName: string, companyContext?: string) => {
-        // a. Create initial row
-        const newRowData: Record<string, any> = {};
-        columns.forEach(col => newRowData[col.id] = '');
-        newRowData[companyKeyColId] = companyName;
-
-        // Set default status if status column exists
-        const statusCol = columns.find(c => c.id === 'col_status' || c.title === 'ステータス');
-        if (statusCol) {
-            newRowData[statusCol.id] = '未接触';
-        }
-
-        try {
-            const { row: createdRow, error } = await createRow(tableId, newRowData);
-            if (error || !createdRow) throw error;
-
-            // Update local state immediately
-            setTable(prev => {
-                if (!prev) return null;
-                return {
-                    ...prev,
-                    rows: [...prev.rows, createdRow]
-                };
-            });
-
-            // b. Enrich row
-            const targetCols = columns.map(definitionToColumn).filter(c => c.id !== companyKeyColId);
-            const targetTitles = targetCols.map(c => c.title);
-
-            const { data } = await scrapeCompanyDetails(companyName, targetTitles, companyContext);
-
-            // Merge enriched data
-            const enrichedData = { ...createdRow };
-            targetCols.forEach(col => {
-                const value = data[col.title];
-                if (value !== undefined) {
-                    // Handle Tags: split by comma if it's the tags column
-                    if (col.type === 'tag' && typeof value === 'string' && value.includes(',')) {
-                        // Keep as string if TableCell handles it, or split if it expects array.
-                        // Let's keep as string for now and handle splitting in TableCell for rendering consistency
-                        enrichedData[col.id] = value;
-                    } else {
-                        enrichedData[col.id] = value;
-                    }
-                }
-            });
-
-            // c. Update row
-            await updateRow(createdRow.id, rowToData(enrichedData));
-
-            // Update local state with enriched data
-            setTable(prev => {
-                if (!prev) return null;
-                return {
-                    ...prev,
-                    rows: prev.rows.map(r => r.id === createdRow.id ? enrichedData : r)
-                };
-            });
-
-        } catch (e) {
-            console.error(`Failed to process row for ${companyName}:`, e);
-        }
-    };
 
     const handleUpdateTable = async (updatedTableOrFn: TableData | ((prev: TableData) => TableData)) => {
         setTable(prev => {
@@ -179,6 +261,37 @@ const TablePage: React.FC<TablePageProps> = ({ tableId }) => {
 
             return newTable;
         });
+    };
+
+    // Helper function to normalize cell values for comparison
+    // Treats undefined, null, and empty string as equivalent (all mean "empty")
+    const normalizeCellValue = (value: any): any => {
+        if (value === undefined || value === null || value === '') {
+            return null; // Normalize all "empty" values to null for comparison
+        }
+        return value;
+    };
+
+    // Helper function to check if two cell values are different
+    const cellValueChanged = (oldValue: any, newValue: any): boolean => {
+        // Special case: if oldValue is undefined (column doesn't exist in row's JSONB),
+        // and newValue is defined (even if empty string), this is a change.
+        // This handles the case where a user edits an empty cell in a column that wasn't
+        // previously stored in the database.
+        if (oldValue === undefined && newValue !== undefined) {
+            return true;
+        }
+
+        const normalizedOld = normalizeCellValue(oldValue);
+        const normalizedNew = normalizeCellValue(newValue);
+
+        // If both are normalized to null, no change
+        if (normalizedOld === null && normalizedNew === null) {
+            return false;
+        }
+
+        // Otherwise, compare the normalized values
+        return normalizedOld !== normalizedNew;
     };
 
     const syncChanges = async (oldTable: TableData, newTable: TableData) => {
@@ -222,7 +335,11 @@ const TablePage: React.FC<TablePageProps> = ({ tableId }) => {
         oldTable.rows.forEach(r => {
             if (!newRowsMap.has(r.id)) {
                 // If it was a real row (not empty placeholder), delete it
-                if (!r.id.startsWith('empty_') && !r.id.startsWith('gen_temp_')) {
+                // Check for all placeholder prefixes: empty_, gen_temp_, placeholder_row_
+                if (!r.id.startsWith('empty_') &&
+                    !r.id.startsWith('gen_temp_') &&
+                    !r.id.startsWith('placeholder_row_') &&
+                    !(r as any).isPlaceholder) {
                     deletedRowIds.push(r.id);
                 }
             }
@@ -244,18 +361,29 @@ const TablePage: React.FC<TablePageProps> = ({ tableId }) => {
             if (!oldRow) {
                 // NEW ROW
                 // Check if it is an "empty" placeholder row
-                if (newRow.id.startsWith('empty_') || newRow.id.startsWith('gen_temp_')) {
-                    // Only create if it has some data
+                // Check for all placeholder prefixes: empty_, gen_temp_, placeholder_row_
+                const isPlaceholderRow = newRow.id.startsWith('empty_') ||
+                    newRow.id.startsWith('gen_temp_') ||
+                    newRow.id.startsWith('placeholder_row_') ||
+                    (newRow as any).isPlaceholder;
+
+                if (isPlaceholderRow) {
+                    // Only create if it has some real data (not just placeholders)
                     const hasData = newTable.columns.some(col => {
                         const val = newRow[col.id];
-                        return val !== undefined && val !== null && val !== '';
+                        // Exclude undefined, null, empty string (placeholder values)
+                        if (val === undefined || val === null || val === '') return false;
+                        return true;
                     });
 
                     if (hasData) {
                         console.log('Creating new row from placeholder:', newRow.id);
                         try {
-                            const { row: createdRow, error } = await createRow(newTable.id, rowToData(newRow));
-                            if (error || !createdRow) throw error;
+                            const { row: createdRow, error } = await createRow(newTable.id, rowToData(newRow, newTable.columns));
+                            if (error || !createdRow) {
+                                console.error('Failed to create row:', error);
+                                throw error;
+                            }
 
                             // Update local state to replace temp ID with real ID
                             setTable(current => {
@@ -265,8 +393,10 @@ const TablePage: React.FC<TablePageProps> = ({ tableId }) => {
                                     rows: current.rows.map(r => r.id === newRow.id ? createdRow : r)
                                 };
                             });
+                            console.log('Successfully created row:', createdRow.id, 'replacing placeholder:', newRow.id);
                         } catch (e) {
                             console.error('Failed to create row:', e);
+                            toast.error('行の作成に失敗しました');
                         }
                     }
                 } else {
@@ -276,28 +406,51 @@ const TablePage: React.FC<TablePageProps> = ({ tableId }) => {
                 }
             } else {
                 // EXISTING ROW
-                // Check if content changed
+                // Check if content changed using normalized comparison
                 // We only check columns defined in the table
-                const hasChanged = newTable.columns.some(col => newRow[col.id] !== oldRow[col.id]);
+                const changedColumns: string[] = [];
+                newTable.columns.forEach(col => {
+                    const oldValue = oldRow[col.id];
+                    const newValue = newRow[col.id];
+                    if (cellValueChanged(oldValue, newValue)) {
+                        changedColumns.push(col.id);
+                    }
+                });
+                const hasChanged = changedColumns.length > 0;
 
                 if (hasChanged) {
+                    console.log(`Row ${newRow.id} changed. Columns:`, changedColumns);
+                    console.log('Old values:', changedColumns.map(colId => ({ [colId]: oldRow[colId] })));
+                    console.log('New values:', changedColumns.map(colId => ({ [colId]: newRow[colId] })));
+
                     // Skip updates for placeholder rows that haven't been created yet
-                    if (newRow.id.startsWith('empty_') || newRow.id.startsWith('gen_temp_')) {
+                    // Check for all placeholder prefixes: empty_, gen_temp_, placeholder_row_
+                    const isPlaceholderRow = newRow.id.startsWith('empty_') ||
+                        newRow.id.startsWith('gen_temp_') ||
+                        newRow.id.startsWith('placeholder_row_') ||
+                        (newRow as any).isPlaceholder;
+
+                    if (isPlaceholderRow) {
                         // If it has data now, it should have been caught in the "New Row" block?
                         // No, because it exists in oldTable (added by TableView useEffect).
                         // So if an empty row is edited, it falls here.
 
-                        // Logic: If it's a temp row, and has data, create it.
+                        // Logic: If it's a temp row, and has real data (not just placeholders), create it.
                         const hasData = newTable.columns.some(col => {
                             const val = newRow[col.id];
-                            return val !== undefined && val !== null && val !== '';
+                            // Exclude undefined, null, empty string (placeholder values)
+                            if (val === undefined || val === null || val === '') return false;
+                            return true;
                         });
 
                         if (hasData) {
                             console.log('Creating row from edited placeholder:', newRow.id);
                             try {
-                                const { row: createdRow, error } = await createRow(newTable.id, rowToData(newRow));
-                                if (error || !createdRow) throw error;
+                                const { row: createdRow, error } = await createRow(newTable.id, rowToData(newRow, newTable.columns));
+                                if (error || !createdRow) {
+                                    console.error('Failed to create row from placeholder:', error);
+                                    throw error;
+                                }
 
                                 // Replace ID
                                 setTable(current => {
@@ -307,19 +460,35 @@ const TablePage: React.FC<TablePageProps> = ({ tableId }) => {
                                         rows: current.rows.map(r => r.id === newRow.id ? createdRow : r)
                                     };
                                 });
+                                console.log('Successfully created row from placeholder:', createdRow.id, 'replacing:', newRow.id);
                             } catch (e) {
-                                console.error('Failed to create row:', e);
+                                console.error('Failed to create row from placeholder:', e);
+                                toast.error('行の作成に失敗しました');
                             }
+                        } else {
+                            console.log('Placeholder row has no data, skipping create:', newRow.id);
                         }
                     } else {
-                        // Real row update
-                        console.log('Updating row:', newRow.id);
+                        // Real row update - this is a row that exists in the database
+                        console.log('Updating existing row:', newRow.id);
                         try {
-                            await updateRow(newRow.id, rowToData(newRow));
+                            const updateData = rowToData(newRow, newTable.columns);
+                            console.log('Update data for row', newRow.id, ':', updateData);
+                            console.log('Changed columns:', changedColumns);
+
+                            const { error } = await updateRow(newRow.id, updateData);
+                            if (error) {
+                                console.error('Update row error for', newRow.id, ':', error);
+                                throw error;
+                            }
+                            console.log('Row updated successfully:', newRow.id);
                         } catch (e) {
-                            console.error('Failed to update row:', e);
+                            console.error('Failed to update row:', newRow.id, e);
+                            toast.error('行の更新に失敗しました');
                         }
                     }
+                } else {
+                    console.log(`Row ${newRow.id} - no changes detected`);
                 }
             }
         }
@@ -417,6 +586,8 @@ const TablePage: React.FC<TablePageProps> = ({ tableId }) => {
                 onSelectRowIds={setSelectedRowIds}
                 selectedCellIds={selectedCellIds}
                 onSelectCellIds={setSelectedCellIds}
+                enrichmentProgress={enrichmentProgress}
+                generatingRowIds={generatingRowIds}
             />
             <ChatWidget
                 table={table}

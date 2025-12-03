@@ -122,9 +122,32 @@ export async function deleteRows(rowIds: string[]): Promise<{ error: Error | nul
 /**
  * Transform Row to JSONB data format (for inserts/updates)
  * Removes the 'id' field and returns the rest as JSONB data
+ * Optionally includes all columns from the table definition to ensure all fields are present
  */
-export function rowToData(row: Row): Record<string, any> {
+export function rowToData(row: Row, columns?: Array<{ id: string }>): Record<string, any> {
     const { id, ...data } = row;
+    
+    // If columns are provided, ensure all column fields are included in the data
+    // This is important for updates where we want to include all fields, even if they're undefined
+    if (columns) {
+        const result: Record<string, any> = {};
+        // First, include all column fields explicitly (this ensures new fields are added)
+        columns.forEach(col => {
+            const value = row[col.id];
+            // Include the field with its value, or null if undefined
+            // This ensures that new fields get added to the JSONB data
+            result[col.id] = value !== undefined ? value : null;
+        });
+        // Then merge in any other fields that might exist (for backward compatibility)
+        Object.keys(data).forEach(key => {
+            // Only add if it's not already in result (columns take precedence)
+            if (!(key in result)) {
+                result[key] = data[key];
+            }
+        });
+        return result;
+    }
+    
     return data;
 }
 

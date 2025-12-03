@@ -23,11 +23,31 @@ export const useTableData = ({
 }: UseTableDataProps) => {
 
     const handleCellUpdate = (rowId: string, colId: string, value: any) => {
-        const updatedRows = table.rows.map(r => {
-            if (r.id === rowId) return { ...r, [colId]: value };
-            return r;
+        // Use functional update to ensure we work with the latest state
+        // This prevents stale closure issues where the table prop might be outdated
+        onUpdateTable(prev => {
+            const rowExists = prev.rows.some(r => r.id === rowId);
+
+            if (!rowExists) {
+                // If row doesn't exist (it was a placeholder), create it
+                const newRow: Row = { id: rowId };
+                // Initialize all columns to empty string
+                prev.columns.forEach(c => newRow[c.id] = '');
+                // Set the value for the edited cell
+                newRow[colId] = value;
+
+                return {
+                    ...prev,
+                    rows: [...prev.rows, newRow]
+                };
+            }
+
+            const updatedRows = prev.rows.map(r => {
+                if (r.id === rowId) return { ...r, [colId]: value };
+                return r;
+            });
+            return { ...prev, rows: updatedRows };
         });
-        onUpdateTable({ ...table, rows: updatedRows });
     };
 
     const handleAddEmptyRow = () => {

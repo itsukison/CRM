@@ -51,6 +51,41 @@ export default function SettingsPage() {
                     <p className="text-[#5B616E] font-inter">アカウントと組織の設定を管理します。</p>
                 </div>
 
+                {/* Account Settings */}
+                <section className="mb-16">
+                    <h2 className="text-xl font-bold text-[#0A0B0D] mb-8 font-inter">
+                        アカウント
+                    </h2>
+
+                    <div className="space-y-8">
+                        <div>
+                            <label className="block text-xs font-bold text-[#5B616E] uppercase tracking-wider mb-2 font-mono">
+                                メールアドレス
+                            </label>
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-[#F5F5F7] flex items-center justify-center text-[#5B616E]">
+                                    <IconUser className="w-5 h-5" />
+                                </div>
+                                <span className="font-mono text-[#0A0B0D] text-sm">
+                                    {user?.email}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-[#5B616E] uppercase tracking-wider mb-2 font-mono">
+                                セッション
+                            </label>
+                            <button
+                                onClick={() => signOut()}
+                                className="px-4 py-2 bg-white border border-[#E6E8EB] text-[#5B616E] hover:text-[#D93025] hover:border-[#D93025] hover:bg-[#FFF5F5] rounded-xl text-sm font-bold transition-all duration-200 font-mono uppercase tracking-wider"
+                            >
+                                サインアウト
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
                 {/* Organization Settings */}
                 <section className="mb-16">
                     <h2 className="text-xl font-bold text-[#0A0B0D] mb-8 font-inter">
@@ -109,40 +144,7 @@ export default function SettingsPage() {
                     </div>
                 </section>
 
-                {/* Account Settings */}
-                <section className="mb-16">
-                    <h2 className="text-xl font-bold text-[#0A0B0D] mb-8 font-inter">
-                        アカウント
-                    </h2>
-
-                    <div className="space-y-8">
-                        <div>
-                            <label className="block text-xs font-bold text-[#5B616E] uppercase tracking-wider mb-2 font-mono">
-                                メールアドレス
-                            </label>
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-[#F5F5F7] flex items-center justify-center text-[#5B616E]">
-                                    <IconUser className="w-5 h-5" />
-                                </div>
-                                <span className="font-mono text-[#0A0B0D] text-sm">
-                                    {user?.email}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-bold text-[#5B616E] uppercase tracking-wider mb-2 font-mono">
-                                セッション
-                            </label>
-                            <button
-                                onClick={() => signOut()}
-                                className="px-4 py-2 bg-white border border-[#E6E8EB] text-[#5B616E] hover:text-[#D93025] hover:border-[#D93025] hover:bg-[#FFF5F5] rounded-xl text-sm font-bold transition-all duration-200 font-mono uppercase tracking-wider"
-                            >
-                                サインアウト
-                            </button>
-                        </div>
-                    </div>
-                </section>
+            
 
                 {/* System Info */}
                 <section>
